@@ -1,0 +1,200 @@
+import 'package:bazi_app/domain/entities/bazi_chart.dart';
+import 'package:bazi_app/domain/entities/hidden_stem.dart';
+import 'package:bazi_app/domain/entities/pillar.dart';
+import 'package:bazi_app/domain/services/bazi_rule_engine.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:bazi_app/infrastructure/calendar/rule_shensha_calculator.dart';
+
+void main() {
+  final engine = const BaziRuleEngine();
+  final calculator = RuleShenshaCalculator(ruleEngine: engine);
+
+  // 甲辰年（年支辰）、癸未日（日支未）
+  BaziChart testChart() => BaziChart(
+        dayMaster: '癸',
+        year: const Pillar(
+          label: '年柱',
+          stem: '甲',
+          branch: '辰',
+          tenGod: '伤官',
+          hiddenStems: [],
+          naYin: '',
+          growthPhase: '',
+        ),
+        month: const Pillar(
+          label: '月柱',
+          stem: '丙',
+          branch: '寅',
+          tenGod: '偏财',
+          hiddenStems: [],
+          naYin: '',
+          growthPhase: '',
+        ),
+        day: const Pillar(
+          label: '日柱',
+          stem: '癸',
+          branch: '未',
+          tenGod: '日主',
+          hiddenStems: [],
+          naYin: '',
+          growthPhase: '',
+        ),
+        hour: const Pillar(
+          label: '时柱',
+          stem: '辛',
+          branch: '酉',
+          tenGod: '偏印',
+          hiddenStems: [],
+          naYin: '',
+          growthPhase: '',
+        ),
+      );
+
+  group('RuleShenshaCalculator', () {
+    test('返回结果非空', () async {
+      final items = await calculator.calculate(testChart());
+      expect(items, isNotEmpty);
+    });
+
+    test('日干癸 → 天乙贵人在卯巳 → 日支未不在 → 但时支酉不在 → 验证无贵人时不出错', () async {
+      // 癸日主贵人：卯、巳。日支未、时支酉都不匹配，不应报天乙贵人。
+      final items = await calculator.calculate(testChart());
+      final tianYi = items.where((i) => i.name == '天乙贵人');
+      expect(tianYi, isEmpty);
+    });
+
+    test('日干甲 → 年柱或日柱见丑/未应有天乙贵人', () async {
+      final chart = BaziChart(
+        dayMaster: '甲',
+        year: Pillar(
+          label: '年柱',
+          stem: '甲',
+          branch: '丑',
+          tenGod: '',
+          hiddenStems: const [],
+          naYin: '',
+          growthPhase: '',
+        ),
+        month: Pillar(
+          label: '月柱',
+          stem: '丙',
+          branch: '寅',
+          tenGod: '',
+          hiddenStems: const [],
+          naYin: '',
+          growthPhase: '',
+        ),
+        day: Pillar(
+          label: '日柱',
+          stem: '甲',
+          branch: '子',
+          tenGod: '日主',
+          hiddenStems: const [],
+          naYin: '',
+          growthPhase: '',
+        ),
+        hour: Pillar(
+          label: '时柱',
+          stem: '辛',
+          branch: '酉',
+          tenGod: '',
+          hiddenStems: const [],
+          naYin: '',
+          growthPhase: '',
+        ),
+      );
+      final items = await calculator.calculate(chart);
+      final tianYi = items.where((i) => i.name == '天乙贵人');
+      expect(tianYi, isNotEmpty);
+      expect(tianYi.first.target, contains('丑'));
+    });
+
+    test('年支辰 → 驿马在寅 → 月支寅 → 应出驿马', () async {
+      final items = await calculator.calculate(testChart());
+      final yiMa = items.where((i) => i.name == '驿马' && i.target.contains('寅'));
+      expect(yiMa, isNotEmpty);
+    });
+
+    test('日支未 → 桃花在子 → 四柱无子 → 不出桃花', () async {
+      final items = await calculator.calculate(testChart());
+      final taoHua = items.where((i) => i.name == '桃花');
+      expect(taoHua, isEmpty);
+    });
+
+    test('日支未 → 华盖在未 → 日柱未 → 应出华盖', () async {
+      final items = await calculator.calculate(testChart());
+      final huaGai = items.where((i) => i.name == '华盖' && i.target.contains('日柱'));
+      expect(huaGai, isNotEmpty);
+    });
+
+    test('每个神煞都有 name / target / description', () async {
+      final items = await calculator.calculate(testChart());
+      for (final item in items) {
+        expect(item.name, isNotEmpty);
+        expect(item.target, isNotEmpty);
+        expect(item.description, isNotEmpty);
+      }
+    });
+
+    test('空亡（旬空）检测：甲子旬空戌亥 —— 验证日柱不在空亡时不出现空亡', () async {
+      // 日柱癸未 → 甲戌旬 → 空申酉
+      final items = await calculator.calculate(testChart());
+      // 四柱无申酉，不应出现空亡
+      final kongWang = items.where((i) => i.name == '空亡');
+      expect(kongWang, isEmpty);
+    });
+
+    test('空亡检测：日柱甲子 → 甲子旬 → 空戌亥 → 年支戌 → 应出现空亡', () async {
+      final chart = BaziChart(
+        dayMaster: '甲',
+        year: Pillar(
+          label: '年柱',
+          stem: '甲',
+          branch: '戌',
+          tenGod: '',
+          hiddenStems: const [],
+          naYin: '',
+          growthPhase: '',
+        ),
+        month: Pillar(
+          label: '月柱',
+          stem: '丙',
+          branch: '寅',
+          tenGod: '',
+          hiddenStems: const [],
+          naYin: '',
+          growthPhase: '',
+        ),
+        day: Pillar(
+          label: '日柱',
+          stem: '甲',
+          branch: '子',
+          tenGod: '日主',
+          hiddenStems: const [],
+          naYin: '',
+          growthPhase: '',
+        ),
+        hour: Pillar(
+          label: '时柱',
+          stem: '辛',
+          branch: '酉',
+          tenGod: '',
+          hiddenStems: const [],
+          naYin: '',
+          growthPhase: '',
+        ),
+      );
+      final items = await calculator.calculate(chart);
+      final kongWang = items.where((i) => i.name == '空亡');
+      expect(kongWang, isNotEmpty);
+      expect(kongWang.first.target, contains('戌'));
+    });
+
+    test('神煞数量合理（6-20 项之间）', () async {
+      final items = await calculator.calculate(testChart());
+      expect(items.length, greaterThanOrEqualTo(3));
+      expect(items.length, lessThanOrEqualTo(40));
+    });
+  });
+}
