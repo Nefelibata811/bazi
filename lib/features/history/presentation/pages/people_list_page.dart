@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../app/app.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../domain/entities/bazi_record.dart';
 import '../../../../domain/entities/bazi_request.dart';
@@ -11,27 +12,19 @@ import '../../../../domain/value_objects/calendar_type.dart';
 import '../../../../domain/value_objects/gender.dart';
 import '../../../../infrastructure/database/supabase_bazi_record_repository.dart';
 import '../../../../infrastructure/database/supabase_collection_repository.dart';
+import '../../application/bazi_records_list_controller.dart';
 import '../../../auth/application/auth_controller.dart';
 import '../../../auth/presentation/pages/profile_page.dart';
 import '../../../input/application/bazi_input_controller.dart';
 import '../../../result/presentation/pages/bazi_result_page.dart';
 
-final refreshPeopleListProvider = StateProvider<int>((ref) => 0);
-
-final peopleListProvider =
-    FutureProvider.autoDispose<List<PersonSummary>>((ref) async {
-  ref.watch(refreshPeopleListProvider);
-  final user = ref.watch(authControllerProvider).user;
-  if (user == null) return [];
-
-  final repo = SupabaseBaziRecordRepository(Supabase.instance.client);
-  final records = await repo.listByUser(user.id);
-
+final peopleListProvider = Provider<List<PersonSummary>>((ref) {
+  final records = ref.watch(baziRecordsListProvider).records;
   final grouped = <String, List<_RawRecord>>{};
   for (final r in records) {
     grouped.putIfAbsent(r.personName, () => []).add(_RawRecord(
           id: r.id,
-          dateLabel: r.dateLabel,
+          birthLabel: r.birthLabel,
           savedAt: r.savedAt,
           requestJson: r.requestJson,
           reportJson: r.reportJson,
@@ -43,7 +36,7 @@ final peopleListProvider =
     return PersonSummary(
       name: e.key,
       recordCount: e.value.length,
-      latestRecord: e.value.isNotEmpty ? e.value.first.dateLabel : '',
+      latestRecord: e.value.isNotEmpty ? e.value.first.birthLabel : '',
       latestRequestJson: e.value.isNotEmpty ? e.value.first.requestJson : '',
     );
   }).toList()
@@ -52,7 +45,7 @@ final peopleListProvider =
 
 final _collectionsProvider =
     FutureProvider.autoDispose<List<CollectionModel>>((ref) async {
-  ref.watch(refreshPeopleListProvider);
+  ref.watch(baziRecordsVersionProvider);
   final user = ref.watch(authControllerProvider).user;
   if (user == null) return [];
   final repo = SupabaseCollectionRepository(Supabase.instance.client);
@@ -61,13 +54,13 @@ final _collectionsProvider =
 
 class _RawRecord {
   final String id;
-  final String dateLabel;
+  final String birthLabel;
   final DateTime savedAt;
   final String requestJson;
   final String reportJson;
   _RawRecord({
     required this.id,
-    required this.dateLabel,
+    required this.birthLabel,
     required this.savedAt,
     required this.requestJson,
     required this.reportJson,
@@ -93,6 +86,7 @@ class PeopleListPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final collections = ref.watch(_collectionsProvider);
+    final recordsState = ref.watch(baziRecordsListProvider);
     final people = ref.watch(peopleListProvider);
     final authState = ref.watch(authControllerProvider);
     final textTheme = Theme.of(context).textTheme;
@@ -111,6 +105,13 @@ class PeopleListPage extends ConsumerWidget {
             icon: const Icon(Icons.create_new_folder),
             tooltip: '命盘合集',
             onPressed: () => _showCreateCollectionDialog(context, ref),
+          ),
+          IconButton(
+            icon: const Icon(Icons.history),
+            tooltip: '排盘记录',
+            onPressed: () {
+              Navigator.of(context).pushNamed('/history');
+            },
           ),
           IconButton(
             icon: const Icon(Icons.add),
@@ -171,24 +172,24 @@ class PeopleListPage extends ConsumerWidget {
               },
             ),
             const SizedBox(height: 8),
-            people.when(
-              loading: () => const Padding(
+            if (recordsState.isLoading && people.isEmpty)
+              const Padding(
                 padding: EdgeInsets.all(20),
                 child: Center(child: CircularProgressIndicator()),
-              ),
-              error: (_, __) => const SizedBox.shrink(),
-              data: (list) => list.isEmpty
-                  ? _HintCard(
-                      icon: Icons.people_outline,
-                      text: '暂无排盘，点击右上角 + 开始第一次排盘',
-                      actionLabel: '新建排盘',
-                      onAction: () {
-                        Navigator.of(context).pushNamed('/input');
-                      },
-                    )
-                  : _PeopleList(
-                      people: list,
-                      onTap: (person) async {
+              )
+            else if (people.isEmpty)
+              _HintCard(
+                icon: Icons.people_outline,
+                text: '暂无排盘，点击右上角 + 开始第一次排盘',
+                actionLabel: '新建排盘',
+                onAction: () {
+                  Navigator.of(context).pushNamed('/input');
+                },
+              )
+            else
+              _PeopleList(
+                people: people,
+                onTap: (person) async {
                         final request =
                             _parseRequest(person.latestRequestJson);
                         if (request == null) return;
@@ -219,11 +220,12 @@ class PeopleListPage extends ConsumerWidget {
                         final repo = SupabaseBaziRecordRepository(
                             Supabase.instance.client);
                         await repo.deleteByPerson(user.id, person.name);
-                        ref.invalidate(peopleListProvider);
-                        ref.invalidate(refreshPeopleListProvider);
+                        await ref
+                            .read(baziRecordsListProvider.notifier)
+                            .refresh(silent: true);
+                        ref.read(chatClearSignal.notifier).state++;
                       },
-                    ),
-            ),
+              ),
           ],
         ),
       ),
@@ -368,7 +370,6 @@ class PeopleListPage extends ConsumerWidget {
           SupabaseCollectionRepository(Supabase.instance.client);
       await repo.create(userId: user.id, name: name);
       ref.invalidate(_collectionsProvider);
-      ref.invalidate(refreshPeopleListProvider);
       if (ctx.mounted) Navigator.of(ctx).pop();
     } catch (_) {
       setDialogState(() => setCreating(false));
@@ -627,7 +628,7 @@ class _PeopleList extends StatelessWidget {
                         Text(person.name, style: textTheme.titleMedium),
                         const SizedBox(height: 3),
                         Text(
-                          '${person.recordCount} 条排盘 · 最近 ${person.latestRecord}',
+                          '${person.recordCount} 条排盘 · ${person.latestRecord}',
                           style: textTheme.bodySmall,
                         ),
                       ],

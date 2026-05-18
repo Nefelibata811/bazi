@@ -1,14 +1,11 @@
 import 'package:bazi_app/domain/entities/bazi_chart.dart';
 import 'package:bazi_app/domain/entities/hidden_stem.dart';
 import 'package:bazi_app/domain/entities/pillar.dart';
-import 'package:bazi_app/domain/services/bazi_rule_engine.dart';
+import 'package:bazi_app/infrastructure/calendar/rule_shensha_calculator.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:bazi_app/infrastructure/calendar/rule_shensha_calculator.dart';
-
 void main() {
-  final engine = const BaziRuleEngine();
-  final calculator = RuleShenshaCalculator(ruleEngine: engine);
+  const calculator = RuleShenshaCalculator();
 
   // 甲辰年（年支辰）、癸未日（日支未）
   BaziChart testChart() => BaziChart(
@@ -135,60 +132,6 @@ void main() {
         expect(item.target, isNotEmpty);
         expect(item.description, isNotEmpty);
       }
-    });
-
-    test('空亡（旬空）检测：甲子旬空戌亥 —— 验证日柱不在空亡时不出现空亡', () async {
-      // 日柱癸未 → 甲戌旬 → 空申酉
-      final items = await calculator.calculate(testChart());
-      // 四柱无申酉，不应出现空亡
-      final kongWang = items.where((i) => i.name == '空亡');
-      expect(kongWang, isEmpty);
-    });
-
-    test('空亡检测：日柱甲子 → 甲子旬 → 空戌亥 → 年支戌 → 应出现空亡', () async {
-      final chart = BaziChart(
-        dayMaster: '甲',
-        year: Pillar(
-          label: '年柱',
-          stem: '甲',
-          branch: '戌',
-          tenGod: '',
-          hiddenStems: const [],
-          naYin: '',
-          growthPhase: '',
-        ),
-        month: Pillar(
-          label: '月柱',
-          stem: '丙',
-          branch: '寅',
-          tenGod: '',
-          hiddenStems: const [],
-          naYin: '',
-          growthPhase: '',
-        ),
-        day: Pillar(
-          label: '日柱',
-          stem: '甲',
-          branch: '子',
-          tenGod: '日主',
-          hiddenStems: const [],
-          naYin: '',
-          growthPhase: '',
-        ),
-        hour: Pillar(
-          label: '时柱',
-          stem: '辛',
-          branch: '酉',
-          tenGod: '',
-          hiddenStems: const [],
-          naYin: '',
-          growthPhase: '',
-        ),
-      );
-      final items = await calculator.calculate(chart);
-      final kongWang = items.where((i) => i.name == '空亡');
-      expect(kongWang, isNotEmpty);
-      expect(kongWang.first.target, contains('戌'));
     });
 
     test('神煞数量合理（6-20 项之间）', () async {

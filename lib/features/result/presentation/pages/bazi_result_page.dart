@@ -1,19 +1,21 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../../app/app.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../domain/entities/bazi_chart.dart';
 import '../../../../domain/entities/bazi_report.dart';
 import '../../../../domain/entities/pillar.dart';
+import '../../../../domain/entities/user.dart';
 import '../../../../domain/value_objects/calendar_precision.dart';
 import '../../../../domain/value_objects/calendar_type.dart';
 import '../../../../domain/value_objects/gender.dart';
-import '../../../../infrastructure/database/supabase_bazi_record_repository.dart';
 import '../../../auth/application/auth_controller.dart';
+import '../../../../core/app_strings.dart';
+import '../../../history/application/save_bazi_record.dart';
+import '../../../history/application/save_bazi_record.dart';
 import '../../../chart/presentation/widgets/bazi_core_chart_card.dart';
-import '../../../history/presentation/pages/people_list_page.dart';
 import '../../../input/application/bazi_input_controller.dart';
 import '../widgets/luck_cycle_timeline.dart';
 import '../widgets/pattern_card.dart';
@@ -32,6 +34,7 @@ class BaziResultPage extends ConsumerStatefulWidget {
 class _BaziResultPageState extends ConsumerState<BaziResultPage> {
   bool _isSaving = false;
   bool _hasSaved = false;
+  bool _isGoingToAi = false;
   DateTime _lastTap = DateTime(2000);
 
   @override
@@ -51,7 +54,7 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
     if (report == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('排盘结果')),
-        body: const Center(child: Text('暂无排盘数据')),
+        body: const Center(child: Text(AppStrings.noChartData)),
       );
     }
 
@@ -80,6 +83,15 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('排盘结果'),
+        leading: IconButton(
+          icon: _isGoingToAi
+              ? const SizedBox(
+                  width: 22, height: 22,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.arrow_back),
+          onPressed: _isGoingToAi ? null : () => _goToAiChat(),
+        ),
         actions: _buildAppBarActions(),
       ),
       body: SafeArea(
@@ -114,6 +126,8 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
             const SizedBox(height: 20),
             BaziCoreChartCard(chart: report.chart),
             const SizedBox(height: 20),
+            ShenshaCard(shenshaItems: report.analysis.shenshaItems),
+            const SizedBox(height: 20),
             _StemBranchHintCard(chart: report.chart),
             const SizedBox(height: 20),
             if (report.boneWeight != null) ...[
@@ -131,14 +145,12 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
             PatternCard(patterns: report.analysis.patterns),
             const SizedBox(height: 20),
             UsefulGodCard(usefulGod: report.analysis.usefulGod),
-            const SizedBox(height: 20),
-            ShenshaCard(shenshaItems: report.analysis.shenshaItems),
             if (_hasSaved || _isSaving) ...[
               const SizedBox(height: 24),
               ElevatedButton.icon(
                 onPressed: () {
                   Navigator.of(context)
-                      .pushNamedAndRemoveUntil('/home', (_) => false);
+                      .pushNamedAndRemoveUntil('/main', (_) => false);
                 },
                 icon: const Icon(Icons.home),
                 label: const Text('返回命主列表'),
@@ -161,7 +173,7 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
         TextButton.icon(
           onPressed: () {
             Navigator.of(context)
-                .pushNamedAndRemoveUntil('/home', (_) => false);
+                .pushNamedAndRemoveUntil('/main', (_) => false);
           },
           icon: const Icon(Icons.arrow_back, size: 18),
           label: const Text('返回主页'),
@@ -185,6 +197,57 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
     ];
   }
 
+  Future<void> _goToAiChat() async {
+    if (_isGoingToAi) return;
+    _isGoingToAi = true;
+
+    try {
+      final state = ref.read(baziInputControllerProvider);
+      final report = state.report;
+      final user = ref.read(authControllerProvider).user;
+
+      if (report == null || user == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text(AppStrings.loginRequiredForChart)),
+          );
+        }
+        return;
+      }
+
+      await _doSaveAndGo(user, report, state.personName);
+    } finally {
+      if (mounted) {
+        _isGoingToAi = false;
+      }
+    }
+  }
+
+  Future<void> _doSaveAndGo(User user, BaziReport report, String personName) async {
+    final record = await saveBaziReport(
+      ref,
+      report: report,
+      personName: personName,
+    );
+
+    if (!mounted) return;
+
+    if (record == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text(AppStrings.chartSaveFailed)),
+      );
+      return;
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('app_tab_index', 1);
+    await prefs.setBool('pending_ai_auto_start', true);
+
+    ref.read(aiChatRefreshSignal.notifier).state++;
+    ref.read(mainTabIndexProvider.notifier).state = 1;
+    Navigator.of(context).pushNamedAndRemoveUntil('/main', (_) => false);
+  }
+
   void _onSaveTap() {
     final now = DateTime.now();
     if (now.difference(_lastTap).inMilliseconds < 2000) return;
@@ -206,7 +269,7 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
       if (mounted) {
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('请先登录')),
+          const SnackBar(content: Text(AppStrings.loginRequired)),
         );
       }
       return;
@@ -216,36 +279,20 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
         state.personName.isNotEmpty ? state.personName : '未命名';
 
     try {
-      final repo = SupabaseBaziRecordRepository(Supabase.instance.client);
-      final reqJson = jsonEncode({
-        'calendarType': report.request.calendarType == CalendarType.lunar
-            ? 'lunar'
-            : 'solar',
-        'gender':
-            report.request.gender == Gender.female ? 'female' : 'male',
-        'solarDateTime': report.request.solarDateTime.toIso8601String(),
-        'lunarYear': report.request.lunarYear,
-        'lunarMonth': report.request.lunarMonth,
-        'lunarDay': report.request.lunarDay,
-        'isLeapMonth': report.request.isLeapMonth,
-        'personName': personName,
-      });
-      final repJson = jsonEncode({
-        'dayMaster': report.chart.dayMaster,
-        'year': {'stem': report.chart.year.stem, 'branch': report.chart.year.branch},
-        'month': {'stem': report.chart.month.stem, 'branch': report.chart.month.branch},
-        'day': {'stem': report.chart.day.stem, 'branch': report.chart.day.branch},
-        'hour': {'stem': report.chart.hour.stem, 'branch': report.chart.hour.branch},
-      });
-      await repo.save(
-        userId: user.id,
+      final record = await saveBaziReport(
+        ref,
+        report: report,
         personName: personName,
-        requestJson: reqJson,
-        reportJson: repJson,
       );
 
       if (!mounted) return;
-      ref.read(refreshPeopleListProvider.notifier).state++;
+      if (record == null) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text(AppStrings.chartSaveFailedRetry)),
+        );
+        return;
+      }
       setState(() {
         _isSaving = false;
         _hasSaved = true;
@@ -488,3 +535,4 @@ class _BoneWeightCard extends StatelessWidget {
     );
   }
 }
+

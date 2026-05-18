@@ -1,28 +1,22 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/app_strings.dart';
+import '../../../../domain/entities/bazi_record.dart';
 import '../../../../domain/entities/bazi_request.dart';
-import '../../../../domain/entities/saved_chart.dart';
 import '../../../../domain/value_objects/calendar_type.dart';
 import '../../../../domain/value_objects/gender.dart';
-import '../../../../features/auth/application/auth_controller.dart';
-import '../../../../features/input/application/bazi_input_controller.dart';
-import '../../../../infrastructure/database/sqlite_chart_repository.dart';
+import '../../application/bazi_records_list_controller.dart';
+import '../../application/save_bazi_record.dart';
+import '../../../auth/application/auth_controller.dart';
+import '../../../input/application/bazi_input_controller.dart';
 import '../../../result/presentation/pages/bazi_result_page.dart';
 
-final chartRepositoryProvider = Provider<SqliteChartRepository>((ref) {
-  return SqliteChartRepository();
-});
-
-final chartHistoryProvider =
-    FutureProvider.autoDispose<List<SavedChart>>((ref) async {
-  final user = ref.watch(authControllerProvider).user;
-  if (user == null) return [];
-
-  final repo = ref.watch(chartRepositoryProvider);
-  return repo.listByUser(user.id);
+final chartHistoryProvider = Provider<List<BaziRecord>>((ref) {
+  return ref.watch(baziRecordsListProvider).records;
 });
 
 class ChartHistoryPage extends ConsumerWidget {
@@ -30,7 +24,8 @@ class ChartHistoryPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final charts = ref.watch(chartHistoryProvider);
+    final listState = ref.watch(baziRecordsListProvider);
+    final list = ref.watch(chartHistoryProvider);
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
@@ -38,10 +33,9 @@ class ChartHistoryPage extends ConsumerWidget {
         title: const Text('排盘记录'),
       ),
       body: SafeArea(
-        child: charts.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (_, __) => const Center(child: Text('加载失败')),
-          data: (list) {
+        child: listState.isLoading && list.isEmpty
+            ? const Center(child: CircularProgressIndicator())
+            : Builder(builder: (context) {
             if (list.isEmpty) {
               return Center(
                 child: Column(
@@ -55,7 +49,7 @@ class ChartHistoryPage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      '暂无排盘记录',
+                      AppStrings.aiNoSavedRecords,
                       style: textTheme.bodyMedium,
                     ),
                     const SizedBox(height: 4),
@@ -72,11 +66,11 @@ class ChartHistoryPage extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
               itemCount: list.length,
               itemBuilder: (context, index) {
-                final chart = list[index];
+                final record = list[index];
                 final savedDate =
-                    '${chart.savedAt.year}.${chart.savedAt.month.toString().padLeft(2, '0')}.${chart.savedAt.day.toString().padLeft(2, '0')}';
+                    '${record.savedAt.year}.${record.savedAt.month.toString().padLeft(2, '0')}.${record.savedAt.day.toString().padLeft(2, '0')}';
                 final savedTime =
-                    '${chart.savedAt.hour.toString().padLeft(2, '0')}:${chart.savedAt.minute.toString().padLeft(2, '0')}';
+                    '${record.savedAt.hour.toString().padLeft(2, '0')}:${record.savedAt.minute.toString().padLeft(2, '0')}';
 
                 return Card(
                   margin: const EdgeInsets.only(bottom: 10),
@@ -84,7 +78,7 @@ class ChartHistoryPage extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(24),
                     onTap: () async {
                       final request =
-                          _parseRequest(chart.requestJson);
+                          _parseRequest(record.requestJson);
                       if (request == null) return;
 
                       await ref
@@ -125,13 +119,17 @@ class ChartHistoryPage extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  chart.title,
+                                  record.personName.isNotEmpty
+                                      ? record.personName
+                                      : '未命名',
                                   style: textTheme.titleMedium,
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  '$savedDate $savedTime',
+                                  '$savedDate $savedTime  ·  ${record.birthLabel}',
                                   style: textTheme.bodySmall,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ],
                             ),
@@ -140,9 +138,11 @@ class ChartHistoryPage extends ConsumerWidget {
                             icon: const Icon(Icons.delete_outline, size: 20),
                             onPressed: () async {
                               await ref
-                                  .read(chartRepositoryProvider)
-                                  .delete(chart.id);
-                              ref.invalidate(chartHistoryProvider);
+                                  .read(baziRecordRepositoryProvider)
+                                  .delete(record.id);
+                              ref
+                                  .read(baziRecordsListProvider.notifier)
+                                  .removeRecord(record.id);
                             },
                             color: AppColors.deepGray,
                           ),
@@ -153,8 +153,7 @@ class ChartHistoryPage extends ConsumerWidget {
                 );
               },
             );
-          },
-        ),
+          }),
       ),
     );
   }

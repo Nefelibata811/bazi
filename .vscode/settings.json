@@ -1,0 +1,7 @@
+{
+  "dart.flutterSdkPath": "D:\\flutter",
+  "dart.flutterRunAdditionalArgs": [
+    "-d",
+    "chrome"
+  ]
+}

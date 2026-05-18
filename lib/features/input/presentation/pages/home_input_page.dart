@@ -5,6 +5,9 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../domain/value_objects/calendar_type.dart';
 import '../../../../domain/value_objects/gender.dart';
 import '../../../auth/application/auth_controller.dart';
+import '../../../../core/app_strings.dart';
+import '../../../history/application/save_bazi_record.dart';
+import '../../../history/application/save_bazi_record.dart';
 import '../../../result/presentation/pages/bazi_result_page.dart';
 import '../../application/bazi_input_controller.dart';
 
@@ -148,15 +151,45 @@ class HomeInputPage extends ConsumerWidget {
                           ? null
                           : () async {
                               await controller.submit();
+                              if (!context.mounted) return;
+
+                              final inputState =
+                                  ref.read(baziInputControllerProvider);
+                              if (inputState.report != null) {
+                                final record = await saveBaziReport(
+                                  ref,
+                                  report: inputState.report!,
+                                  personName: inputState.personName,
+                                );
+                                if (!context.mounted) return;
+                                if (record == null && ref
+                                        .read(authControllerProvider)
+                                        .user !=
+                                    null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        AppStrings.chartSaveCloudFailed,
+                                      ),
+                                    ),
+                                  );
+                                }
+                              }
+
                               if (context.mounted) {
+                                final loggedIn = ref
+                                    .read(authControllerProvider)
+                                    .isLoggedIn;
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: const Row(
+                                    content: Row(
                                       children: [
-                                        Icon(Icons.check_circle,
+                                        const Icon(Icons.check_circle,
                                             color: Colors.white, size: 18),
-                                        SizedBox(width: 8),
-                                        Text('排盘创建成功'),
+                                        const SizedBox(width: 8),
+                                        Text(loggedIn
+                                            ? AppStrings.chartCreatedLoggedIn
+                                            : AppStrings.chartCreatedGuest),
                                       ],
                                     ),
                                     backgroundColor: AppColors.gold,

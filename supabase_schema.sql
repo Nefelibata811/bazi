@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   nickname TEXT,
   avatar_url TEXT,
+  phone TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -30,11 +31,14 @@ BEGIN
   END IF;
 END $$;
 
--- 如果 profiles 表已存在但缺少 avatar_url 列，则添加
+-- 如果 profiles 表已存在但缺少 avatar_url / phone 列，则添加
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'avatar_url') THEN
     ALTER TABLE public.profiles ADD COLUMN avatar_url TEXT;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'phone') THEN
+    ALTER TABLE public.profiles ADD COLUMN phone TEXT;
   END IF;
 END $$;
 
@@ -75,6 +79,26 @@ END $$;
 CREATE INDEX IF NOT EXISTS idx_bazi_records_user_id ON public.bazi_records(user_id);
 CREATE INDEX IF NOT EXISTS idx_bazi_records_person ON public.bazi_records(user_id, person_name);
 CREATE INDEX IF NOT EXISTS idx_bazi_records_saved_at ON public.bazi_records(user_id, saved_at DESC);
+
+-- 幂等键唯一约束（同一用户相同排盘请求只保留一条记录）
+-- 已有部署请单独执行下方迁移块，先清理重复数据再添加约束
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'bazi_records_user_idempotency_key_unique'
+  ) THEN
+    ALTER TABLE public.bazi_records
+      ADD CONSTRAINT bazi_records_user_idempotency_key_unique
+      UNIQUE (user_id, idempotency_key);
+  END IF;
+END $$;
+
+-- 迁移说明（已有 bazi_records 表且存在重复 idempotency_key 时）：
+-- 1. 查找重复：SELECT user_id, idempotency_key, COUNT(*) FROM bazi_records
+--    WHERE idempotency_key IS NOT NULL GROUP BY user_id, idempotency_key HAVING COUNT(*) > 1;
+-- 2. 保留最新一条后删除其余重复行
+-- 3. 再执行上方 DO 块添加 UNIQUE 约束
 
 -- 3. 合集表（命盘归类系统）
 CREATE TABLE IF NOT EXISTS public.collections (
@@ -133,7 +157,35 @@ BEGIN
   END IF;
 END $$;
 
--- 4. 迁移旧数据（如果 saved_charts 表存在且有数据）
+-- 5. AI 看盘聊天记录表（按排盘记录关联，登录后跨设备同步）
+CREATE TABLE IF NOT EXISTS public.bazi_chat_histories (
+  record_id UUID PRIMARY KEY REFERENCES public.bazi_records(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  messages JSONB NOT NULL DEFAULT '[]'::jsonb,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE public.bazi_chat_histories ENABLE ROW LEVEL SECURITY;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = '用户可读取自己的聊天记录' AND tablename = 'bazi_chat_histories') THEN
+    CREATE POLICY "用户可读取自己的聊天记录" ON public.bazi_chat_histories FOR SELECT USING (auth.uid() = user_id);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = '用户可插入自己的聊天记录' AND tablename = 'bazi_chat_histories') THEN
+    CREATE POLICY "用户可插入自己的聊天记录" ON public.bazi_chat_histories FOR INSERT WITH CHECK (auth.uid() = user_id);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = '用户可更新自己的聊天记录' AND tablename = 'bazi_chat_histories') THEN
+    CREATE POLICY "用户可更新自己的聊天记录" ON public.bazi_chat_histories FOR UPDATE USING (auth.uid() = user_id);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = '用户可删除自己的聊天记录' AND tablename = 'bazi_chat_histories') THEN
+    CREATE POLICY "用户可删除自己的聊天记录" ON public.bazi_chat_histories FOR DELETE USING (auth.uid() = user_id);
+  END IF;
+END $$;
+
+CREATE INDEX IF NOT EXISTS idx_bazi_chat_histories_user ON public.bazi_chat_histories(user_id, updated_at DESC);
+
+-- 6. 迁移旧数据（如果 saved_charts 表存在且有数据）
 DO $$
 BEGIN
   IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'saved_charts') THEN

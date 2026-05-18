@@ -3,7 +3,6 @@ import '../../domain/entities/pattern_result.dart';
 import '../../domain/services/bazi_rule_engine.dart';
 import '../../domain/services/pattern_analyzer.dart';
 import '../../domain/value_objects/five_element.dart';
-import '../../domain/value_objects/yin_yang.dart';
 
 class RulePatternAnalyzer implements PatternAnalyzer {
   const RulePatternAnalyzer({

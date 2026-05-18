@@ -18,6 +18,17 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = ref.read(authControllerProvider).user;
+      if (user != null && user.email.isNotEmpty && _emailController.text.isEmpty) {
+        _emailController.text = user.email;
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
@@ -30,22 +41,19 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
     ref.read(authControllerProvider.notifier).clearError();
 
-    final success = await ref.read(authControllerProvider.notifier).register(
+    await ref.read(authControllerProvider.notifier).register(
           email: _emailController.text,
           password: _passwordController.text,
           nickname: _nicknameController.text.trim().isEmpty
               ? null
               : _nicknameController.text.trim(),
         );
-
-    if (success && mounted) {
-      Navigator.of(context).pushReplacementNamed('/home');
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(authControllerProvider);
+    final busy = state.loading || state.isSubmitting;
     final textTheme = Theme.of(context).textTheme;
     final error = state.error;
 
@@ -71,6 +79,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     ),
                   ),
                   const SizedBox(height: 36),
+                  if (!state.needsEmailConfirmation) ...[
                   TextFormField(
                     controller: _nicknameController,
                     textInputAction: TextInputAction.next,
@@ -78,7 +87,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       labelText: '昵称（选填）',
                       hintText: '给自己取一个名字',
                     ),
-                    enabled: !state.loading,
+                    enabled: !busy,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -89,7 +98,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       labelText: '邮箱',
                       hintText: '请输入邮箱',
                     ),
-                    enabled: !state.loading,
+                    enabled: !busy,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return '请输入邮箱';
@@ -106,7 +115,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       labelText: '密码',
                       hintText: '请设置密码（至少 6 位）',
                     ),
-                    enabled: !state.loading,
+                    enabled: !busy,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return '请输入密码';
@@ -118,6 +127,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     },
                     onFieldSubmitted: (_) => _submit(),
                   ),
+                  ],
                   if (state.needsEmailConfirmation) ...[
                     const SizedBox(height: 20),
                     Container(
@@ -141,7 +151,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            '验证邮件已发送至 ${_emailController.text.trim()}，\n请点击邮件中的链接完成验证后再登录。',
+                            '验证邮件已发送至 ${state.user?.email ?? _emailController.text.trim()}，\n请点击邮件中的链接完成验证后再登录。',
                             textAlign: TextAlign.center,
                             style: textTheme.bodySmall?.copyWith(
                               color: AppColors.deepGray,
@@ -162,30 +172,30 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     ),
                   ],
                   const SizedBox(height: 28),
-                  ElevatedButton(
-                    onPressed: state.loading ? null : _submit,
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 54),
-                    ),
-                    child: state.loading
-                        ? const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  strokeCap: StrokeCap.round,
-                                ),
-                              ),
-                              SizedBox(width: 10),
-                              Text('注册中...'),
-                            ],
-                          )
-                        : const Text('注册'),
-                  ),
                   if (!state.needsEmailConfirmation) ...[
+                    ElevatedButton(
+                      onPressed: busy ? null : _submit,
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 54),
+                      ),
+                      child: busy
+                          ? const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    strokeCap: StrokeCap.round,
+                                  ),
+                                ),
+                                SizedBox(width: 10),
+                                Text('注册中...'),
+                              ],
+                            )
+                          : const Text('注册'),
+                    ),
                     const SizedBox(height: 16),
                     TextButton(
                       onPressed: state.loading

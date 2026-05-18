@@ -57,9 +57,7 @@ final patternAnalyzerProvider = Provider<PatternAnalyzer>((ref) {
 });
 
 final shenshaCalculatorProvider = Provider<ShenshaCalculator>((ref) {
-  return RuleShenshaCalculator(
-    ruleEngine: ref.watch(baziRuleEngineProvider),
-  );
+  return const RuleShenshaCalculator();
 });
 
 final usefulGodAnalyzerProvider = Provider<UsefulGodAnalyzer>((ref) {

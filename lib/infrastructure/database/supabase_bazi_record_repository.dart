@@ -21,20 +21,13 @@ class SupabaseBaziRecordRepository implements BaziRecordRepository {
 
     final existing = await _client
         .from('bazi_records')
-        .select('id')
+        .select()
         .eq('user_id', userId)
         .eq('idempotency_key', idempotencyKey)
         .maybeSingle();
 
     if (existing != null) {
-      return BaziRecord(
-        id: existing['id'] as String,
-        userId: userId,
-        personName: personName,
-        requestJson: requestJson,
-        reportJson: reportJson,
-        savedAt: DateTime.now(),
-      );
+      return _mapRow(existing);
     }
 
     final now = DateTime.now();
@@ -47,13 +40,17 @@ class SupabaseBaziRecordRepository implements BaziRecordRepository {
       'saved_at': now.toIso8601String(),
     }).select().single();
 
+    return _mapRow(response);
+  }
+
+  BaziRecord _mapRow(Map<String, dynamic> row) {
     return BaziRecord(
-      id: response['id'] as String,
-      userId: userId,
-      personName: personName,
-      requestJson: requestJson,
-      reportJson: reportJson,
-      savedAt: now,
+      id: row['id'] as String,
+      userId: row['user_id'] as String,
+      personName: row['person_name'] as String? ?? '',
+      requestJson: row['request_json'] as String? ?? '',
+      reportJson: row['report_json'] as String? ?? '',
+      savedAt: DateTime.parse(row['saved_at'] as String),
     );
   }
 
@@ -70,14 +67,7 @@ class SupabaseBaziRecordRepository implements BaziRecordRepository {
         .eq('user_id', userId)
         .order('saved_at', ascending: false);
 
-    return rows.map((row) => BaziRecord(
-      id: row['id'] as String,
-      userId: row['user_id'] as String,
-      personName: row['person_name'] as String? ?? '',
-      requestJson: row['request_json'] as String? ?? '',
-      reportJson: row['report_json'] as String? ?? '',
-      savedAt: DateTime.parse(row['saved_at'] as String),
-    )).toList();
+    return rows.map(_mapRow).toList();
   }
 
   @override
@@ -108,14 +98,7 @@ class SupabaseBaziRecordRepository implements BaziRecordRepository {
         .eq('person_name', personName)
         .order('saved_at', ascending: false);
 
-    return rows.map((row) => BaziRecord(
-      id: row['id'] as String,
-      userId: row['user_id'] as String,
-      personName: row['person_name'] as String? ?? '',
-      requestJson: row['request_json'] as String? ?? '',
-      reportJson: row['report_json'] as String? ?? '',
-      savedAt: DateTime.parse(row['saved_at'] as String),
-    )).toList();
+    return rows.map(_mapRow).toList();
   }
 
   @override

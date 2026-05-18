@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class BaziRecord {
   const BaziRecord({
     required this.id,
@@ -17,5 +19,38 @@ class BaziRecord {
 
   String get dateLabel {
     return '${savedAt.year}年${savedAt.month}月${savedAt.day}日';
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'userId': userId,
+        'personName': personName,
+        'requestJson': requestJson,
+        'reportJson': reportJson,
+        'savedAt': savedAt.toIso8601String(),
+      };
+
+  factory BaziRecord.fromJson(Map<String, dynamic> json) {
+    return BaziRecord(
+      id: json['id'] as String,
+      userId: json['userId'] as String? ?? '',
+      personName: json['personName'] as String? ?? '',
+      requestJson: json['requestJson'] as String? ?? '',
+      reportJson: json['reportJson'] as String? ?? '',
+      savedAt: DateTime.parse(json['savedAt'] as String),
+    );
+  }
+
+  String get birthLabel {
+    try {
+      final req = jsonDecode(requestJson) as Map<String, dynamic>;
+      final solar = DateTime.parse(req['solarDateTime'] as String);
+      final hour = solar.hour.toString().padLeft(2, '0');
+      final minute = solar.minute.toString().padLeft(2, '0');
+      final time = minute == '00' ? '${hour}时' : '$hour:$minute';
+      return '${solar.year}年${solar.month}月${solar.day}日 $time';
+    } catch (_) {
+      return dateLabel;
+    }
   }
 }

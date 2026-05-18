@@ -1,5 +1,3 @@
-import 'dart:math';
-
 class JulianDay {
   const JulianDay._();
 

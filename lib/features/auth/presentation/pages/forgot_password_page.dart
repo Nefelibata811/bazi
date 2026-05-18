@@ -1,10 +1,14 @@
 import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/app_urls.dart';
 import '../../application/auth_controller.dart';
+import '../widgets/otp_countdown_controller.dart';
 
 class ForgotPasswordPage extends ConsumerStatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -19,8 +23,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   bool _sent = false;
   bool _sending = false;
   String? _errorMsg;
-  int _cooldownSeconds = 0;
-  Timer? _cooldownTimer;
+  final _cooldown = OtpCountdownController();
 
   @override
   void initState() {
@@ -30,12 +33,12 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
 
   @override
   void dispose() {
+    _cooldown.dispose();
     _emailController.dispose();
-    _cooldownTimer?.cancel();
     super.dispose();
   }
 
-  bool get _isCoolingDown => _cooldownSeconds > 0;
+  bool get _isCoolingDown => _cooldown.isActive;
 
   Future<void> _loadCooldown() async {
     final prefs = await SharedPreferences.getInstance();
@@ -81,27 +84,19 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   }
 
   void _startCooldown(int seconds) {
-    _cooldownTimer?.cancel();
-    setState(() => _cooldownSeconds = seconds);
-    _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        if (_cooldownSeconds > 1) {
-          _cooldownSeconds--;
-        } else {
-          _cooldownSeconds = 0;
-          _errorMsg = null;
-          timer.cancel();
-        }
-      });
-    });
+    _cooldown.start(
+      seconds: seconds,
+      mounted: () => mounted,
+      onTick: (_) => setState(() {}),
+      onComplete: () {
+        if (mounted) setState(() => _errorMsg = null);
+      },
+    );
   }
 
   void _clearCooldown() {
-    _cooldownTimer?.cancel();
-    setState(() {
-      _cooldownSeconds = 0;
-      _errorMsg = null;
-    });
+    _cooldown.cancel();
+    setState(() => _errorMsg = null);
     SharedPreferences.getInstance().then((prefs) {
       prefs.remove('pwd_reset_cooldown_until');
     });
@@ -134,7 +129,10 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                   ),
                   const SizedBox(height: 36),
                   if (_sent) ...[
-                    _SuccessCard(email: _emailController.text.trim()),
+                    _SuccessCard(
+                      email: _emailController.text.trim(),
+                      redirectUrl: AppUrls.passwordResetRedirect,
+                    ),
                   ] else ...[
                     TextFormField(
                       controller: _emailController,
@@ -235,7 +233,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                               ],
                             )
                           : _isCoolingDown
-                              ? Text('$_cooldownSeconds 秒后可重试')
+                              ? Text('${_cooldown.remaining} 秒后可重试')
                               : const Text('发送重置邮件'),
                     ),
                   ],
@@ -250,9 +248,13 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
 }
 
 class _SuccessCard extends StatelessWidget {
-  const _SuccessCard({required this.email});
+  const _SuccessCard({
+    required this.email,
+    required this.redirectUrl,
+  });
 
   final String email;
+  final String redirectUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -277,6 +279,40 @@ class _SuccessCard extends StatelessWidget {
           const SizedBox(height: 10),
           Text('请检查收件箱（以及垃圾邮件），点击邮件中的链接重置密码',
               style: textTheme.bodySmall, textAlign: TextAlign.center),
+          if (kDebugMode) ...[
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.rice,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('开发提示',
+                      style: textTheme.labelSmall?.copyWith(
+                          color: AppColors.gold, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 6),
+                  Text(
+                    '请在 Supabase → Authentication → Redirect URLs 添加本次跳转地址（含 /** 通配）：',
+                    style: textTheme.bodySmall?.copyWith(
+                      fontSize: 11,
+                      height: 1.45,
+                      color: AppColors.deepGray,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(redirectUrl,
+                      style: textTheme.bodySmall?.copyWith(
+                        fontSize: 10,
+                        color: AppColors.deepGray,
+                      )),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 20),
           OutlinedButton(
             onPressed: () => Navigator.of(context).pop(),

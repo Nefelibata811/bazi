@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 import '../../../../app/theme/app_colors.dart';
 import '../../application/auth_controller.dart';
+import '../../infrastructure/supabase_auth_callback.dart';
 
 class ResetPasswordPage extends ConsumerStatefulWidget {
   const ResetPasswordPage({super.key});
@@ -18,6 +19,9 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
   final _formKey = GlobalKey<FormState>();
   bool _obscureNew = true;
   bool _obscureConfirm = true;
+
+  bool get _hasRecoverySession =>
+      Supabase.instance.client.auth.currentSession != null;
 
   @override
   void dispose() {
@@ -55,9 +59,10 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
         ),
       );
 
+      SupabaseAuthCallback.clearRecoveryArtifacts();
       await Supabase.instance.client.auth.signOut();
       if (mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
+        Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false);
       }
     }
   }
@@ -87,7 +92,9 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                   Text('设置新密码', style: textTheme.headlineSmall),
                   const SizedBox(height: 8),
                   Text(
-                    '请输入您的新密码',
+                    _hasRecoverySession
+                        ? '请输入您的新密码'
+                        : '链接已失效或未正确打开，请重新申请重置邮件',
                     style: textTheme.bodySmall,
                     textAlign: TextAlign.center,
                   ),
@@ -158,6 +165,16 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                     ),
                   ],
                   const SizedBox(height: 28),
+                  if (!_hasRecoverySession) ...[
+                    OutlinedButton(
+                      onPressed: () =>
+                          Navigator.of(context).pushReplacementNamed('/login'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 54),
+                      ),
+                      child: const Text('返回登录'),
+                    ),
+                  ] else
                   ElevatedButton(
                     onPressed: state.isSubmitting ? null : _submit,
                     style: ElevatedButton.styleFrom(

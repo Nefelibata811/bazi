@@ -21,15 +21,12 @@ class Pillar {
   final String growthPhase;
   final String xunKong;
 
-  String get stemYinYang {
-    final code = stem.codeUnitAt(0);
-    return code % 2 == 1 ? '阳' : '阴';
-  }
+  static const _yangStems = {'甲', '丙', '戊', '庚', '壬'};
+  static const _yangBranches = {'子', '寅', '辰', '午', '申', '戌'};
 
-  String get branchYinYang {
-    final code = branch.codeUnitAt(0);
-    return code % 2 == 1 ? '阳' : '阴';
-  }
+  String get stemYinYang => _yangStems.contains(stem) ? '阳' : '阴';
+
+  String get branchYinYang => _yangBranches.contains(branch) ? '阳' : '阴';
 
   String get stemFiveElement {
     switch (stem) {

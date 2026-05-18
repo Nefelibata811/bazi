@@ -74,7 +74,7 @@ class LunarBaziCalculator implements BaziCalculator {
           request.solarDateTime.month,
           request.solarDateTime.day,
           request.solarDateTime.hour,
-          0,
+          request.solarDateTime.minute,
           0,
         );
         lunar = solar.getLunar();
@@ -87,22 +87,32 @@ class LunarBaziCalculator implements BaziCalculator {
           month,
           request.lunarDay,
           request.solarDateTime.hour,
-          0,
+          request.solarDateTime.minute,
           0,
         );
       }
 
       final yearGanZhi = '${lunar.getYearGan()}${lunar.getYearZhi()}';
-      final yearW = _yearWeights[yearGanZhi] ?? 0;
-      final monthW = _monthWeights[lunar.getMonth()] ?? 0;
-      final dayW = _dayWeights[lunar.getDay()] ?? 0;
+      final yearW = _yearWeights[yearGanZhi];
+      if (yearW == null) return null;
+
+      final lunarMonth = lunar.getMonth().abs();
+      final monthW = _monthWeights[lunarMonth];
+      if (monthW == null) return null;
+
+      final dayW = _dayWeights[lunar.getDay()];
+      if (dayW == null) return null;
+
       final shichen = _shichenIndex(lunar.getHour());
-      final timeW = _timeWeights[shichen] ?? 0;
+      final timeW = _timeWeights[shichen];
+      if (timeW == null) return null;
 
       final total = yearW + monthW + dayW + timeW;
       final totalStr = total.toStringAsFixed(1);
-      final maleComment = _maleComments[totalStr] ?? '';
-      final femaleComment = _femaleComments[totalStr] ?? '';
+      final maleComment = _maleComments[totalStr];
+      final femaleComment = _femaleComments[totalStr];
+
+      if (maleComment == null || femaleComment == null) return null;
 
       return BoneWeight(
         totalWeight: total,

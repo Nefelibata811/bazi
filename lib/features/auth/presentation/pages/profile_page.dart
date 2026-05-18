@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/phone_utils.dart';
 import '../../application/auth_controller.dart';
+import '../widgets/otp_countdown_controller.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
@@ -17,6 +19,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   bool _hasNameChanges = false;
   bool _hasAvatarChanges = false;
   bool _showAvatarInput = false;
+  final _bindPhoneController = TextEditingController();
+  final _bindOtpController = TextEditingController();
+  bool _showBindPhone = false;
+  bool _bindOtpSent = false;
+  bool _sendingBindOtp = false;
+  final _bindOtpCountdown = OtpCountdownController();
 
   @override
   void initState() {
@@ -28,9 +36,74 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
   @override
   void dispose() {
+    _bindOtpCountdown.dispose();
     _nicknameController.dispose();
     _avatarUrlController.dispose();
+    _bindPhoneController.dispose();
+    _bindOtpController.dispose();
     super.dispose();
+  }
+
+  Future<void> _sendBindOtp() async {
+    final phone = _bindPhoneController.text.trim();
+    if (phone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('请输入手机号')),
+      );
+      return;
+    }
+
+    setState(() => _sendingBindOtp = true);
+    final err = await ref
+        .read(authControllerProvider.notifier)
+        .sendBindPhoneOtp(phone);
+    if (!mounted) return;
+    setState(() => _sendingBindOtp = false);
+
+    if (err != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(err)),
+      );
+      return;
+    }
+
+    setState(() => _bindOtpSent = true);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('验证码已发送')),
+    );
+
+    _bindOtpCountdown.start(
+      seconds: 60,
+      mounted: () => mounted,
+      onTick: (_) => setState(() {}),
+    );
+  }
+
+  Future<void> _verifyBindPhone() async {
+    final success = await ref.read(authControllerProvider.notifier).verifyBindPhone(
+          _bindPhoneController.text.trim(),
+          _bindOtpController.text,
+        );
+
+    if (!mounted) return;
+    if (success) {
+      setState(() {
+        _showBindPhone = false;
+        _bindOtpSent = false;
+        _bindPhoneController.clear();
+        _bindOtpController.clear();
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('手机号绑定成功')),
+      );
+    } else {
+      final err = ref.read(authControllerProvider).error;
+      if (err != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(err)),
+        );
+      }
+    }
   }
 
   Future<void> _saveNickname() async {
@@ -230,6 +303,137 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                           child: Text(
                             user?.email ?? '',
                             style: textTheme.bodyMedium,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.only(top: 2),
+                          child: Icon(Icons.phone_android_outlined,
+                              size: 20, color: AppColors.deepGray),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                user?.phone != null && user!.phone!.isNotEmpty
+                                    ? PhoneUtils.mask(user.phone)
+                                    : '未绑定手机号',
+                                style: textTheme.bodyMedium,
+                              ),
+                              if (!_showBindPhone)
+                                TextButton(
+                                  onPressed: () => setState(() {
+                                    _showBindPhone = true;
+                                    _bindPhoneController.clear();
+                                    _bindOtpController.clear();
+                                    _bindOtpSent = false;
+                                  }),
+                                  style: TextButton.styleFrom(
+                                    padding: EdgeInsets.zero,
+                                    minimumSize: const Size(0, 32),
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                  child: Text(
+                                    user?.phone != null &&
+                                            user!.phone!.isNotEmpty
+                                        ? '更换手机号'
+                                        : '绑定手机号',
+                                    style: textTheme.bodySmall?.copyWith(
+                                      color: AppColors.gold,
+                                    ),
+                                  ),
+                                )
+                              else ...[
+                                const SizedBox(height: 8),
+                                TextFormField(
+                                  controller: _bindPhoneController,
+                                  keyboardType: TextInputType.phone,
+                                  decoration: const InputDecoration(
+                                    labelText: '手机号',
+                                    hintText: '11 位中国大陆手机号',
+                                    isDense: true,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextFormField(
+                                        controller: _bindOtpController,
+                                        keyboardType: TextInputType.number,
+                                        decoration: const InputDecoration(
+                                          labelText: '验证码',
+                                          isDense: true,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    OutlinedButton(
+                                      onPressed: state.isSubmitting ||
+                                              _sendingBindOtp ||
+                                              _bindOtpCountdown.isActive
+                                          ? null
+                                          : _sendBindOtp,
+                                      child: _sendingBindOtp
+                                          ? const SizedBox(
+                                              width: 16,
+                                              height: 16,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                              ),
+                                            )
+                                          : Text(
+                                              _bindOtpCountdown.isActive
+                                                  ? '${_bindOtpCountdown.remaining}s'
+                                                  : '获取验证码',
+                                              style: textTheme.bodySmall,
+                                            ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                Row(
+                                  children: [
+                                    TextButton(
+                                      onPressed: () => setState(() {
+                                        _showBindPhone = false;
+                                        _bindOtpSent = false;
+                                      }),
+                                      child: const Text('取消'),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    ElevatedButton(
+                                      onPressed: state.isSubmitting
+                                          ? null
+                                          : _verifyBindPhone,
+                                      child: Text(
+                                        state.isSubmitting
+                                            ? '绑定中...'
+                                            : '确认绑定',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                if (_bindOtpSent)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 4),
+                                    child: Text(
+                                      '验证码已发送至手机',
+                                      style: textTheme.bodySmall?.copyWith(
+                                        color: AppColors.deepGray,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ],
                           ),
                         ),
                       ],
