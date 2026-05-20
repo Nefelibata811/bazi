@@ -37,7 +37,7 @@ class _LuckCycleTimelineState extends State<LuckCycleTimeline> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.gold.withOpacity(0.12),
+                    color: AppColors.gold.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
@@ -60,11 +60,11 @@ class _LuckCycleTimelineState extends State<LuckCycleTimeline> {
 
                 return Container(
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.72),
+                    color: Colors.white.withValues(alpha: 0.72),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: isExpanded
-                          ? branchColor.withOpacity(0.3)
+                          ? branchColor.withValues(alpha: 0.3)
                           : AppColors.line,
                     ),
                   ),
@@ -89,7 +89,7 @@ class _LuckCycleTimelineState extends State<LuckCycleTimeline> {
                                 width: 44,
                                 height: 44,
                                 decoration: BoxDecoration(
-                                  color: branchColor.withOpacity(0.10),
+                                  color: branchColor.withValues(alpha: 0.10),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 alignment: Alignment.center,
@@ -156,7 +156,7 @@ class _LuckCycleTimelineState extends State<LuckCycleTimeline> {
                           margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: branchColor.withOpacity(0.04),
+                            color: branchColor.withValues(alpha: 0.04),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Column(
@@ -179,7 +179,7 @@ class _LuckCycleTimelineState extends State<LuckCycleTimeline> {
                                       vertical: 8,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.84),
+                                      color: Colors.white.withValues(alpha: 0.84),
                                       borderRadius: BorderRadius.circular(10),
                                       border: Border.all(
                                         color: AppColors.line,

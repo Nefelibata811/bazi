@@ -204,7 +204,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: AppColors.gold.withOpacity(0.4),
+                        color: AppColors.gold.withValues(alpha: 0.4),
                         width: 2,
                       ),
                     ),
@@ -508,12 +508,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
   Widget _defaultAvatar(TextTheme textTheme) {
     return Container(
-      color: AppColors.cinnabar.withOpacity(0.08),
+      color: AppColors.cinnabar.withValues(alpha: 0.08),
       alignment: Alignment.center,
       child: Icon(
         Icons.person,
         size: 48,
-        color: AppColors.cinnabar.withOpacity(0.4),
+        color: AppColors.cinnabar.withValues(alpha: 0.4),
       ),
     );
   }

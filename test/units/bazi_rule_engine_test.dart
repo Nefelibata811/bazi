@@ -4,7 +4,7 @@ import 'package:bazi_app/domain/value_objects/yin_yang.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  final engine = const BaziRuleEngine();
+  final engine = BaziRuleEngine();
 
   group('BaziRuleEngine - 天干基础', () {
     test('天干共 10 个', () {
@@ -141,61 +141,78 @@ void main() {
   });
 
   group('BaziRuleEngine - 地支藏干', () {
+    const dayMaster = '甲';
+
     test('子藏癸', () {
-      expect(engine.hiddenStemsOf('子').map((h) => h.stem), ['癸']);
+      expect(
+        engine.hiddenStemsFor(dayMasterStem: dayMaster, branch: '子').map((h) => h.stem),
+        ['癸'],
+      );
     });
 
     test('丑藏己癸辛', () {
-      expect(engine.hiddenStemsOf('丑').map((h) => h.stem), ['己', '癸', '辛']);
+      expect(
+        engine.hiddenStemsFor(dayMasterStem: dayMaster, branch: '丑').map((h) => h.stem),
+        ['己', '癸', '辛'],
+      );
     });
 
     test('寅藏甲丙戊', () {
-      expect(engine.hiddenStemsOf('寅').map((h) => h.stem), ['甲', '丙', '戊']);
+      expect(
+        engine.hiddenStemsFor(dayMasterStem: dayMaster, branch: '寅').map((h) => h.stem),
+        ['甲', '丙', '戊'],
+      );
     });
 
     test('卯藏乙', () {
-      expect(engine.hiddenStemsOf('卯').map((h) => h.stem), ['乙']);
+      expect(
+        engine.hiddenStemsFor(dayMasterStem: dayMaster, branch: '卯').map((h) => h.stem),
+        ['乙'],
+      );
     });
 
     test('午藏丁己', () {
-      expect(engine.hiddenStemsOf('午').map((h) => h.stem), ['丁', '己']);
+      expect(
+        engine.hiddenStemsFor(dayMasterStem: dayMaster, branch: '午').map((h) => h.stem),
+        ['丁', '己'],
+      );
     });
 
     test('所有十二地支都有藏干结果', () {
       for (final branch in BaziRuleEngine.branches) {
-        final hidden = engine.hiddenStemsOf(branch);
-        expect(hidden, isNotEmpty,
-            reason: '$branch 藏干不应为空');
+        final hidden =
+            engine.hiddenStemsFor(dayMasterStem: dayMaster, branch: branch);
+        expect(hidden, isNotEmpty, reason: '$branch 藏干不应为空');
       }
     });
   });
 
   group('BaziRuleEngine - 纳音', () {
     test('甲子乙丑 → 海中金', () {
-      expect(engine.naYinOf(stem: '甲', branch: '子'), '海中金');
-      expect(engine.naYinOf(stem: '乙', branch: '丑'), '海中金');
+      expect(engine.naYinFor(stem: '甲', branch: '子'), '海中金');
+      expect(engine.naYinFor(stem: '乙', branch: '丑'), '海中金');
     });
 
     test('丙寅丁卯 → 炉中火', () {
-      expect(engine.naYinOf(stem: '丙', branch: '寅'), '炉中火');
+      expect(engine.naYinFor(stem: '丙', branch: '寅'), '炉中火');
     });
 
     test('戊辰己巳 → 大林木', () {
-      expect(engine.naYinOf(stem: '戊', branch: '辰'), '大林木');
+      expect(engine.naYinFor(stem: '戊', branch: '辰'), '大林木');
     });
 
     test('壬戌癸亥 → 大海水', () {
-      expect(engine.naYinOf(stem: '壬', branch: '戌'), '大海水');
-      expect(engine.naYinOf(stem: '癸', branch: '亥'), '大海水');
+      expect(engine.naYinFor(stem: '壬', branch: '戌'), '大海水');
+      expect(engine.naYinFor(stem: '癸', branch: '亥'), '大海水');
     });
 
     test('所有六十甲子纳音都可查询', () {
       for (int i = 0; i < 60; i++) {
         final stem = BaziRuleEngine.stems[i % 10];
         final branch = BaziRuleEngine.branches[i % 12];
-        final naYin = engine.naYinOf(stem: stem, branch: branch);
+        final naYin = engine.naYinFor(stem: stem, branch: branch);
         expect(naYin, isNotEmpty);
-        expect(naYin, isNot('未知'));
+        expect(naYin, isNot('未知纳音'));
       }
     });
   });
@@ -203,34 +220,35 @@ void main() {
   group('BaziRuleEngine - 十二长生', () {
     test('癸日主地支长生表', () {
       // 癸水 → 卯（长生）、寅（沐浴）、丑（冠带）、……等
-      expect(engine.growthPhaseOf(stem: '癸', branch: '卯'), '长生');
+      expect(engine.growthPhaseFor(dayMasterStem: '癸', branch: '卯'), '长生');
     });
 
     test('甲日主地支长生表', () {
       // 甲木 → 亥（长生）
-      expect(engine.growthPhaseOf(stem: '甲', branch: '亥'), '长生');
+      expect(engine.growthPhaseFor(dayMasterStem: '甲', branch: '亥'), '长生');
     });
 
     test('庚日主地支长生表', () {
       // 庚金 → 巳（长生）
-      expect(engine.growthPhaseOf(stem: '庚', branch: '巳'), '长生');
+      expect(engine.growthPhaseFor(dayMasterStem: '庚', branch: '巳'), '长生');
     });
 
     test('所有长生查询不返回空', () {
       for (final stem in BaziRuleEngine.stems) {
         for (final branch in BaziRuleEngine.branches) {
-          final phase = engine.growthPhaseOf(stem: stem, branch: branch);
+          final phase =
+              engine.growthPhaseFor(dayMasterStem: stem, branch: branch);
           expect(phase, isNotEmpty);
         }
       }
     });
 
     test('癸水长生在卯', () {
-      expect(engine.growthPhaseOf(stem: '癸', branch: '卯'), '长生');
+      expect(engine.growthPhaseFor(dayMasterStem: '癸', branch: '卯'), '长生');
     });
 
     test('癸水绝在午', () {
-      expect(engine.growthPhaseOf(stem: '癸', branch: '午'), '绝');
+      expect(engine.growthPhaseFor(dayMasterStem: '癸', branch: '午'), '绝');
     });
   });
 }

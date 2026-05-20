@@ -143,15 +143,38 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           );
     });
 
-    await chat.selectChart(
+    await _selectChartOnController(
+      chat,
       recordId: recordId,
       personName: personName,
       requestJson: requestJson,
       reportJson: reportJson,
+      beginAnalysis: beginAnalysis,
     );
+  }
 
-    if (beginAnalysis && mounted) {
-      await chat.startInitialAnalysisAsync();
+  Future<void> _selectChartOnController(
+    ChatController chat, {
+    required String recordId,
+    required String personName,
+    required String requestJson,
+    required String reportJson,
+    required bool beginAnalysis,
+  }) async {
+    if (beginAnalysis) {
+      await chat.selectChartAndStartAnalysis(
+        recordId: recordId,
+        personName: personName,
+        requestJson: requestJson,
+        reportJson: reportJson,
+      );
+    } else {
+      await chat.selectChart(
+        recordId: recordId,
+        personName: personName,
+        requestJson: requestJson,
+        reportJson: reportJson,
+      );
     }
   }
 
@@ -176,15 +199,19 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     await persistLastSelectedRecord(record);
 
     final chat = ref.read(chatControllerProvider.notifier);
-    await chat.selectChart(
+    if (chatState.selectedRecordId == record.id && beginAnalysis) {
+      await chat.startInitialAnalysisAsync();
+      return;
+    }
+
+    await _selectChartOnController(
+      chat,
       recordId: record.id,
       personName: record.personName,
       requestJson: record.requestJson,
       reportJson: record.reportJson,
+      beginAnalysis: beginAnalysis,
     );
-    if (beginAnalysis && mounted) {
-      await chat.startInitialAnalysisAsync();
-    }
   }
 
   Future<void> _confirmDeleteHistory() async {
@@ -254,6 +281,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
     final chatState = ref.watch(chatControllerProvider);
     final textTheme = Theme.of(context).textTheme;
+    final restoringChart = chatState.isRestoringChart == true;
 
     return Scaffold(
       appBar: AppBar(
@@ -293,16 +321,17 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                color: AppColors.gold.withOpacity(0.06),
+                // ignore: deprecated_member_use
+                color: AppColors.gold.withValues(alpha: 0.06),
                 child: Text(
                   AppStrings.aiHistoryRestored,
                   style: textTheme.bodySmall?.copyWith(color: AppColors.gold),
                 ),
               ),
-            if (_isRestoringSession || chatState.isRestoringChart)
+            if (_isRestoringSession || restoringChart)
               Expanded(
                 child: ChartSessionLoading(
-                  message: chatState.isRestoringChart
+                  message: restoringChart
                       ? AppStrings.chartSwitching
                       : AppStrings.chartLoading,
                 ),
@@ -316,7 +345,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.auto_awesome,
-                            size: 56, color: AppColors.gold.withOpacity(0.4)),
+                            // ignore: deprecated_member_use
+                            size: 56, color: AppColors.gold.withValues(alpha: 0.4)),
                         const SizedBox(height: 16),
                         Text(AppStrings.aiPickChartPrompt,
                             style: textTheme.titleMedium?.copyWith(
@@ -369,7 +399,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                 width: double.infinity,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                color: AppColors.cinnabar.withOpacity(0.06),
+                // ignore: deprecated_member_use
+                color: AppColors.cinnabar.withValues(alpha: 0.06),
                 child: Row(
                   children: [
                     const Icon(Icons.error_outline,
@@ -391,7 +422,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 4),
                         decoration: BoxDecoration(
-                          color: AppColors.cinnabar.withOpacity(0.1),
+                          // ignore: deprecated_member_use
+                          color: AppColors.cinnabar.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(AppStrings.actionRetry,

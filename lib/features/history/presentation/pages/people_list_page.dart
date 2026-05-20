@@ -5,7 +5,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/app.dart';
 import '../../../../app/theme/app_colors.dart';
-import '../../../../domain/entities/bazi_record.dart';
 import '../../../../domain/entities/bazi_request.dart';
 import '../../../../domain/services/bazi_record_repository.dart';
 import '../../../../domain/value_objects/calendar_type.dart';
@@ -89,7 +88,6 @@ class PeopleListPage extends ConsumerWidget {
     final recordsState = ref.watch(baziRecordsListProvider);
     final people = ref.watch(peopleListProvider);
     final authState = ref.watch(authControllerProvider);
-    final textTheme = Theme.of(context).textTheme;
     final displayName = authState.displayName;
     final avatarUrl = authState.user?.avatarUrl;
 
@@ -255,7 +253,7 @@ class PeopleListPage extends ConsumerWidget {
                     width: 64,
                     height: 64,
                     decoration: BoxDecoration(
-                      color: AppColors.gold.withOpacity(0.1),
+                      color: AppColors.gold.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     alignment: Alignment.center,
@@ -496,7 +494,7 @@ class _HintCard extends StatelessWidget {
         child: Column(
           children: [
             Icon(icon, size: 40,
-                color: AppColors.deepGray.withOpacity(0.25)),
+                color: AppColors.deepGray.withValues(alpha: 0.25)),
             const SizedBox(height: 10),
             Text(text, style: textTheme.bodySmall, textAlign: TextAlign.center),
             const SizedBox(height: 14),
@@ -543,7 +541,7 @@ class _CollectionsList extends StatelessWidget {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: AppColors.gold.withOpacity(0.1),
+                      color: AppColors.gold.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     alignment: Alignment.center,
@@ -608,7 +606,7 @@ class _PeopleList extends StatelessWidget {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: AppColors.cinnabar.withOpacity(0.08),
+                      color: AppColors.cinnabar.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     alignment: Alignment.center,
@@ -704,12 +702,12 @@ class _UserAvatarButton extends StatelessWidget {
             const SizedBox(width: 8),
             CircleAvatar(
               radius: 16,
-              backgroundColor: AppColors.cinnabar.withOpacity(0.08),
+              backgroundColor: AppColors.cinnabar.withValues(alpha: 0.08),
               backgroundImage:
                   url != null && url.isNotEmpty ? NetworkImage(url) : null,
               child: url == null || url.isEmpty
                   ? Icon(Icons.person,
-                      size: 16, color: AppColors.cinnabar.withOpacity(0.5))
+                      size: 16, color: AppColors.cinnabar.withValues(alpha: 0.5))
                   : null,
             ),
           ],

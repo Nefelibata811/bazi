@@ -1,9 +1,6 @@
-import 'dart:convert';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/entities/bazi_request.dart';
-import '../../../domain/entities/bazi_report.dart';
 import '../../../domain/services/bazi_calculator.dart';
 import '../../../domain/services/bazi_rule_engine.dart';
 import '../../../domain/services/calendar_converter.dart';

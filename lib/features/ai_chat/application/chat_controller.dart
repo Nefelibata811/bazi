@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/ai_api_messages.dart';
 import '../../../core/api_config.dart';
 import '../../../core/app_strings.dart';
 import '../../../domain/services/chat_repository.dart';
@@ -21,7 +22,7 @@ final chatHistoryStoreProvider = Provider<ChatHistoryStore>((ref) {
   return HybridChatHistoryStore(
     local: SharedPreferencesChatHistoryStore(),
     cloud: SupabaseChatHistoryStore(Supabase.instance.client),
-    isLoggedIn: isSupabaseSessionActive,
+    isLoggedIn: () => ref.read(authControllerProvider).isLoggedIn,
   );
 });
 
@@ -317,6 +318,19 @@ class ChatController extends StateNotifier<ChatState> {
     );
     await _persistMessages(messagesForApi);
 
+    final keyError = missingDeepseekApiKeyMessage(ApiConfig.deepseekApiKey);
+    if (keyError != null) {
+      if (mounted && _analyzingRecordId == recordId) {
+        state = state.copyWith(
+          isLoading: false,
+          clearStreamingContent: true,
+          error: keyError,
+        );
+      }
+      _analyzingRecordId = null;
+      return;
+    }
+
     try {
       final stream = await repository.sendMessage(
         history: messagesForApi,
@@ -333,7 +347,7 @@ class ChatController extends StateNotifier<ChatState> {
         state = state.copyWith(
           isLoading: false,
           clearStreamingContent: true,
-          error: e.toString(),
+          error: formatAiApiError(e),
         );
       }
       _activeSubscription = null;
@@ -374,6 +388,19 @@ class ChatController extends StateNotifier<ChatState> {
 
     final systemPrompt = _buildSystemPrompt(summary);
 
+    final keyError = missingDeepseekApiKeyMessage(ApiConfig.deepseekApiKey);
+    if (keyError != null) {
+      if (mounted) {
+        state = state.copyWith(
+          isLoading: false,
+          clearStreamingContent: true,
+          error: keyError,
+        );
+      }
+      _analyzingRecordId = null;
+      return;
+    }
+
     try {
       final stream = await repository.sendMessage(
         history: updatedMessages,
@@ -390,7 +417,7 @@ class ChatController extends StateNotifier<ChatState> {
         state = state.copyWith(
           isLoading: false,
           clearStreamingContent: true,
-          error: e.toString(),
+          error: formatAiApiError(e),
         );
       }
       _activeSubscription = null;
@@ -420,7 +447,7 @@ class ChatController extends StateNotifier<ChatState> {
           state = state.copyWith(
             isLoading: false,
             clearStreamingContent: true,
-            error: e.toString(),
+            error: formatAiApiError(e),
           );
         }
         _activeSubscription = null;
@@ -562,7 +589,7 @@ class ChatController extends StateNotifier<ChatState> {
           final tenGod = m['tenGod'] as String? ?? '';
           final startAge = m['startAge'];
           final startYear = m['startYear'];
-          return '$ganZhi${tenGod.isNotEmpty ? '($tenGod)' : ''}（${startAge}岁/${startYear}年起）';
+          return '$ganZhi${tenGod.isNotEmpty ? '($tenGod)' : ''}（$startAge岁/$startYear年起）';
         }).join('；');
         buf.writeln('大运：$lcLines');
       }
@@ -594,7 +621,7 @@ class ChatController extends StateNotifier<ChatState> {
             final evStr = evidence != null && evidence.isNotEmpty
                 ? '（依据：${evidence.join('、')}）'
                 : '';
-            final cfStr = confidence != null ? '（置信度${confidence}）' : '';
+            final cfStr = confidence != null ? '（置信度$confidence）' : '';
             return '$name$cfStr${summary.isNotEmpty ? '：$summary' : ''}$evStr';
           }).where((s) => s.isNotEmpty).join('\n  ');
           if (patternDescs.isNotEmpty) buf.writeln('格局：\n  $patternDescs');
@@ -651,6 +678,14 @@ class ChatController extends StateNotifier<ChatState> {
       default:
         return key;
     }
+  }
+
+  @override
+  void dispose() {
+    _activeSubscription?.cancel();
+    _activeSubscription = null;
+    _disposeTyping();
+    super.dispose();
   }
 
   String _buildSystemPrompt(String reportSummary) {

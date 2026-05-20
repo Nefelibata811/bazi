@@ -20,7 +20,7 @@ class EmptyAnalysisPrompt extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.auto_awesome_outlined,
-                size: 48, color: AppColors.gold.withOpacity(0.5)),
+                size: 48, color: AppColors.gold.withValues(alpha: 0.5)),
             const SizedBox(height: 16),
             Text(AppStrings.aiEmptyNoChat,
                 style: textTheme.titleMedium?.copyWith(color: AppColors.deepGray)),
@@ -75,7 +75,7 @@ class SelectedRecordBar extends StatelessWidget {
             width: 34,
             height: 34,
             decoration: BoxDecoration(
-              color: AppColors.gold.withOpacity(0.1),
+              color: AppColors.gold.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             alignment: Alignment.center,
@@ -149,9 +149,9 @@ class StandaloneAddButton extends StatelessWidget {
             child: Container(
               height: 44,
               decoration: BoxDecoration(
-                color: AppColors.gold.withOpacity(0.06),
+                color: AppColors.gold.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(22),
-                border: Border.all(color: AppColors.gold.withOpacity(0.15)),
+                border: Border.all(color: AppColors.gold.withValues(alpha: 0.15)),
               ),
               child: Material(
                 color: Colors.transparent,
@@ -161,12 +161,12 @@ class StandaloneAddButton extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.add, size: 20, color: AppColors.gold.withOpacity(0.6)),
+                      Icon(Icons.add, size: 20, color: AppColors.gold.withValues(alpha: 0.6)),
                       const SizedBox(width: 6),
                       Text(
                         AppStrings.aiPickChartToStart,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColors.gold.withOpacity(0.6),
+                              color: AppColors.gold.withValues(alpha: 0.6),
                             ),
                       ),
                     ],

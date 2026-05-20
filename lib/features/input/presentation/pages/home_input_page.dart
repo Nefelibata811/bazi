@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../app/app.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../domain/value_objects/calendar_type.dart';
 import '../../../../domain/value_objects/gender.dart';
 import '../../../auth/application/auth_controller.dart';
 import '../../../../core/app_strings.dart';
-import '../../../history/application/save_bazi_record.dart';
 import '../../../history/application/save_bazi_record.dart';
 import '../../../result/presentation/pages/bazi_result_page.dart';
 import '../../application/bazi_input_controller.dart';
@@ -60,6 +60,11 @@ class HomeInputPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('排盘录入'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: '返回主页',
+          onPressed: () => navigateToHomeTab(context, ref),
+        ),
       ),
       body: SafeArea(
         child: ListView(
@@ -253,11 +258,12 @@ class _SolarDropdownPanel extends StatelessWidget {
           children: [
             Expanded(
               child: DropdownButtonFormField<int>(
-                value: dateTime.year,
+                key: ValueKey('solar-year-${dateTime.year}'),
+                initialValue: dateTime.year,
                 decoration: const InputDecoration(labelText: '年'),
                 items: years
                     .map((y) => DropdownMenuItem(
-                        value: y, child: Text('${y}年')))
+                        value: y, child: Text('$y年')))
                     .toList(),
                 onChanged: (v) {
                   if (v != null) onYearChanged(v);
@@ -267,7 +273,8 @@ class _SolarDropdownPanel extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: DropdownButtonFormField<int>(
-                value: dateTime.month,
+                key: ValueKey('solar-month-${dateTime.year}-${dateTime.month}'),
+                initialValue: dateTime.month,
                 decoration: const InputDecoration(labelText: '月'),
                 items: months
                     .map((m) => DropdownMenuItem(
@@ -282,12 +289,14 @@ class _SolarDropdownPanel extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: DropdownButtonFormField<int>(
-                value:
+                key: ValueKey(
+                    'solar-day-${dateTime.year}-${dateTime.month}-${days.contains(dateTime.day) ? dateTime.day : days.last}'),
+                initialValue:
                     days.contains(dateTime.day) ? dateTime.day : days.last,
                 decoration: const InputDecoration(labelText: '日'),
                 items: days
                     .map((d) => DropdownMenuItem(
-                        value: d, child: Text('${d}日')))
+                        value: d, child: Text('$d日')))
                     .toList(),
                 onChanged: (v) {
                   if (v != null) onDayChanged(v);
@@ -301,7 +310,8 @@ class _SolarDropdownPanel extends StatelessWidget {
           children: [
             Expanded(
               child: DropdownButtonFormField<int>(
-                value: dateTime.hour,
+                key: ValueKey('solar-hour-${dateTime.hour}'),
+                initialValue: dateTime.hour,
                 decoration: const InputDecoration(labelText: '时'),
                 items: hours
                     .map((h) => DropdownMenuItem(
@@ -317,7 +327,9 @@ class _SolarDropdownPanel extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: DropdownButtonFormField<int>(
-                value: _nearestMinute(dateTime.minute, minutes),
+                key: ValueKey(
+                    'solar-minute-${_nearestMinute(dateTime.minute, minutes)}'),
+                initialValue: _nearestMinute(dateTime.minute, minutes),
                 decoration: const InputDecoration(labelText: '分'),
                 items: minutes
                     .map((m) => DropdownMenuItem(
@@ -380,7 +392,8 @@ class _LunarPanel extends StatelessWidget {
           children: [
             Expanded(
               child: DropdownButtonFormField<int>(
-                value: lunarYear,
+                key: ValueKey('lunar-year-$lunarYear'),
+                initialValue: lunarYear,
                 decoration: const InputDecoration(labelText: '农历年'),
                 items: years
                     .map((year) =>
@@ -394,7 +407,8 @@ class _LunarPanel extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: DropdownButtonFormField<int>(
-                value: lunarMonth,
+                key: ValueKey('lunar-month-$lunarYear-$lunarMonth'),
+                initialValue: lunarMonth,
                 decoration: const InputDecoration(labelText: '农历月'),
                 items: months
                     .map((month) => DropdownMenuItem(
@@ -413,7 +427,8 @@ class _LunarPanel extends StatelessWidget {
           children: [
             Expanded(
               child: DropdownButtonFormField<int>(
-                value: lunarDay,
+                key: ValueKey('lunar-day-$lunarYear-$lunarMonth-$lunarDay'),
+                initialValue: lunarDay,
                 decoration: const InputDecoration(labelText: '农历日'),
                 items: days
                     .map((day) =>
@@ -427,7 +442,8 @@ class _LunarPanel extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: DropdownButtonFormField<int>(
-                value: hour,
+                key: ValueKey('lunar-hour-$hour'),
+                initialValue: hour,
                 decoration: const InputDecoration(labelText: '时'),
                 items: hours
                     .map((h) => DropdownMenuItem(
@@ -447,7 +463,8 @@ class _LunarPanel extends StatelessWidget {
           children: [
             Expanded(
               child: DropdownButtonFormField<int>(
-                value: _nearestMinute(minute, minutes),
+                key: ValueKey('lunar-minute-${_nearestMinute(minute, minutes)}'),
+                initialValue: _nearestMinute(minute, minutes),
                 decoration: const InputDecoration(labelText: '分'),
                 items: minutes
                     .map((m) => DropdownMenuItem(

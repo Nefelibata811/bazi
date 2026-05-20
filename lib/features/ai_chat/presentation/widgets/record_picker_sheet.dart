@@ -169,12 +169,12 @@ class _RecordList extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? AppColors.gold.withOpacity(0.06)
+                    ? AppColors.gold.withValues(alpha: 0.06)
                     : AppColors.paper,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: isSelected
-                      ? AppColors.gold.withOpacity(0.25)
+                      ? AppColors.gold.withValues(alpha: 0.25)
                       : AppColors.line,
                 ),
               ),
@@ -184,7 +184,7 @@ class _RecordList extends StatelessWidget {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: AppColors.cinnabar.withOpacity(0.08),
+                      color: AppColors.cinnabar.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     alignment: Alignment.center,
@@ -232,7 +232,7 @@ class _RecordList extends StatelessWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.gold.withOpacity(0.10),
+                        color: AppColors.gold.withValues(alpha: 0.10),
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(

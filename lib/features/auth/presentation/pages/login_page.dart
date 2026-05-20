@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../../app/widgets/app_splash.dart';
+import '../../../../app/bootstrap_app.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../application/auth_controller.dart';
 import '../widgets/otp_countdown_controller.dart';
@@ -24,7 +24,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _otpController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _rememberMe = false;
-  bool _loadedPrefs = false;
   _LoginMode _mode = _LoginMode.email;
   bool _otpSent = false;
   bool _sendingOtp = false;
@@ -44,7 +43,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       if (_rememberMe) {
         _emailController.text = prefs.getString('saved_email') ?? '';
       }
-      _loadedPrefs = true;
     });
     await prefs.remove('saved_password');
   }
@@ -156,12 +154,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 : () => setState(() => _mode = _LoginMode.email),
             style: OutlinedButton.styleFrom(
               backgroundColor: _mode == _LoginMode.email
-                  ? AppColors.gold.withOpacity(0.12)
+                  ? AppColors.gold.withValues(alpha: 0.12)
                   : null,
               side: BorderSide(
                 color: _mode == _LoginMode.email
                     ? AppColors.gold
-                    : AppColors.deepGray.withOpacity(0.3),
+                    : AppColors.deepGray.withValues(alpha: 0.3),
               ),
             ),
             child: Text('邮箱登录', style: textTheme.bodySmall),
@@ -175,12 +173,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 : () => setState(() => _mode = _LoginMode.phone),
             style: OutlinedButton.styleFrom(
               backgroundColor: _mode == _LoginMode.phone
-                  ? AppColors.gold.withOpacity(0.12)
+                  ? AppColors.gold.withValues(alpha: 0.12)
                   : null,
               side: BorderSide(
                 color: _mode == _LoginMode.phone
                     ? AppColors.gold
-                    : AppColors.deepGray.withOpacity(0.3),
+                    : AppColors.deepGray.withValues(alpha: 0.3),
               ),
             ),
             child: Text('手机验证码', style: textTheme.bodySmall),
@@ -190,7 +188,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  Widget _emailForm(bool loading, TextTheme textTheme) {
+  Widget _emailForm(bool loading, bool connecting, TextTheme textTheme) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -241,7 +239,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               child: Switch(
                 value: _rememberMe,
                 onChanged: (v) => setState(() => _rememberMe = v),
-                activeColor: AppColors.gold,
+                activeThumbColor: AppColors.gold,
               ),
             ),
             GestureDetector(
@@ -273,7 +271,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         ),
         const SizedBox(height: 20),
         ElevatedButton(
-          onPressed: loading ? null : _submitEmail,
+          onPressed: loading || connecting ? null : _submitEmail,
           style: ElevatedButton.styleFrom(
             minimumSize: const Size(double.infinity, 54),
           ),
@@ -299,7 +297,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  Widget _phoneForm(bool loading, TextTheme textTheme) {
+  Widget _phoneForm(bool loading, bool connecting, TextTheme textTheme) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -370,7 +368,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         ],
         const SizedBox(height: 20),
         ElevatedButton(
-          onPressed: loading ? null : _submitPhone,
+          onPressed: loading || connecting ? null : _submitPhone,
           style: ElevatedButton.styleFrom(
             minimumSize: const Size(double.infinity, 54),
           ),
@@ -396,7 +394,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         Text(
           '未注册的手机号验证后将自动创建账号',
           style: textTheme.bodySmall?.copyWith(
-            color: AppColors.deepGray.withOpacity(0.8),
+            color: AppColors.deepGray.withValues(alpha: 0.8),
           ),
           textAlign: TextAlign.center,
         ),
@@ -406,14 +404,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_loadedPrefs) {
-      return const AppSplash();
-    }
-
     final state = ref.watch(authControllerProvider);
+    final supabaseReady = ref.watch(supabaseReadyProvider);
+    final initError = ref.watch(supabaseInitErrorProvider);
     final textTheme = Theme.of(context).textTheme;
-    final error = state.error;
+    final error = state.error ?? initError;
     final loading = state.loading || state.isSubmitting;
+    final connecting = !supabaseReady && initError == null;
 
     return Scaffold(
       body: SafeArea(
@@ -438,9 +435,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   _modeSwitcher(textTheme, loading),
                   const SizedBox(height: 24),
                   if (_mode == _LoginMode.email)
-                    _emailForm(loading, textTheme)
+                    _emailForm(loading, connecting, textTheme)
                   else
-                    _phoneForm(loading, textTheme),
+                    _phoneForm(loading, connecting, textTheme),
+                  if (connecting) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      '正在连接服务器…',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: AppColors.deepGray,
+                      ),
+                    ),
+                  ],
                   if (error != null) ...[
                     const SizedBox(height: 12),
                     Text(

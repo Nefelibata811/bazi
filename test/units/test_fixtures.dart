@@ -17,10 +17,10 @@ class TestFixtures {
   // 公历 2000-01-01 12:00（庚辰年 丙子月）
   static DateTime get gengChenYearDate => DateTime(2000, 1, 1, 12, 0);
 
-  // 已知参考点：1900-01-01 儒略日 ≈ 2415020，甲戌日（干支序号 10）
+  // 已知参考点：1900-01-01 儒略日（整数日界）≈ 2415021，甲戌日（干支序号 10）
   static DateTime get reference1900 => DateTime(1900, 1, 1);
 
-  static const referenceJd1900 = 2415020;
+  static const referenceJd1900 = 2415021;
 
   // 已知参考点：1984-01-01 儒略日 ≈ 2445701
   static DateTime get reference1984 => DateTime(1984, 1, 1);

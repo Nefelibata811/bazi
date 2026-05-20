@@ -55,7 +55,7 @@ class SupabaseAuthCallback {
         platform.persistRecoveryFlag();
       }
     } finally {
-      await Future<void>.delayed(const Duration(milliseconds: 200));
+      await Future<void>.delayed(const Duration(milliseconds: 32));
       await subscription.cancel();
     }
 

@@ -33,7 +33,9 @@ class AstroSolarTermProvider implements SolarTermProvider {
       SolarTermConstants.names.length,
       (index) {
         final jd = _solarTermJD(year, index);
-        final dateTime = JulianDay.toDateTimeExact(jd);
+        // 天文历书为北京时间（UTC+8）
+        final dateTime =
+            JulianDay.toDateTimeExact(jd).add(const Duration(hours: 8));
 
         return SolarTermInfo(
           name: SolarTermConstants.names[index],
@@ -89,15 +91,15 @@ class AstroSolarTermProvider implements SolarTermProvider {
     final T = (jd - _j2000) / 36525.0;
 
     // 太阳平黄经
-    final L0 = 280.46646 + 36000.76983 * T + 0.0003032 * T * T;
+    final meanLongitude = 280.46646 + 36000.76983 * T + 0.0003032 * T * T;
 
     // 太阳平近点角
-    final M = 357.52911 + 35999.05029 * T - 0.0001537 * T * T;
+    final meanAnomaly = 357.52911 + 35999.05029 * T - 0.0001537 * T * T;
 
-    final Mr = M * _pi / 180.0;
-    final sinM = sin(Mr);
-    final sin2M = sin(2 * Mr);
-    final sin3M = sin(3 * Mr);
+    final meanAnomalyRad = meanAnomaly * _pi / 180.0;
+    final sinM = sin(meanAnomalyRad);
+    final sin2M = sin(2 * meanAnomalyRad);
+    final sin3M = sin(3 * meanAnomalyRad);
 
     // 中心差
     final C = (1.914602 - 0.004817 * T - 0.000014 * T * T) * sinM +
@@ -111,7 +113,7 @@ class AstroSolarTermProvider implements SolarTermProvider {
     // 光行差
     final aberration = -0.00569;
 
-    var longitude = L0 + C + nutation + aberration;
+    var longitude = meanLongitude + C + nutation + aberration;
     longitude = longitude % 360.0;
     if (longitude < 0) longitude += 360.0;
 
@@ -122,11 +124,11 @@ class AstroSolarTermProvider implements SolarTermProvider {
   double _dailyMeanMotion(double jd) {
     final T = (jd - _j2000) / 36525.0;
     const baseMotion = 36000.76983 / 36525.0;
-    final M = 357.52911 + 35999.05029 * T - 0.0001537 * T * T;
-    final Mr = M * _pi / 180.0;
-    final dC = (1.914602 - 0.004817 * T) * cos(Mr) *
+    final meanAnomaly = 357.52911 + 35999.05029 * T - 0.0001537 * T * T;
+    final meanAnomalyRad = meanAnomaly * _pi / 180.0;
+    final dC = (1.914602 - 0.004817 * T) * cos(meanAnomalyRad) *
             (35999.05029 / 36525.0 * _pi / 180.0) +
-        (0.019993 - 0.000101 * T) * cos(2 * Mr) *
+        (0.019993 - 0.000101 * T) * cos(2 * meanAnomalyRad) *
             (2 * 35999.05029 / 36525.0 * _pi / 180.0);
 
     return baseMotion + dC;

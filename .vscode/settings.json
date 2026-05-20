@@ -1,7 +1,11 @@
-{
+﻿{
   "dart.flutterSdkPath": "D:\\flutter",
   "dart.flutterRunAdditionalArgs": [
     "-d",
-    "chrome"
+    "chrome",
+    "--no-web-resources-cdn"
+  ],
+  "dart.flutterAdditionalArgs": [
+    "--no-web-resources-cdn"
   ]
 }

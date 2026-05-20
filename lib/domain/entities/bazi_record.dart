@@ -47,7 +47,7 @@ class BaziRecord {
       final solar = DateTime.parse(req['solarDateTime'] as String);
       final hour = solar.hour.toString().padLeft(2, '0');
       final minute = solar.minute.toString().padLeft(2, '0');
-      final time = minute == '00' ? '${hour}时' : '$hour:$minute';
+      final time = minute == '00' ? '$hour时' : '$hour:$minute';
       return '${solar.year}年${solar.month}月${solar.day}日 $time';
     } catch (_) {
       return dateLabel;

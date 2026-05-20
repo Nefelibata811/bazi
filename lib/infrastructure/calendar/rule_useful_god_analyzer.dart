@@ -74,6 +74,7 @@ class RuleUsefulGodAnalyzer implements UsefulGodAnalyzer {
       if (stemGod == '比肩' || stemGod == '劫财') score += 1.0;
       if (stemGod == '正印' || stemGod == '偏印') score += 1.0;
       if (stemGod == '正官' || stemGod == '七杀') score -= 1.0;
+      if (stemGod == '正财' || stemGod == '偏财') score -= 0.5;
 
       for (final hidden in pillar.hiddenStems) {
         final hiddenGod = _ruleEngine.tenGodFor(
@@ -82,6 +83,8 @@ class RuleUsefulGodAnalyzer implements UsefulGodAnalyzer {
         );
         if (hiddenGod == '比肩' || hiddenGod == '劫财') score += 0.5;
         if (hiddenGod == '正印' || hiddenGod == '偏印') score += 0.5;
+        if (hiddenGod == '正财' || hiddenGod == '偏财') score -= 0.25;
+        if (hiddenGod == '正官' || hiddenGod == '七杀') score -= 0.5;
       }
     }
 
@@ -145,7 +148,7 @@ class RuleUsefulGodAnalyzer implements UsefulGodAnalyzer {
     } else if (_generates[monthElement] == dayElement) {
       score += 2.0;
     } else if (_controls[dayElement] == monthElement) {
-      score += 1.0;
+      score -= 1.0;
     } else if (_generates[dayElement] == monthElement) {
       score -= 1.0;
     } else if (_controls[monthElement] == dayElement) {
@@ -154,6 +157,14 @@ class RuleUsefulGodAnalyzer implements UsefulGodAnalyzer {
 
     if (reservoirElement != null && dayElement == reservoirElement) {
       score += 0.5;
+    }
+
+    // 当令五行克泄日主：火月水弱、水月火弱等
+    if (monthElement == FiveElement.fire && dayElement == FiveElement.water) {
+      score -= 2.0;
+    } else if (monthElement == FiveElement.water &&
+        dayElement == FiveElement.fire) {
+      score -= 2.0;
     }
 
     return score;

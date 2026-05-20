@@ -34,6 +34,9 @@ abstract class AuthRepository {
 
   Future<void> logout();
 
+  /// Local session user without a profiles round-trip (fast startup).
+  User? userFromActiveSession();
+
   Future<User?> currentUser();
 
   Future<User?> updateProfile({

@@ -47,7 +47,8 @@ void main() {
 
     test('1984 → 甲子（基准年）', () {
       const baseYear = 1984;
-      final offset = 0;
+      const year = 1984;
+      final offset = (year - baseYear) % 60;
       final stem = BaziRuleEngine.stems[offset % 10];
       final branch = BaziRuleEngine.branches[offset % 12];
       expect('$stem$branch', '甲子');
@@ -63,7 +64,7 @@ void main() {
 
     test('2024 → 甲辰', () {
       const baseYear = 1984;
-      final offset = (2024 - 1984) % 60;
+      final offset = (2024 - baseYear) % 60;
       final stem = BaziRuleEngine.stems[offset % 10];
       final branch = BaziRuleEngine.branches[offset % 12];
       expect('$stem$branch', '甲辰');
@@ -81,11 +82,14 @@ void main() {
       '戊': '甲', '癸': '甲',
     };
 
+    // 正月建寅：寅=index 2，卯=3 …
+    const firstBranchIndex = 2;
+
     test('甲年寅月 = 丙寅', () {
       final firstStem = firstMonthStemForYear['甲'];
       final firstStemIndex = BaziRuleEngine.stems.indexOf(firstStem!);
       final stem = BaziRuleEngine.stems[(firstStemIndex + 0) % 10];
-      final branch = BaziRuleEngine.branches[0];
+      final branch = BaziRuleEngine.branches[firstBranchIndex];
       expect('$stem$branch', '丙寅');
     });
 
@@ -93,7 +97,7 @@ void main() {
       final firstStem = firstMonthStemForYear['甲'];
       final firstStemIndex = BaziRuleEngine.stems.indexOf(firstStem!);
       final stem = BaziRuleEngine.stems[(firstStemIndex + 1) % 10];
-      final branch = BaziRuleEngine.branches[1];
+      final branch = BaziRuleEngine.branches[firstBranchIndex + 1];
       expect('$stem$branch', '丁卯');
     });
 
@@ -101,7 +105,8 @@ void main() {
       final firstStem = firstMonthStemForYear['乙'];
       final firstStemIndex = BaziRuleEngine.stems.indexOf(firstStem!);
       final stem = BaziRuleEngine.stems[(firstStemIndex + 0) % 10];
-      expect('$stem{BaziRuleEngine.branches[0]}', '戊寅');
+      final branch = BaziRuleEngine.branches[firstBranchIndex];
+      expect('$stem$branch', '戊寅');
     });
 
     test('所有年干都能推月干', () {
@@ -112,7 +117,7 @@ void main() {
         expect(firstIndex, greaterThanOrEqualTo(0));
         for (int m = 0; m < 12; m++) {
           final mStem = BaziRuleEngine.stems[(firstIndex + m) % 10];
-          final mBranch = BaziRuleEngine.branches[m];
+          final mBranch = BaziRuleEngine.branches[(firstBranchIndex + m) % 12];
           expect('$mStem$mBranch', isNotEmpty);
         }
       }
@@ -121,8 +126,8 @@ void main() {
 
   group('日柱推算算法（儒略日基准）', () {
     // 1900-01-01 = 甲戌日（60 甲子序号 10）
-    // JD(1900-01-01) = 2415020
-    const baseJd = 2415020;
+    // JD(1900-01-01) = 2415021（整数日界）
+    const baseJd = 2415021;
     const baseGanZhiIndex = 10;
 
     test('1900-01-01 → 甲戌', () {
@@ -145,8 +150,8 @@ void main() {
 
     test('1984-01-01 干支推算（连续 7 天检验）', () {
       // 1984-01-01 JD = 2445701
-      // 偏离基准：2445701 - 2415020 = 30681
-      // 干支序号 = (10 + 30681) % 60 = 30691 % 60 = 31
+      // 偏离基准：2445701 - 2415021 = 30680
+      // 干支序号 = (10 + 30680) % 60 = 30690 % 60 = 30
       // 序号 31：天干 1（乙）、地支 7（午）→ 乙午？不对，序号31应该是甲午（因为30是癸巳）
       // 0甲子 1乙丑 2丙寅 ... 30甲午 31乙未 32丙申 ...
       final jd = JulianDay.fromDateTime(DateTime(1984, 1, 1));

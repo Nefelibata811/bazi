@@ -53,7 +53,7 @@ class RulePatternAnalyzer implements PatternAnalyzer {
       return [
         PatternResult(
           name: '未定格',
-          summary: '月支 ${monthBranch} 未能识别对应格神。',
+          summary: '月支 $monthBranch 未能识别对应格神。',
           evidence: ['月支不在常规映射中'],
           confidence: 0,
         ),
@@ -65,7 +65,7 @@ class RulePatternAnalyzer implements PatternAnalyzer {
       targetStem: patternStem,
     );
 
-    final basePattern = _tenGodToPattern[godRelation] ?? '${godRelation}格';
+    final basePattern = _tenGodToPattern[godRelation] ?? '$godRelation格';
 
     // 第二步：检查是否透干 —— 月干、年干、时干是否透出格神
     final exposedInMonth = chart.month.stem == patternStem;
@@ -159,14 +159,14 @@ class RulePatternAnalyzer implements PatternAnalyzer {
   String _describeElementRelation(FiveElement day, FiveElement pattern) {
     if (day == pattern) return '';
     final ctrl = [
-      (FiveElement.wood, FiveElement.earth, '木克土'),
-      (FiveElement.fire, FiveElement.metal, '火克金'),
-      (FiveElement.earth, FiveElement.water, '土克水'),
-      (FiveElement.metal, FiveElement.wood, '金克木'),
-      (FiveElement.water, FiveElement.fire, '水克火'),
+      (FiveElement.wood, FiveElement.earth),
+      (FiveElement.fire, FiveElement.metal),
+      (FiveElement.earth, FiveElement.water),
+      (FiveElement.metal, FiveElement.wood),
+      (FiveElement.water, FiveElement.fire),
     ];
 
-    for (final (controller, controlled, desc) in ctrl) {
+    for (final (controller, controlled) in ctrl) {
       if (day == controller && pattern == controlled) return '（日主克格神）';
       if (day == controlled && pattern == controller) return '（格神克日主）';
     }

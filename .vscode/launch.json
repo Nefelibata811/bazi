@@ -1,4 +1,4 @@
-{
+﻿{
   "version": "0.2.0",
   "configurations": [
     {
@@ -6,14 +6,19 @@
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",
-      "deviceId": "chrome"
+      "deviceId": "chrome",
+      "toolArgs": [
+        "--no-web-resources-cdn",
+        "--dart-define-from-file=secrets.local.env"
+      ]
     },
     {
       "name": "bazi Windows 桌面",
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",
-      "deviceId": "windows"
+      "deviceId": "windows",
+      "toolArgs": ["--dart-define-from-file=secrets.local.env"]
     }
   ]
 }

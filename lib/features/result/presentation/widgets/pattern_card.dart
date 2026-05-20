@@ -42,11 +42,11 @@ class PatternCard extends StatelessWidget {
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.cinnabar.withOpacity(0.04),
+                  color: AppColors.cinnabar.withValues(alpha: 0.04),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: isPrimary
-                        ? AppColors.cinnabar.withOpacity(0.18)
+                        ? AppColors.cinnabar.withValues(alpha: 0.18)
                         : AppColors.line,
                   ),
                 ),
@@ -61,7 +61,7 @@ class PatternCard extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: chipColor.withOpacity(0.10),
+                            color: chipColor.withValues(alpha: 0.10),
                             borderRadius: BorderRadius.circular(999),
                           ),
                           child: Text(

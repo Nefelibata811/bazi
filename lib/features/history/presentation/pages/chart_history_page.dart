@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/app_strings.dart';
@@ -11,7 +10,6 @@ import '../../../../domain/value_objects/calendar_type.dart';
 import '../../../../domain/value_objects/gender.dart';
 import '../../application/bazi_records_list_controller.dart';
 import '../../application/save_bazi_record.dart';
-import '../../../auth/application/auth_controller.dart';
 import '../../../input/application/bazi_input_controller.dart';
 import '../../../result/presentation/pages/bazi_result_page.dart';
 

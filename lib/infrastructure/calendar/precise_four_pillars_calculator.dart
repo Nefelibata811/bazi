@@ -10,13 +10,9 @@ import '../../domain/services/solar_term_provider.dart';
 class PreciseFourPillarsCalculator implements FourPillarsCalculator {
   PreciseFourPillarsCalculator({
     required SolarTermProvider solarTermProvider,
-    bool useJulianDay = true,
-  }) : _solarTermProvider = solarTermProvider,
-       _useJulianDay = useJulianDay;
+  }) : _solarTermProvider = solarTermProvider;
 
   final SolarTermProvider _solarTermProvider;
-
-  final bool _useJulianDay;
 
   @override
   Future<FourPillars> calculate(CalendarSnapshot snapshot) async {
@@ -94,9 +90,9 @@ class PreciseFourPillarsCalculator implements FourPillarsCalculator {
     // stemIndex = (第 10 个干支的天干序号 + 天数偏移) % 10
     // branchIndex = (第 10 个干支的地支序号 + 天数偏移) % 12
     final jd = JulianDay.fromDateTime(dateTime);
-    // 1900-01-01 的儒略日 ≈ 2415020
+    // 1900-01-01 的儒略日（整数日界）≈ 2415021
     // 1900-01-01 干支 = 甲戌，在 60-甲子表中的序号 = 10
-    const baseJd = 2415020;
+    const baseJd = 2415021;
     const baseGanZhiIndex = 10;
 
     final daysDiff = jd - baseJd;

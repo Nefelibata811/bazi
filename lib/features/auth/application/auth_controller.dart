@@ -1,23 +1,25 @@
-import 'dart:typed_data';
+import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:meta/meta.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 import '../../../core/app_urls.dart';
+import '../../../core/auth_messages.dart';
 import '../../../core/phone_utils.dart';
 import '../../../domain/entities/user.dart';
 import '../../../domain/services/auth_repository.dart';
+import '../../../app/bootstrap_app.dart';
+import '../../../infrastructure/database/inactive_auth_repository.dart';
 import '../../../infrastructure/database/supabase_auth_repository.dart';
 import '../infrastructure/supabase_auth_callback.dart';
 
-final supabaseClientProvider = Provider<SupabaseClient>((ref) {
-  return Supabase.instance.client;
-});
-
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  return SupabaseAuthRepository(ref.watch(supabaseClientProvider));
+  if (!ref.watch(supabaseReadyProvider) ||
+      !Supabase.instance.isInitialized) {
+    return const InactiveAuthRepository();
+  }
+  return SupabaseAuthRepository(Supabase.instance.client);
 });
 
 /// Aligns with [AuthState.isLoggedIn]: requires an active session, not just currentUser.
@@ -72,15 +74,28 @@ class AuthState {
 }
 
 class AuthController extends StateNotifier<AuthState> {
-  AuthController(this._authRepository) : super(const AuthState(loading: true)) {
+  AuthController(this._ref) : super(const AuthState(loading: false));
+
+  final Ref _ref;
+
+  AuthRepository get _authRepository => _ref.read(authRepositoryProvider);
+  Timer? _loadingFailsafe;
+  StreamSubscription? _authSubscription;
+  bool _supabaseAttached = false;
+
+  /// Supabase 在后台初始化完成后由 [BootstrapApp] 调用。
+  void onSupabaseReady() {
+    if (_supabaseAttached) return;
+    _supabaseAttached = true;
     _listenAuthChanges();
-    _restoreSession();
+    unawaited(_restoreSession());
   }
 
-  final AuthRepository _authRepository;
+  bool get _supabaseReady => Supabase.instance.isInitialized;
 
   void _listenAuthChanges() {
-    Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
+    _authSubscription =
+        Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
       if (data.event == AuthChangeEvent.passwordRecovery) {
         markPendingPasswordRecovery();
         final user = await _authRepository.currentUser();
@@ -119,14 +134,13 @@ class AuthController extends StateNotifier<AuthState> {
   }
 
   Future<void> _restoreSession() async {
-    if (kIsWeb) {
-      await SupabaseAuthCallback.handle();
-    }
+    if (!_supabaseReady) return;
 
     final needsResetFromCallback = consumePendingPasswordRecovery();
 
-    final supabaseUser = Supabase.instance.client.auth.currentUser;
-    if (supabaseUser == null) {
+    final sessionUser = _authRepository.userFromActiveSession();
+    if (sessionUser == null) {
+      _loadingFailsafe?.cancel();
       if (mounted) {
         state = state.copyWith(
           loading: false,
@@ -136,21 +150,51 @@ class AuthController extends StateNotifier<AuthState> {
       return;
     }
 
-    final user = await _authRepository.currentUser();
     if (mounted) {
-      final needsReset = needsResetFromCallback ||
-          state.needsPasswordReset ||
-          peekPendingPasswordRecovery();
-      if (needsReset) consumePendingPasswordRecovery();
+      state = state.copyWith(loading: true);
+    }
+    _loadingFailsafe?.cancel();
+    _loadingFailsafe = Timer(const Duration(seconds: 3), () {
+      if (!mounted || !state.loading) return;
+      state = state.copyWith(loading: false);
+    });
+
+    final hasSession = Supabase.instance.client.auth.currentSession != null;
+    final needsEmailConfirm = !hasSession;
+
+    final needsReset = needsResetFromCallback ||
+        state.needsPasswordReset ||
+        peekPendingPasswordRecovery();
+    if (needsReset) consumePendingPasswordRecovery();
+
+    _loadingFailsafe?.cancel();
+    if (mounted) {
       state = state.copyWith(
-        user: user,
+        user: sessionUser,
         loading: false,
         needsPasswordReset: needsReset,
+        needsEmailConfirmation: needsEmailConfirm && !needsReset,
       );
       if (needsReset && kIsWeb) {
         SupabaseAuthCallback.cleanUrlAfterRecoveryHandled();
       }
     }
+
+    unawaited(_enrichProfileFromServer());
+  }
+
+  Future<void> _enrichProfileFromServer() async {
+    final user = await _authRepository.currentUser();
+    if (!mounted || user == null) return;
+    if (state.user?.id != user.id) return;
+    state = state.copyWith(user: user);
+  }
+
+  @override
+  void dispose() {
+    _loadingFailsafe?.cancel();
+    _authSubscription?.cancel();
+    super.dispose();
   }
 
   /// Called when recovery is detected after the first frame (e.g. late auth event).
@@ -169,10 +213,8 @@ class AuthController extends StateNotifier<AuthState> {
     return null;
   }
 
-  String _authMessage(Object e, String fallback) {
-    if (e is AuthException && e.message.isNotEmpty) return e.message;
-    return fallback;
-  }
+  String _authMessage(Object e, String fallback) =>
+      authExceptionMessage(e, fallback: fallback);
 
   Future<String?> sendPhoneLoginOtp(String phoneInput) async {
     final err = _phoneError(phoneInput);
@@ -266,6 +308,11 @@ class AuthController extends StateNotifier<AuthState> {
   }
 
   Future<bool> login(String email, String password) async {
+    if (!_supabaseReady) {
+      state = AuthState.unauthenticated(error: '正在连接服务器，请稍候再试');
+      return false;
+    }
+
     state = state.copyWith(isSubmitting: true, clearError: true);
 
     try {
@@ -275,20 +322,26 @@ class AuthController extends StateNotifier<AuthState> {
       );
 
       if (user == null) {
-        final session = Supabase.instance.client.auth.currentSession;
-        if (session == null) {
-          state = AuthState.unauthenticated(error: '邮箱或密码错误');
-        } else {
-          state = AuthState.unauthenticated(error: '登录异常，请重试');
-        }
+        state = AuthState.unauthenticated(error: '登录失败，请重试');
         return false;
       }
 
       state = AuthState.authenticated(user);
+      unawaited(_enrichProfileFromServer());
       return true;
-    } catch (e) {
-      state = AuthState.unauthenticated(error: '网络异常，请检查网络后重试');
+    } on AuthException catch (e) {
+      state = AuthState.unauthenticated(error: loginErrorMessage(e));
       return false;
+    } catch (e) {
+      debugPrint('login failed: $e');
+      state = AuthState.unauthenticated(
+        error: '网络异常，请检查网络后重试',
+      );
+      return false;
+    } finally {
+      if (mounted) {
+        state = state.copyWith(isSubmitting: false);
+      }
     }
   }
 
@@ -297,6 +350,11 @@ class AuthController extends StateNotifier<AuthState> {
     required String password,
     String? nickname,
   }) async {
+    if (!_supabaseReady) {
+      state = AuthState.unauthenticated(error: '正在连接服务器，请稍候再试');
+      return false;
+    }
+
     state = state.copyWith(isSubmitting: true, clearError: true);
 
     if (email.trim().isEmpty || password.isEmpty) {
@@ -331,9 +389,17 @@ class AuthController extends StateNotifier<AuthState> {
 
       state = AuthState.authenticated(user);
       return true;
+    } on AuthException catch (e) {
+      state = AuthState.unauthenticated(error: registerErrorMessage(e));
+      return false;
     } catch (e) {
+      debugPrint('register failed: $e');
       state = AuthState.unauthenticated(error: '网络异常，请检查网络后重试');
       return false;
+    } finally {
+      if (mounted) {
+        state = state.copyWith(isSubmitting: false);
+      }
     }
   }
 
@@ -395,8 +461,10 @@ class AuthController extends StateNotifier<AuthState> {
         redirectTo: AppUrls.passwordResetRedirect,
       );
       return null;
+    } on AuthException catch (e) {
+      return passwordResetErrorMessage(e);
     } catch (e) {
-      return e.toString();
+      return _authMessage(e, '发送失败，请稍后重试');
     }
   }
 
@@ -449,7 +517,14 @@ extension AuthStateCopy on AuthState {
 
 final authControllerProvider =
     StateNotifierProvider<AuthController, AuthState>((ref) {
-  return AuthController(ref.watch(authRepositoryProvider));
+  final controller = AuthController(ref);
+  ref.listen<bool>(supabaseReadyProvider, (previous, next) {
+    if (next) controller.onSupabaseReady();
+  });
+  if (ref.read(supabaseReadyProvider) && Supabase.instance.isInitialized) {
+    controller.onSupabaseReady();
+  }
+  return controller;
 });
 
 bool _pendingPasswordRecovery = false;

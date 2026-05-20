@@ -53,7 +53,7 @@ class CollectionPage extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.folder_open, size: 64,
-                        color: AppColors.deepGray.withOpacity(0.3)),
+                        color: AppColors.deepGray.withValues(alpha: 0.3)),
                     const SizedBox(height: 16),
                     Text('暂无合集', style: textTheme.titleMedium),
                     const SizedBox(height: 8),
@@ -96,7 +96,7 @@ class CollectionPage extends ConsumerWidget {
                             width: 48,
                             height: 48,
                             decoration: BoxDecoration(
-                              color: AppColors.gold.withOpacity(0.1),
+                              color: AppColors.gold.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(14),
                             ),
                             alignment: Alignment.center,
@@ -172,7 +172,7 @@ class CollectionPage extends ConsumerWidget {
                     width: 64,
                     height: 64,
                     decoration: BoxDecoration(
-                      color: AppColors.gold.withOpacity(0.1),
+                      color: AppColors.gold.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     alignment: Alignment.center,
@@ -322,7 +322,7 @@ class CollectionPage extends ConsumerWidget {
                     width: 64,
                     height: 64,
                     decoration: BoxDecoration(
-                      color: AppColors.gold.withOpacity(0.1),
+                      color: AppColors.gold.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     alignment: Alignment.center,
@@ -731,7 +731,7 @@ class _AddRecordSheet extends ConsumerWidget {
                   final alreadyAdded = addedIds.contains(record.id);
                   return ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: AppColors.cinnabar.withOpacity(0.08),
+                      backgroundColor: AppColors.cinnabar.withValues(alpha: 0.08),
                       child: Text(
                         record.personName.isNotEmpty
                             ? record.personName[0]

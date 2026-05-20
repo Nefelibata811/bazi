@@ -4,7 +4,6 @@ import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 import '../../../../app/theme/app_colors.dart';
 import '../../application/auth_controller.dart';
-import '../../infrastructure/supabase_auth_callback.dart';
 
 class ResetPasswordPage extends ConsumerStatefulWidget {
   const ResetPasswordPage({super.key});
@@ -59,10 +58,9 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
         ),
       );
 
-      SupabaseAuthCallback.clearRecoveryArtifacts();
-      await Supabase.instance.client.auth.signOut();
+      await ref.read(authControllerProvider.notifier).logout();
       if (mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false);
+        Navigator.of(context).popUntil((route) => route.isFirst);
       }
     }
   }

@@ -1,24 +1,24 @@
-import 'dart:html' as html;
+import 'package:web/web.dart';
 
 const _recoveryStorageKey = 'bazi_auth_recovery';
 
-Uri currentAuthUri() => Uri.parse(html.window.location.href);
+Uri currentAuthUri() => Uri.parse(window.location.href);
 
 void persistRecoveryFlag() {
-  html.window.sessionStorage[_recoveryStorageKey] = '1';
+  window.sessionStorage.setItem(_recoveryStorageKey, '1');
 }
 
 bool hasPersistedRecoveryFlag() {
-  return html.window.sessionStorage[_recoveryStorageKey] == '1';
+  return window.sessionStorage.getItem(_recoveryStorageKey) == '1';
 }
 
 void clearPersistedRecoveryFlag() {
-  html.window.sessionStorage.remove(_recoveryStorageKey);
+  window.sessionStorage.removeItem(_recoveryStorageKey);
 }
 
 void cleanAuthParamsFromBrowserUrl() {
-  final path = html.window.location.pathname;
-  if (path != null && path.isNotEmpty) {
-    html.window.history.replaceState(null, '', path);
+  final path = window.location.pathname;
+  if (path.isNotEmpty) {
+    window.history.replaceState(null, '', path);
   }
 }

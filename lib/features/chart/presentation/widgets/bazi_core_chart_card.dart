@@ -29,7 +29,7 @@ class BaziCoreChartCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: AppColors.cinnabar.withOpacity(0.10),
+                    color: AppColors.cinnabar.withValues(alpha: 0.10),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
@@ -85,7 +85,7 @@ class _PillarTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.84),
+        color: Colors.white.withValues(alpha: 0.84),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.line),
       ),
@@ -138,11 +138,11 @@ class _PillarTile extends StatelessWidget {
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                     decoration: BoxDecoration(
                       color: AppColors.fiveElementByStem(item.stem)
-                          .withOpacity(0.10),
+                          .withValues(alpha: 0.10),
                       borderRadius: BorderRadius.circular(999),
                       border: Border.all(
                         color: AppColors.fiveElementByStem(item.stem)
-                            .withOpacity(0.18),
+                            .withValues(alpha: 0.18),
                       ),
                     ),
                     child: Text(

@@ -46,7 +46,7 @@ class BuildBaziReportUseCase {
 
     BoneWeight? boneWeight;
     if (_baziCalculator is LunarBaziCalculator) {
-      boneWeight = (_baziCalculator as LunarBaziCalculator).calculateBoneWeight(request);
+      boneWeight = (_baziCalculator).calculateBoneWeight(request);
     }
 
     return BaziReport(

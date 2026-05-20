@@ -162,13 +162,13 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
                           color: _isCoolingDown
-                              ? AppColors.gold.withOpacity(0.06)
-                              : AppColors.cinnabar.withOpacity(0.06),
+                              ? AppColors.gold.withValues(alpha: 0.06)
+                              : AppColors.cinnabar.withValues(alpha: 0.06),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: _isCoolingDown
-                                ? AppColors.gold.withOpacity(0.2)
-                                : AppColors.cinnabar.withOpacity(0.2),
+                                ? AppColors.gold.withValues(alpha: 0.2)
+                                : AppColors.cinnabar.withValues(alpha: 0.2),
                           ),
                         ),
                         child: Row(
@@ -264,7 +264,7 @@ class _SuccessCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.paper,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.gold.withOpacity(0.4)),
+        border: Border.all(color: AppColors.gold.withValues(alpha: 0.4)),
       ),
       child: Column(
         children: [

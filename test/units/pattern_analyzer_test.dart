@@ -7,7 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:bazi_app/infrastructure/calendar/rule_pattern_analyzer.dart';
 
 void main() {
-  final engine = const BaziRuleEngine();
+  final engine = BaziRuleEngine();
   final analyzer = RulePatternAnalyzer(ruleEngine: engine);
 
   // 癸日主，月支寅 → 格神甲木 → 癸见甲 = 伤官格

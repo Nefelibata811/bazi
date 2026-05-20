@@ -1,4 +1,4 @@
-import 'package:lunar/lunar.dart' hide Pillar;
+import 'package:lunar/lunar.dart';
 
 import '../../../domain/entities/bazi_chart.dart';
 import '../../../domain/entities/bazi_request.dart';

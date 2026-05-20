@@ -22,14 +22,25 @@ final mainTabIndexProvider = StateProvider<int>((ref) => 0);
 final aiChatRefreshSignal = StateProvider<int>((ref) => 0);
 final chatClearSignal = StateProvider<int>((ref) => 0);
 
+/// 回到主页 Tab（命主列表），并关闭叠在上面的排盘/录入等路由。
+Future<void> navigateToHomeTab(BuildContext context, WidgetRef ref) async {
+  ref.read(mainTabIndexProvider.notifier).state = 0;
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('app_tab_index', 0);
+    await prefs.setBool('pending_ai_auto_start', false);
+  } catch (_) {}
+  if (context.mounted) {
+    Navigator.of(context).popUntil((route) => route.isFirst);
+  }
+}
+
 class BaziApp extends StatelessWidget {
   const BaziApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const ProviderScope(
-      child: _BaziAppView(),
-    );
+    return const _BaziAppView();
   }
 }
 
@@ -110,18 +121,35 @@ class _BaziAppViewState extends ConsumerState<_BaziAppView> {
           case '/collections':
             return _slideRoute(const CollectionPage(), settings);
           case '/collection_detail':
-            final args = settings.arguments as Map<String, dynamic>?;
+            final args = settings.arguments;
+            if (args is! Map<String, dynamic>) {
+              return _unknownRoute(settings);
+            }
+            final collectionId = args['collectionId'] as String?;
+            final collectionName = args['collectionName'] as String?;
+            if (collectionId == null || collectionName == null) {
+              return _unknownRoute(settings);
+            }
             return _slideRoute(
               CollectionDetailPage(
-                collectionId: args?['collectionId'] as String,
-                collectionName: args?['collectionName'] as String,
+                collectionId: collectionId,
+                collectionName: collectionName,
               ),
               settings,
             );
           default:
-            return _slideRoute(const _MainShell(), settings);
+            return _unknownRoute(settings);
         }
       },
+    );
+  }
+
+  MaterialPageRoute<void> _unknownRoute(RouteSettings settings) {
+    return MaterialPageRoute(
+      settings: settings,
+      builder: (_) => const Scaffold(
+        body: Center(child: Text('页面不存在')),
+      ),
     );
   }
 
@@ -156,7 +184,11 @@ class _MainShellState extends ConsumerState<_MainShell> {
     super.initState();
     _restoreTabIndex();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(baziRecordsListProvider.notifier).ensureLoaded();
+      // 首帧后再拉列表，避免与登录恢复抢首屏时间
+      Future<void>.delayed(const Duration(milliseconds: 400), () {
+        if (!mounted) return;
+        ref.read(baziRecordsListProvider.notifier).ensureLoaded();
+      });
     });
   }
 
@@ -183,15 +215,12 @@ class _MainShellState extends ConsumerState<_MainShell> {
     });
   }
 
-  final _pages = const <Widget>[PeopleListPage(), ChatPage()];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
-      ),
+      body: _currentIndex == 0
+          ? const PeopleListPage()
+          : const ChatPage(),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           border: Border(top: BorderSide(color: AppColors.line)),

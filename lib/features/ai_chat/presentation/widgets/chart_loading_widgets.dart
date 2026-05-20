@@ -26,7 +26,7 @@ class ChartSessionLoading extends StatelessWidget {
               height: 28,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: AppColors.gold.withOpacity(0.85),
+                color: AppColors.gold.withValues(alpha: 0.85),
               ),
             ),
             const SizedBox(height: 16),
@@ -53,7 +53,7 @@ class ChartListRefreshBar extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: AppColors.gold.withOpacity(0.06),
+      color: AppColors.gold.withValues(alpha: 0.06),
       child: Row(
         children: [
           SizedBox(
@@ -61,7 +61,7 @@ class ChartListRefreshBar extends StatelessWidget {
             height: 14,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: AppColors.gold.withOpacity(0.7),
+              color: AppColors.gold.withValues(alpha: 0.7),
             ),
           ),
           const SizedBox(width: 10),

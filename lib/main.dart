@@ -1,27 +1,22 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' hide User;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'app/app.dart';
-import 'features/auth/infrastructure/supabase_auth_callback.dart';
+import 'app/bootstrap_app.dart';
+import 'core/debug_log.dart';
 
-Future<void> main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Supabase.initialize(
-    url: 'https://iczcdybxotqzwatyvqdm.supabase.co',
-    anonKey: 'sb_publishable_C1tZZqL3i-HYl3D-a8-6uA_DyzgVgV6',
-    authOptions: FlutterAuthClientOptions(
-      // Web 密码重置邮件需 implicit：PKCE 的 code_verifier 在申请邮件的浏览器里，
-      // 从邮箱新标签打开链接时无法换票，会误进登录页。
-      authFlowType:
-          kIsWeb ? AuthFlowType.implicit : AuthFlowType.pkce,
-    ),
-  );
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    logDebug('FlutterError: ${details.exceptionAsString()}');
+  };
 
-  if (kIsWeb) {
-    await SupabaseAuthCallback.handle();
-  }
+  PlatformDispatcher.instance.onError = (error, stack) {
+    logDebug('Uncaught: $error\n$stack');
+    return true;
+  };
 
-  runApp(const BaziApp());
+  runApp(const ProviderScope(child: BootstrapApp()));
 }

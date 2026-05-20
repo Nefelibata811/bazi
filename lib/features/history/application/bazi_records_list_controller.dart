@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/entities/bazi_record.dart';
-import '../../../infrastructure/database/supabase_bazi_record_repository.dart';
 import '../../auth/application/auth_controller.dart';
 import '../infrastructure/bazi_records_local_cache.dart';
 import 'save_bazi_record.dart' show baziRecordRepositoryProvider;
@@ -45,7 +44,9 @@ class BaziRecordsListNotifier extends Notifier<BaziRecordsListState> {
   @override
   BaziRecordsListState build() {
     ref.keepAlive();
-    ref.listen(baziRecordsVersionProvider, (_, __) {
+    ref.listen<int>(baziRecordsVersionProvider, (previous, next) {
+      if (previous == null) return;
+      if (previous == next) return;
       unawaited(refresh(silent: true));
     });
 

@@ -1,7 +1,6 @@
 import 'package:bazi_app/domain/entities/bazi_chart.dart';
 import 'package:bazi_app/domain/entities/bazi_request.dart';
 import 'package:bazi_app/domain/entities/calendar_snapshot.dart';
-import 'package:bazi_app/domain/entities/hidden_stem.dart';
 import 'package:bazi_app/domain/entities/lunar_date.dart';
 import 'package:bazi_app/domain/entities/pillar.dart';
 import 'package:bazi_app/domain/entities/solar_term_info.dart';
@@ -14,7 +13,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:bazi_app/infrastructure/calendar/real_luck_cycle_calculator.dart';
 
 void main() {
-  final engine = const BaziRuleEngine();
+  final engine = BaziRuleEngine();
   final calculator = RealLuckCycleCalculator(ruleEngine: engine);
 
   final request = BaziRequest(

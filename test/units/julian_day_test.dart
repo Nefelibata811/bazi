@@ -5,10 +5,10 @@ void main() {
   group('JulianDay', () {
     group('fromDateTime 公历 → 整数儒略日', () {
       // 基准点来自《天文算法》Meeus 已知数据。
-      test('1900-01-01 → 2415020', () {
+      test('1900-01-01 → 2415021', () {
         final jd = JulianDay.fromDateTime(DateTime(1900, 1, 1));
-        // Meeus 表给出 1900-01-01 12:00 TD ≈ 2415020.0
-        expect(jd, 2415020);
+        // 整数日界算法（-1524）与 Meeus 正午 JD 2415020.0 差 1，与干支基准一致
+        expect(jd, 2415021);
       });
 
       test('1984-01-01 → 2445701', () {
@@ -24,9 +24,9 @@ void main() {
         expect(jd, 2451545);
       });
 
-      test('2024-01-01 → 2460310', () {
+      test('2024-01-01 → 2460311', () {
         final jd = JulianDay.fromDateTime(DateTime(2024, 1, 1));
-        expect(jd, 2460310);
+        expect(jd, 2460311);
       });
 
       test('闰年 2024-02-29 处理正确', () {

@@ -73,7 +73,7 @@ class _ChatMessageListState extends State<ChatMessageList> {
               padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
               decoration: BoxDecoration(
                 color: isUser
-                    ? AppColors.gold.withOpacity(0.08)
+                    ? AppColors.gold.withValues(alpha: 0.08)
                     : AppColors.paper,
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(18),
@@ -81,7 +81,7 @@ class _ChatMessageListState extends State<ChatMessageList> {
                   bottomLeft: Radius.circular(isUser ? 18 : 6),
                   bottomRight: Radius.circular(isUser ? 6 : 18),
                 ),
-                border: Border.all(color: AppColors.line.withOpacity(0.5)),
+                border: Border.all(color: AppColors.line.withValues(alpha: 0.5)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -126,7 +126,7 @@ class _ChatMessageListState extends State<ChatMessageList> {
                 bottomLeft: Radius.circular(6),
                 bottomRight: Radius.circular(18),
               ),
-              border: Border.all(color: AppColors.line.withOpacity(0.5)),
+              border: Border.all(color: AppColors.line.withValues(alpha: 0.5)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -147,7 +147,7 @@ class _ChatMessageListState extends State<ChatMessageList> {
                         height: 14,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: AppColors.gold.withOpacity(0.6),
+                          color: AppColors.gold.withValues(alpha: 0.6),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -224,10 +224,10 @@ class AssistantMessageBody extends StatelessWidget {
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.gold.withOpacity(0.06),
+                      color: AppColors.gold.withValues(alpha: 0.06),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: AppColors.gold.withOpacity(0.2),
+                        color: AppColors.gold.withValues(alpha: 0.2),
                       ),
                     ),
                     child: Text(

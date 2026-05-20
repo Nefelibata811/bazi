@@ -79,7 +79,9 @@ class SupabaseAuthRepository implements AuthRepository {
       }
 
       return await _userFromAuthUser(supabaseUser, nickname: nickname);
-    } catch (e) {
+    } on AuthException {
+      rethrow;
+    } catch (_) {
       return null;
     }
   }
@@ -89,19 +91,16 @@ class SupabaseAuthRepository implements AuthRepository {
     required String email,
     required String password,
   }) async {
-    try {
-      final response = await _client.auth.signInWithPassword(
-        email: email.trim(),
-        password: password,
-      );
+    final response = await _client.auth.signInWithPassword(
+      email: email.trim(),
+      password: password,
+    );
 
-      final supabaseUser = response.user;
-      if (supabaseUser == null) return null;
+    final supabaseUser = response.user;
+    if (supabaseUser == null) return null;
 
-      return await _userFromAuthUser(supabaseUser);
-    } catch (e) {
-      return null;
-    }
+    // 密码校验成功后立即返回，不阻塞在 profiles 查询上。
+    return userFromActiveSession();
   }
 
   @override
@@ -151,6 +150,18 @@ class SupabaseAuthRepository implements AuthRepository {
   @override
   Future<void> logout() async {
     await _client.auth.signOut();
+  }
+
+  @override
+  User? userFromActiveSession() {
+    final supabaseUser = _client.auth.currentUser;
+    if (supabaseUser == null) return null;
+    return User(
+      id: supabaseUser.id,
+      email: supabaseUser.email ?? '',
+      createdAt: DateTime.parse(supabaseUser.createdAt),
+      phone: supabaseUser.phone,
+    );
   }
 
   @override

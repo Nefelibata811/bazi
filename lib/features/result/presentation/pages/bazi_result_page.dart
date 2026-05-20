@@ -6,14 +6,12 @@ import '../../../../app/app.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../domain/entities/bazi_chart.dart';
 import '../../../../domain/entities/bazi_report.dart';
-import '../../../../domain/entities/pillar.dart';
 import '../../../../domain/entities/user.dart';
 import '../../../../domain/value_objects/calendar_precision.dart';
 import '../../../../domain/value_objects/calendar_type.dart';
 import '../../../../domain/value_objects/gender.dart';
 import '../../../auth/application/auth_controller.dart';
 import '../../../../core/app_strings.dart';
-import '../../../history/application/save_bazi_record.dart';
 import '../../../history/application/save_bazi_record.dart';
 import '../../../chart/presentation/widgets/bazi_core_chart_card.dart';
 import '../../../input/application/bazi_input_controller.dart';
@@ -32,6 +30,18 @@ class BaziResultPage extends ConsumerStatefulWidget {
 }
 
 class _BaziResultPageState extends ConsumerState<BaziResultPage> {
+  Future<void> _returnToMain({int tabIndex = 0}) async {
+    if (tabIndex == 0) {
+      await navigateToHomeTab(context, ref);
+      return;
+    }
+    ref.read(mainTabIndexProvider.notifier).state = tabIndex;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('app_tab_index', tabIndex);
+    if (!mounted) return;
+    Navigator.of(context).popUntil((route) => route.isFirst);
+  }
+
   bool _isSaving = false;
   bool _hasSaved = false;
   bool _isGoingToAi = false;
@@ -84,15 +94,24 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
       appBar: AppBar(
         title: const Text('排盘结果'),
         leading: IconButton(
-          icon: _isGoingToAi
-              ? const SizedBox(
-                  width: 22, height: 22,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Icon(Icons.arrow_back),
-          onPressed: _isGoingToAi ? null : () => _goToAiChat(),
+          icon: const Icon(Icons.arrow_back),
+          tooltip: '返回主页',
+          onPressed: _isGoingToAi ? null : () => _returnToMain(),
         ),
-        actions: _buildAppBarActions(),
+        actions: [
+          IconButton(
+            icon: _isGoingToAi
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.auto_awesome_outlined),
+            tooltip: 'AI 看盘',
+            onPressed: _isGoingToAi ? null : () => _goToAiChat(),
+          ),
+          ..._buildAppBarActions(),
+        ],
       ),
       body: SafeArea(
         child: ListView(
@@ -107,7 +126,7 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: AppColors.cinnabar.withOpacity(0.10),
+                      color: AppColors.cinnabar.withValues(alpha: 0.10),
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(genderLabel, style: textTheme.labelMedium?.copyWith(color: AppColors.cinnabar)),
@@ -115,7 +134,7 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
                   const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(color: AppColors.deepGray.withOpacity(0.06), borderRadius: BorderRadius.circular(999)),
+                    decoration: BoxDecoration(color: AppColors.deepGray.withValues(alpha: 0.06), borderRadius: BorderRadius.circular(999)),
                     child: Text('$dateText $timeText', style: textTheme.labelMedium?.copyWith(color: AppColors.ink)),
                   ),
                   const SizedBox(width: 8),
@@ -148,10 +167,7 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
             if (_hasSaved || _isSaving) ...[
               const SizedBox(height: 24),
               ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.of(context)
-                      .pushNamedAndRemoveUntil('/main', (_) => false);
-                },
+                onPressed: () => _returnToMain(),
                 icon: const Icon(Icons.home),
                 label: const Text('返回命主列表'),
                 style: ElevatedButton.styleFrom(
@@ -171,10 +187,7 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
     if (_hasSaved) {
       return [
         TextButton.icon(
-          onPressed: () {
-            Navigator.of(context)
-                .pushNamedAndRemoveUntil('/main', (_) => false);
-          },
+          onPressed: () => _returnToMain(),
           icon: const Icon(Icons.arrow_back, size: 18),
           label: const Text('返回主页'),
           style: TextButton.styleFrom(foregroundColor: AppColors.gold),
@@ -243,9 +256,10 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
     await prefs.setInt('app_tab_index', 1);
     await prefs.setBool('pending_ai_auto_start', true);
 
+    if (!mounted) return;
+
     ref.read(aiChatRefreshSignal.notifier).state++;
-    ref.read(mainTabIndexProvider.notifier).state = 1;
-    Navigator.of(context).pushNamedAndRemoveUntil('/main', (_) => false);
+    _returnToMain(tabIndex: 1);
   }
 
   void _onSaveTap() {
@@ -484,8 +498,8 @@ class _BoneWeightCard extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: isMale
-                        ? AppColors.water.withOpacity(0.1)
-                        : AppColors.cinnabar.withOpacity(0.1),
+                        ? AppColors.water.withValues(alpha: 0.1)
+                        : AppColors.cinnabar.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
@@ -503,10 +517,10 @@ class _BoneWeightCard extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
                 decoration: BoxDecoration(
-                  color: AppColors.gold.withOpacity(0.06),
+                  color: AppColors.gold.withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                      color: AppColors.gold.withOpacity(0.2)),
+                      color: AppColors.gold.withValues(alpha: 0.2)),
                 ),
                 child: Column(
                   children: [

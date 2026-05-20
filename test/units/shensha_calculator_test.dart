@@ -1,5 +1,4 @@
 import 'package:bazi_app/domain/entities/bazi_chart.dart';
-import 'package:bazi_app/domain/entities/hidden_stem.dart';
 import 'package:bazi_app/domain/entities/pillar.dart';
 import 'package:bazi_app/infrastructure/calendar/rule_shensha_calculator.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -40,7 +39,7 @@ void main() {
         hour: const Pillar(
           label: '时柱',
           stem: '辛',
-          branch: '酉',
+          branch: '亥',
           tenGod: '偏印',
           hiddenStems: [],
           naYin: '',
@@ -54,8 +53,8 @@ void main() {
       expect(items, isNotEmpty);
     });
 
-    test('日干癸 → 天乙贵人在卯巳 → 日支未不在 → 但时支酉不在 → 验证无贵人时不出错', () async {
-      // 癸日主贵人：卯、巳。日支未、时支酉都不匹配，不应报天乙贵人。
+    test('日干癸 → 天乙贵人在卯巳 → 日支未不在 → 但时支亥不在 → 验证无贵人时不出错', () async {
+      // 癸日主贵人：卯、巳。日支未、时支亥都不匹配，不应报天乙贵人。
       final items = await calculator.calculate(testChart());
       final tianYi = items.where((i) => i.name == '天乙贵人');
       expect(tianYi, isEmpty);

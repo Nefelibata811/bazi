@@ -8,7 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:bazi_app/infrastructure/calendar/rule_useful_god_analyzer.dart';
 
 void main() {
-  final engine = const BaziRuleEngine();
+  final engine = BaziRuleEngine();
   final analyzer = RuleUsefulGodAnalyzer(ruleEngine: engine);
 
   BaziChart testChart() => BaziChart(

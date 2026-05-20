@@ -1,5 +1,4 @@
 import 'package:bazi_app/domain/constants/solar_term_constants.dart';
-import 'package:bazi_app/domain/services/julian_day.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:bazi_app/infrastructure/calendar/astro_solar_term_provider.dart';

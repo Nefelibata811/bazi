@@ -1,7 +1,7 @@
 class JulianDay {
   const JulianDay._();
 
-  // 公历转儒略日（整数），适用于 1900-2100 年，用于干支推算日柱。
+  /// 公历转儒略日（整数，日历日正午 JD 的整数部分，用于干支日柱）。
   static int fromDateTime(DateTime dt) {
     var y = dt.year;
     var m = dt.month;
@@ -22,16 +22,37 @@ class JulianDay {
         1524;
   }
 
-  // 公历转儒略日（浮点带时分秒），用于天文节气精算。
+  /// 浮点儒略日（0 点为 JD - 0.5）。
   static double fromDateTimeExact(DateTime dt) {
-    final jd = fromDateTime(dt).toDouble();
-    final frac = (dt.hour * 3600 + dt.minute * 60 + dt.second) / 86400.0;
-    return jd + frac;
+    final dayJd = fromDateTime(dt);
+    final frac =
+        (dt.hour * 3600 + dt.minute * 60 + dt.second) / 86400.0;
+    return dayJd - 0.5 + frac;
   }
 
-  // 儒略日反算公历日期（整数日）。
-  static DateTime toDateTime(int jd) {
-    var z = jd;
+  static DateTime toDateTime(int jd) => _calendarFromZ(jd);
+
+  static DateTime toDateTimeExact(double jd) {
+    final z = (jd + 0.5).floor();
+    final fracDay = jd + 0.5 - z;
+    final baseDate = _calendarFromZ(z);
+
+    final totalSeconds = (fracDay * 86400).round();
+    final hour = totalSeconds ~/ 3600;
+    final minute = (totalSeconds % 3600) ~/ 60;
+    final second = totalSeconds % 60;
+
+    return DateTime(
+      baseDate.year,
+      baseDate.month,
+      baseDate.day,
+      hour,
+      minute,
+      second,
+    );
+  }
+
+  static DateTime _calendarFromZ(int z) {
     final a = ((z - 1867216.25) / 36524.25).floor();
     final b = z + 1 + a - (a ~/ 4);
     final c = b + 1524;
@@ -50,26 +71,5 @@ class JulianDay {
     }
 
     return DateTime(year, month, day);
-  }
-
-  // 儒略日（浮点）反算公历 DateTime，精确到秒。
-  static DateTime toDateTimeExact(double jd) {
-    final intPart = jd.floor();
-    final fracDay = jd - intPart;
-    final baseDate = toDateTime(intPart);
-
-    final totalSeconds = (fracDay * 86400).round();
-    final hour = totalSeconds ~/ 3600;
-    final minute = (totalSeconds % 3600) ~/ 60;
-    final second = totalSeconds % 60;
-
-    return DateTime(
-      baseDate.year,
-      baseDate.month,
-      baseDate.day,
-      hour,
-      minute,
-      second,
-    );
   }
 }
