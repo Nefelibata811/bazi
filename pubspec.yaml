@@ -30,7 +30,4 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  fonts:
-    - family: NotoSansSC
-      fonts:
-        - asset: assets/fonts/NotoSansSC-Regular.ttf
+  # 中文界面使用系统字体（微软雅黑 / 苹方等），见 lib/app/theme/app_fonts.dart

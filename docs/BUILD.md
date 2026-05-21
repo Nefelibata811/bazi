@@ -33,6 +33,12 @@ flutter build web --release --no-web-resources-cdn `
 
 产物目录：`build/web`。
 
+## Web 字体（国内、尽量快）
+
+- **界面中文**：系统字体（微软雅黑 → 苹方 → 黑体），不打包 Noto。
+- **引擎**：`web/flutter_bootstrap.js` 里 `fontFallbackBaseUrl: ''`，**不拉** gstatic 的 Roboto / Noto Sans SC 分片（避免 `Failed to parse fallback font Noto Sans SC`）。
+- 启动请带 **`--no-web-resources-cdn`**（`run_web.ps1` / VS Code **bazi Web (Chrome)** 已包含），并**完全重启**应用（不要只热重载）。
+
 ## Supabase 认证（Web）
 
 - **Site URL**：与部署域名一致，本地开发可用 `http://localhost:<端口>`

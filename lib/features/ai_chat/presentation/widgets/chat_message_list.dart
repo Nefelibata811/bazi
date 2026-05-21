@@ -11,11 +11,13 @@ class ChatMessageList extends StatefulWidget {
     required this.state,
     required this.scrollController,
     required this.onSuggestionTap,
+    required this.onDeleteMessage,
   });
 
   final ChatState state;
   final ScrollController scrollController;
   final ValueChanged<String> onSuggestionTap;
+  final ValueChanged<int> onDeleteMessage;
 
   @override
   State<ChatMessageList> createState() => _ChatMessageListState();
@@ -63,47 +65,51 @@ class _ChatMessageListState extends State<ChatMessageList> {
               !state.isLoading &&
               index == lastAssistantIndex;
 
-          return Align(
-            alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-            child: Container(
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.78,
-              ),
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
-              decoration: BoxDecoration(
-                color: isUser
-                    ? AppColors.gold.withValues(alpha: 0.08)
-                    : AppColors.paper,
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(18),
-                  topRight: const Radius.circular(18),
-                  bottomLeft: Radius.circular(isUser ? 18 : 6),
-                  bottomRight: Radius.circular(isUser ? 6 : 18),
+          return GestureDetector(
+            onLongPress: () => widget.onDeleteMessage(index),
+            child: Align(
+              alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+              child: Container(
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.78,
                 ),
-                border: Border.all(color: AppColors.line.withValues(alpha: 0.5)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    isUser ? '你' : 'AI 命理师',
-                    style: textTheme.bodySmall?.copyWith(
-                      color: isUser ? AppColors.gold : AppColors.cinnabar,
-                      fontWeight: FontWeight.w600,
-                    ),
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+                decoration: BoxDecoration(
+                  color: isUser
+                      ? AppColors.gold.withValues(alpha: 0.08)
+                      : AppColors.paper,
+                  borderRadius: BorderRadius.only(
+                    topLeft: const Radius.circular(18),
+                    topRight: const Radius.circular(18),
+                    bottomLeft: Radius.circular(isUser ? 18 : 6),
+                    bottomRight: Radius.circular(isUser ? 6 : 18),
                   ),
-                  const SizedBox(height: 6),
-                  if (isUser)
-                    Text(msg.content, style: textTheme.bodyMedium)
-                  else
-                    AssistantMessageBody(
-                      content: msg.content,
-                      showSuggestions: showSuggestions,
-                      onSuggestionTap: widget.onSuggestionTap,
-                      textTheme: textTheme,
+                  border:
+                      Border.all(color: AppColors.line.withValues(alpha: 0.5)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isUser ? '你' : 'AI 命理师',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: isUser ? AppColors.gold : AppColors.cinnabar,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                ],
+                    const SizedBox(height: 6),
+                    if (isUser)
+                      Text(msg.content, style: textTheme.bodyMedium)
+                    else
+                      AssistantMessageBody(
+                        content: msg.content,
+                        showSuggestions: showSuggestions,
+                        onSuggestionTap: widget.onSuggestionTap,
+                        textTheme: textTheme,
+                      ),
+                  ],
+                ),
               ),
             ),
           );

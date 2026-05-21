@@ -278,6 +278,16 @@ class ChatController extends StateNotifier<ChatState> {
     );
   }
 
+  Future<void> deleteMessage(int index) async {
+    if (index < 0 || index >= state.messages.length) return;
+    if (state.isLoading) return;
+
+    final updated = [...state.messages];
+    updated.removeAt(index);
+    state = state.copyWith(messages: updated);
+    await _persistMessages(updated);
+  }
+
   static Future<bool> hasChatHistory(
     ChatHistoryStore store,
     String recordId,

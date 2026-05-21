@@ -108,9 +108,7 @@ class _LuckCycleTimelineState extends State<LuckCycleTimeline> {
                                   children: [
                                     Text(
                                       cycle.ganZhi,
-                                      style: textTheme.titleMedium?.copyWith(
-                                        fontFamily: 'NotoSerifSC',
-                                      ),
+                                      style: textTheme.titleMedium,
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
@@ -197,7 +195,6 @@ class _LuckCycleTimelineState extends State<LuckCycleTimeline> {
                                         Text(
                                           fy.ganZhi,
                                           style: textTheme.labelSmall?.copyWith(
-                                            fontFamily: 'NotoSerifSC',
                                             color: AppColors.fiveElementByStem(
                                               fy.ganZhi[0],
                                             ),

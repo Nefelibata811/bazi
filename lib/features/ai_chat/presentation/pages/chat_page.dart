@@ -85,26 +85,20 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final autoStart = prefs.getBool(_pendingAutoStartKey) ?? false;
-      if (autoStart) {
-        await prefs.remove(_pendingAutoStartKey);
-        final saved = await ChatController.loadLastSelectedRecord();
-        var beginAnalysis = true;
-        if (saved != null) {
-          final recordId = saved['id'] as String;
-          final hasHistory = await ChatController.hasChatHistory(
-            ref.read(chatHistoryStoreProvider),
-            recordId,
-          );
-          beginAnalysis = !hasHistory;
-        }
-        await _restoreLastSession(beginAnalysis: beginAnalysis);
+      if (!autoStart) {
         return;
       }
 
+      await prefs.remove(_pendingAutoStartKey);
       final saved = await ChatController.loadLastSelectedRecord();
       if (saved == null) return;
 
-      await _restoreLastSession(beginAnalysis: false);
+      final recordId = saved['id'] as String;
+      final hasHistory = await ChatController.hasChatHistory(
+        ref.read(chatHistoryStoreProvider),
+        recordId,
+      );
+      await _restoreLastSession(beginAnalysis: !hasHistory);
     } finally {
       _isRestoringSession = false;
     }
@@ -244,6 +238,39 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text(AppStrings.actionChatDeleted)),
     );
+  }
+
+  Future<void> _confirmDeleteMessage(int index) async {
+    final chatState = ref.read(chatControllerProvider);
+    if (index < 0 || index >= chatState.messages.length) return;
+
+    final msg = chatState.messages[index];
+    final preview = msg.content.length > 30
+        ? '${msg.content.substring(0, 30)}...'
+        : msg.content;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('删除消息'),
+        content: Text('确定删除这条消息？\n"$preview"'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text(AppStrings.actionCancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text(AppStrings.actionDelete,
+                style: TextStyle(color: AppColors.cinnabar)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    await ref.read(chatControllerProvider.notifier).deleteMessage(index);
   }
 
   void _sendMessage() {
@@ -392,6 +419,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                   onSuggestionTap: (q) {
                     ref.read(chatControllerProvider.notifier).askQuestion(q);
                   },
+                  onDeleteMessage: (index) => _confirmDeleteMessage(index),
                 ),
               ),
             if (chatState.error != null)

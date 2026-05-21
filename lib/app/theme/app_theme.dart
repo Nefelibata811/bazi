@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
@@ -14,19 +13,10 @@ class AppTheme {
       error: const Color(0xFFB3261E),
     );
 
-    // Web 使用打包的 NotoSansSC，避免从 gstatic 拉字体失败导致「有按钮无文字」。
-    final appFontFamily = kIsWeb ? 'NotoSansSC' : 'sans-serif';
     final base = ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
       scaffoldBackgroundColor: AppColors.paper,
-      fontFamily: appFontFamily,
-      fontFamilyFallback: const [
-        'PingFang SC',
-        'Microsoft YaHei',
-        'SimHei',
-        'sans-serif',
-      ],
     );
 
     var textTheme = base.textTheme.copyWith(
@@ -83,9 +73,7 @@ class AppTheme {
         color: AppColors.deepGray,
       ),
     );
-    textTheme = textTheme.apply(fontFamily: appFontFamily);
-    final primaryTextTheme =
-        base.primaryTextTheme.apply(fontFamily: appFontFamily);
+    final primaryTextTheme = base.primaryTextTheme;
 
     return base.copyWith(
       textTheme: textTheme,
@@ -102,7 +90,7 @@ class AppTheme {
         ),
         margin: EdgeInsets.zero,
       ),
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         foregroundColor: AppColors.ink,
         elevation: 0,
@@ -122,7 +110,6 @@ class AppTheme {
         hintStyle: TextStyle(
           color: const Color(0xFF8C867D),
           fontSize: 14,
-          fontFamily: appFontFamily,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
@@ -149,7 +136,6 @@ class AppTheme {
           textStyle: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w600,
-            fontFamily: appFontFamily,
           ),
         ),
       ),
@@ -185,7 +171,7 @@ class AppTheme {
         selectedColor: AppColors.cinnabar.withValues(alpha: 0.12),
         side: const BorderSide(color: AppColors.line),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-        labelStyle: const TextStyle(
+        labelStyle: TextStyle(
           fontSize: 12,
           color: AppColors.deepGray,
         ),

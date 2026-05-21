@@ -1,4 +1,4 @@
-# Web 开发推荐启动方式（避免 CanvasKit 从 gstatic 加载失败导致白屏）
+# Web 开发启动方式（使用 --no-web-resources-cdn 避免从 Google CDN 拉取资源）
 Set-Location $PSScriptRoot\..
 
 $defines = @()
@@ -12,4 +12,4 @@ if (Test-Path $envPath) {
   }
 }
 
-flutter run -d chrome --no-web-resources-cdn @defines @args
+flutter run -d chrome --no-web-resources-cdn --web-port=8080 @defines @args

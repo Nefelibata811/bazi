@@ -13,11 +13,11 @@
   <title>八字排盘</title>
   <link rel="manifest" href="manifest.json">
   <style>
-    html, body {
+    body {
       margin: 0;
       height: 100%;
       background: #f7f3ec;
-      font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-family: "Microsoft YaHei", "PingFang SC", "SimHei", sans-serif;
     }
     #boot-splash {
       position: fixed;
@@ -38,14 +38,32 @@
     }
     #boot-splash .title { font-size: 28px; letter-spacing: 8px; margin-bottom: 8px; }
     #boot-splash .hint { font-size: 14px; color: #8c867d; }
+    #boot-splash .stuck {
+      display: none;
+      margin-top: 20px;
+      max-width: 360px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #b3261e;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
   <div id="boot-splash">
     <div class="title">八 字</div>
     <div class="hint">正在加载，请稍候…</div>
+    <div class="stuck" id="boot-stuck">
+      加载过久？请<strong>停止调试</strong>后，在终端执行
+      <code>cd bazi</code> 再 <code>.\scripts\run_web.ps1</code> 重新启动。
+      不要用热重载（⚡），需完整重启。
+    </div>
   </div>
   <script>
+    setTimeout(function () {
+      var stuck = document.getElementById('boot-stuck');
+      if (stuck) stuck.style.display = 'block';
+    }, 12000);
     function hideBootSplash() {
       var el = document.getElementById('boot-splash');
       if (!el || el.dataset.removed === '1') return;
