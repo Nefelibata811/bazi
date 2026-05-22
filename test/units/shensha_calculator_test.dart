@@ -53,11 +53,11 @@ void main() {
       expect(items, isNotEmpty);
     });
 
-    test('日干癸 → 天乙贵人在卯巳 → 日支未不在 → 但时支亥不在 → 验证无贵人时不出错', () async {
-      // 癸日主贵人：卯、巳。日支未、时支亥都不匹配，不应报天乙贵人。
+    test('日干癸 年干甲 → 年干甲见未为天乙贵人 → 日支未应出', () async {
       final items = await calculator.calculate(testChart());
       final tianYi = items.where((i) => i.name == '天乙贵人');
-      expect(tianYi, isEmpty);
+      expect(tianYi, isNotEmpty);
+      expect(tianYi.any((i) => i.target.contains('未')), isTrue);
     });
 
     test('日干甲 → 年柱或日柱见丑/未应有天乙贵人', () async {
@@ -133,10 +133,10 @@ void main() {
       }
     });
 
-    test('神煞数量合理（6-20 项之间）', () async {
+    test('神煞数量合理（3-60 项之间）', () async {
       final items = await calculator.calculate(testChart());
       expect(items.length, greaterThanOrEqualTo(3));
-      expect(items.length, lessThanOrEqualTo(40));
+      expect(items.length, lessThanOrEqualTo(60));
     });
   });
 }

@@ -45,6 +45,7 @@ class BaziRecordEncoder {
                   'name': s.name,
                   'target': s.target,
                   'description': s.description,
+                  'pillar': s.pillar,
                 })
             .toList(),
         'usefulGod': {
@@ -55,6 +56,15 @@ class BaziRecordEncoder {
           'dayMasterStrength': report.analysis.usefulGod.dayMasterStrength,
         },
         'notes': report.analysis.notes,
+        'interactions': report.analysis.interactions
+            .map((r) => {
+                  'type': r.type.name,
+                  'nodeA': r.nodeA,
+                  'nodeB': r.nodeB,
+                  'combinedElement': r.combinedElement,
+                  'description': r.description,
+                })
+            .toList(),
       },
       if (report.boneWeight != null)
         'boneWeight': {

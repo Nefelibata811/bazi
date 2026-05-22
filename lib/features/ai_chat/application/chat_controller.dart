@@ -655,7 +655,7 @@ class ChatController extends StateNotifier<ChatState> {
         if (shensha != null && shensha.isNotEmpty) {
           final items = shensha
               .map((s) => s is Map<String, dynamic>
-                  ? '${s['name'] as String? ?? ''}（${s['target'] as String? ?? ''}）：${s['description'] as String? ?? ''}'
+                  ? _formatShenshaItem(s)
                   : s.toString())
               .where((s) => s.isNotEmpty)
               .join('；');
@@ -665,6 +665,19 @@ class ChatController extends StateNotifier<ChatState> {
         final notes = analysisMap['notes'] as List<dynamic>?;
         if (notes != null && notes.isNotEmpty) {
           buf.writeln('命理提示：${notes.join('；')}');
+        }
+
+        final interactionsRaw = analysisMap['interactions'] as List<dynamic>?;
+        if (interactionsRaw != null && interactionsRaw.isNotEmpty) {
+          final interLines = interactionsRaw.map((r) {
+            final m = r as Map<String, dynamic>;
+            final typeLabel = _interactionTypeLabel(m['type'] as String? ?? '');
+            final nodeA = m['nodeA'] as String? ?? '';
+            final nodeB = m['nodeB'] as String? ?? '';
+            final desc = m['description'] as String? ?? '';
+            return '[$typeLabel] $nodeA ↔ $nodeB${desc.isNotEmpty ? '（$desc）' : ''}';
+          }).join('；');
+          buf.writeln('干支互动：$interLines');
         }
       }
     } catch (e) {
@@ -687,6 +700,38 @@ class ChatController extends StateNotifier<ChatState> {
         return '时柱';
       default:
         return key;
+    }
+  }
+
+  String _formatShenshaItem(Map<String, dynamic> s) {
+    final name = s['name'] as String? ?? '';
+    final target = s['target'] as String? ?? '';
+    final desc = s['description'] as String? ?? '';
+    final pillar = s['pillar'] as String?;
+    final loc = pillar != null ? '[$pillar]' : '';
+    return '$loc$name（$target）：$desc';
+  }
+
+  String _interactionTypeLabel(String type) {
+    switch (type) {
+      case 'stemCombine':
+        return '天干五合';
+      case 'stemClash':
+        return '天干相冲';
+      case 'branchCombine6':
+        return '地支六合';
+      case 'branchCombine3':
+        return '地支三合';
+      case 'branchCombineHalf':
+        return '地支半合';
+      case 'branchClash6':
+        return '地支六冲';
+      case 'branchHarm6':
+        return '地支六害';
+      case 'branchPunish':
+        return '地支相刑';
+      default:
+        return type;
     }
   }
 

@@ -3,14 +3,17 @@ import 'package:flutter/material.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../domain/entities/bazi_chart.dart';
 import '../../../../domain/entities/pillar.dart';
+import '../../../../domain/entities/shensha_item.dart';
 
 class BaziCoreChartCard extends StatelessWidget {
   const BaziCoreChartCard({
     super.key,
     required this.chart,
+    this.shenshaItems = const [],
   });
 
   final BaziChart chart;
+  final List<ShenshaItem> shenshaItems;
 
   @override
   Widget build(BuildContext context) {
@@ -45,21 +48,51 @@ class BaziCoreChartCard extends StatelessWidget {
             LayoutBuilder(
               builder: (context, constraints) {
                 final isWide = constraints.maxWidth >= 720;
-                final tileWidth = isWide
-                    ? (constraints.maxWidth - 36) / 4
-                    : (constraints.maxWidth - 12) / 2;
+                final pillars = chart.pillars;
+                final tiles = pillars.map((pillar) {
+                  final items = shenshaItems
+                      .where((s) => s.pillar == pillar.label)
+                      .toList();
+                  return _PillarTile(pillar: pillar, shensha: items);
+                }).toList();
 
-                return Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: chart.pillars
-                      .map(
-                        (pillar) => SizedBox(
-                          width: tileWidth,
-                          child: _PillarTile(pillar: pillar),
-                        ),
-                      )
-                      .toList(),
+                if (isWide) {
+                  return IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (var i = 0; i < 4; i++) ...[
+                          if (i > 0) const SizedBox(width: 12),
+                          Expanded(child: tiles[i]),
+                        ],
+                      ],
+                    ),
+                  );
+                }
+                return Column(
+                  children: [
+                    IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(child: tiles[0]),
+                          const SizedBox(width: 12),
+                          Expanded(child: tiles[1]),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(child: tiles[2]),
+                          const SizedBox(width: 12),
+                          Expanded(child: tiles[3]),
+                        ],
+                      ),
+                    ),
+                  ],
                 );
               },
             ),
@@ -73,9 +106,11 @@ class BaziCoreChartCard extends StatelessWidget {
 class _PillarTile extends StatelessWidget {
   const _PillarTile({
     required this.pillar,
+    required this.shensha,
   });
 
   final Pillar pillar;
+  final List<ShenshaItem> shensha;
 
   @override
   Widget build(BuildContext context) {
@@ -155,9 +190,153 @@ class _PillarTile extends StatelessWidget {
                 )
                 .toList(),
           ),
+          if (shensha.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            ...shensha.map((item) => _ShenshaTag(item: item)),
+          ],
         ],
       ),
     );
+  }
+}
+
+class _ShenshaTag extends StatelessWidget {
+  const _ShenshaTag({required this.item});
+
+  final ShenshaItem item;
+
+  Color _color() {
+    const auspicious = {
+      '天乙贵人', '太极贵人', '福星贵人', '天德贵人', '月德贵人',
+      '文昌', '学堂', '词馆', '禄神', '金舆', '国印贵人',
+      '天厨贵人', '德秀贵人', '天赦日', '天医',
+      '红鸾', '天喜', '将星', '三奇贵人', '十灵日', '六秀日',
+    };
+    const inauspicious = {
+      '亡神', '劫煞', '灾煞', '羊刃', '飞刃',
+      '孤辰', '寡宿', '魁罡', '十恶大败', '孤鸾煞', '阴错阳差',
+      '丧门', '吊客', '披麻', '血刃',
+      '红艳煞', '流霞', '四废日', '八专日', '九丑日',
+      '天转', '地转', '天罗', '地网',
+    };
+    if (auspicious.contains(item.name)) return AppColors.gold;
+    if (inauspicious.contains(item.name)) return AppColors.cinnabar;
+    return AppColors.deepGray;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _color();
+    final textTheme = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: GestureDetector(
+        onTap: () => _showDetail(context),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: color.withValues(alpha: 0.15)),
+          ),
+          child: Text(
+            item.name,
+            style: textTheme.labelSmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showDetail(BuildContext context) {
+    final category = _categoryLabel();
+    final color = _color();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(item.name,
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 18,
+                  )),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(category,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  )),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(item.target,
+                style: Theme.of(ctx)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 10),
+            Text(item.description,
+                style: Theme.of(ctx)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(height: 1.6)),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('关闭'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _categoryLabel() {
+    const auspicious = {
+      '天乙贵人', '太极贵人', '福星贵人', '天德贵人', '月德贵人',
+      '文昌', '学堂', '词馆', '禄神', '金舆', '国印贵人',
+      '天厨贵人', '德秀贵人', '天赦日', '天医',
+      '红鸾', '天喜', '将星', '三奇贵人', '十灵日', '六秀日',
+    };
+    const inauspicious = {
+      '亡神', '劫煞', '灾煞', '羊刃', '飞刃',
+      '孤辰', '寡宿', '魁罡', '十恶大败', '孤鸾煞', '阴错阳差',
+      '丧门', '吊客', '披麻', '血刃',
+      '红艳煞', '流霞', '四废日', '八专日', '九丑日',
+      '天转', '地转', '天罗', '地网',
+    };
+    if (auspicious.contains(item.name)) return '吉';
+    if (inauspicious.contains(item.name)) return '凶';
+    return '平';
   }
 }
 

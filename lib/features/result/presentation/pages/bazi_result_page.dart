@@ -17,7 +17,6 @@ import '../../../chart/presentation/widgets/bazi_core_chart_card.dart';
 import '../../../input/application/bazi_input_controller.dart';
 import '../widgets/luck_cycle_timeline.dart';
 import '../widgets/pattern_card.dart';
-import '../widgets/shensha_card.dart';
 import '../widgets/useful_god_card.dart';
 
 class BaziResultPage extends ConsumerStatefulWidget {
@@ -143,9 +142,10 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
               ],
             ),
             const SizedBox(height: 20),
-            BaziCoreChartCard(chart: report.chart),
-            const SizedBox(height: 20),
-            ShenshaCard(shenshaItems: report.analysis.shenshaItems),
+            BaziCoreChartCard(
+              chart: report.chart,
+              shenshaItems: report.analysis.shenshaItems,
+            ),
             const SizedBox(height: 20),
             _StemBranchHintCard(chart: report.chart),
             const SizedBox(height: 20),
