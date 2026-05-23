@@ -5,7 +5,8 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../core/app_strings.dart';
 import '../../../../domain/entities/bazi_record.dart';
 import '../../../history/application/bazi_records_list_controller.dart';
-import '../../../history/application/save_bazi_record.dart';
+import '../../../history/application/save_bazi_record.dart'
+    show findSavedRecord, saveBaziReport;
 import '../../../input/application/bazi_input_controller.dart';
 import 'chart_loading_widgets.dart';
 
@@ -39,11 +40,18 @@ class _RecordPickerSheetState extends ConsumerState<RecordPickerSheet> {
 
     _pendingSave = true;
     try {
-      await saveBaziReport(
+      final existing = findSavedRecord(
         ref,
         report: input.report!,
         personName: input.personName,
       );
+      if (existing == null) {
+        await saveBaziReport(
+          ref,
+          report: input.report!,
+          personName: input.personName,
+        );
+      }
     } finally {
       _pendingSave = false;
     }
@@ -57,7 +65,7 @@ class _RecordPickerSheetState extends ConsumerState<RecordPickerSheet> {
   Widget build(BuildContext context) {
     final listState = ref.watch(baziRecordsListProvider);
     final textTheme = Theme.of(context).textTheme;
-    final records = listState.records;
+    final records = ref.watch(deduplicatedRecordsProvider);
 
     return Container(
       constraints: BoxConstraints(

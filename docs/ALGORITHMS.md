@@ -1,5 +1,25 @@
 # 八字排盘 — 算法文档
 
+## 生产路径（应用实际使用）
+
+| 环节 | 生产实现 | 说明 |
+|------|----------|------|
+| 四柱排盘 | `LunarBaziCalculator` + `package:lunar` | 经 `LunarEightCharFactory` 应用 [BaziSect] 晚子时流派 |
+| 大运流年 | `LunarLuckCycleCalculator` | 含 index=0 起运前段（流年+小运），index≥1 为十年大运；流年下含流月 |
+| 命宫等 | `BaziChart.extraPillars` | 命宫/身宫/胎元/胎息，见 [INTEGRATION.md](INTEGRATION.md) |
+| 人元司令 | `AstroRenYuanSiLingCalculator` | 月柱旁注记，常用版分野 |
+| 八字反查 | `LunarBaziReverseLookup` | 独立页 `/reverse_lookup`，不写入正向 `BaziRequest` 链 |
+| 历法 | `LunarCalendarConverter` | |
+| 节气 | `AstroSolarTermProvider` | |
+| 格局/神煞/用神 | `RulePatternAnalyzer` / `RuleShenshaCalculator` / `RuleUsefulGodAnalyzer` | |
+| 刑冲合害 | `BaziInteractionCalculator` | |
+
+自研 `PreciseFourPillarsCalculator`、`RealLuckCycleCalculator` 等仅用于单测与算法基准，**未接入** `BaziInputController` 生产链。
+
+[BaziSect]: ../lib/domain/value_objects/bazi_sect.dart
+
+---
+
 ## 目录
 
 1. [历法层 — 儒略日与公历互转](#1-历法层--儒略日与公历互转)

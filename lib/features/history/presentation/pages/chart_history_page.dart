@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -6,15 +5,14 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../core/app_strings.dart';
 import '../../../../domain/entities/bazi_record.dart';
 import '../../../../domain/entities/bazi_request.dart';
-import '../../../../domain/value_objects/calendar_type.dart';
-import '../../../../domain/value_objects/gender.dart';
 import '../../application/bazi_records_list_controller.dart';
+import '../../infrastructure/bazi_request_codec.dart';
 import '../../application/save_bazi_record.dart';
 import '../../../input/application/bazi_input_controller.dart';
 import '../../../result/presentation/pages/bazi_result_page.dart';
 
 final chartHistoryProvider = Provider<List<BaziRecord>>((ref) {
-  return ref.watch(baziRecordsListProvider).records;
+  return ref.watch(deduplicatedRecordsProvider);
 });
 
 class ChartHistoryPage extends ConsumerWidget {
@@ -156,22 +154,6 @@ class ChartHistoryPage extends ConsumerWidget {
     );
   }
 
-  BaziRequest? _parseRequest(String json) {
-    try {
-      final map = jsonDecode(json) as Map<String, dynamic>;
-      return BaziRequest(
-        calendarType: map['calendarType'] == 'lunar'
-            ? CalendarType.lunar
-            : CalendarType.solar,
-        gender: map['gender'] == 'female' ? Gender.female : Gender.male,
-        solarDateTime: DateTime.parse(map['solarDateTime'] as String),
-        lunarYear: map['lunarYear'] as int,
-        lunarMonth: map['lunarMonth'] as int,
-        lunarDay: map['lunarDay'] as int,
-        isLeapMonth: map['isLeapMonth'] as bool? ?? false,
-      );
-    } catch (_) {
-      return null;
-    }
-  }
+  BaziRequest? _parseRequest(String json) =>
+      BaziRequestCodec.fromJson(json);
 }

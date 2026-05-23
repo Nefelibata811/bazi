@@ -67,12 +67,12 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
     _isSyncingChart = true;
     try {
-      final record = await saveBaziReport(
+      await saveBaziReport(
         ref,
         report: report,
         personName: input.personName,
       );
-      if (!mounted || record == null) return;
+      if (!mounted) return;
     } finally {
       _isSyncingChart = false;
     }

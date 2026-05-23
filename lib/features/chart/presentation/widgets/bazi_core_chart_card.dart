@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../domain/entities/bazi_chart.dart';
 import '../../../../domain/entities/pillar.dart';
+import '../../../../domain/entities/ren_yuan_si_ling.dart';
 import '../../../../domain/entities/shensha_item.dart';
 
 class BaziCoreChartCard extends StatelessWidget {
@@ -10,10 +11,12 @@ class BaziCoreChartCard extends StatelessWidget {
     super.key,
     required this.chart,
     this.shenshaItems = const [],
+    this.renYuanSiLing,
   });
 
   final BaziChart chart;
   final List<ShenshaItem> shenshaItems;
+  final RenYuanSiLing? renYuanSiLing;
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +56,11 @@ class BaziCoreChartCard extends StatelessWidget {
                   final items = shenshaItems
                       .where((s) => s.pillar == pillar.label)
                       .toList();
-                  return _PillarTile(pillar: pillar, shensha: items);
+                  return _PillarTile(
+                    pillar: pillar,
+                    shensha: items,
+                    siLingNote: pillar.label == '月柱' ? renYuanSiLing?.summary : null,
+                  );
                 }).toList();
 
                 if (isWide) {
@@ -107,10 +114,12 @@ class _PillarTile extends StatelessWidget {
   const _PillarTile({
     required this.pillar,
     required this.shensha,
+    this.siLingNote,
   });
 
   final Pillar pillar;
   final List<ShenshaItem> shensha;
+  final String? siLingNote;
 
   @override
   Widget build(BuildContext context) {
@@ -152,6 +161,22 @@ class _PillarTile extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _MetaRow(label: '十神', value: pillar.tenGod),
+          if (siLingNote != null) ...[
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.gold.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.gold.withValues(alpha: 0.2)),
+              ),
+              child: Text(
+                '人元司令 · $siLingNote',
+                style: textTheme.labelSmall?.copyWith(color: AppColors.gold),
+              ),
+            ),
+          ],
           const SizedBox(height: 8),
           _MetaRow(label: '纳音', value: pillar.naYin),
           if (pillar.xunKong.isNotEmpty) ...[

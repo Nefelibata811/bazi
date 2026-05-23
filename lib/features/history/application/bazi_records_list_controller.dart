@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../domain/entities/bazi_record.dart';
 import '../../auth/application/auth_controller.dart';
 import '../infrastructure/bazi_records_local_cache.dart';
+import '../infrastructure/person_identity.dart';
 import 'save_bazi_record.dart' show baziRecordRepositoryProvider;
 
 /// Single bump counter for all record-list consumers (AI picker, 命主列表, etc.).
@@ -109,10 +110,14 @@ class BaziRecordsListNotifier extends Notifier<BaziRecordsListState> {
   }
 
   void upsertRecord(BaziRecord record) {
-    final list = [
+    final key = PersonIdentity.fromRecord(record).groupKey;
+    final list = PersonIdentity.dedupeRecords([
       record,
-      ...state.records.where((r) => r.id != record.id),
-    ];
+      ...state.records.where((r) {
+        if (r.id == record.id) return false;
+        return PersonIdentity.fromRecord(r).groupKey != key;
+      }),
+    ]);
     state = BaziRecordsListState(records: list);
     final userId = _activeUserId;
     if (userId != null) {
@@ -184,18 +189,9 @@ final baziRecordsListProvider =
   BaziRecordsListNotifier.new,
 );
 
-/// AI 选盘等场景使用的扁平列表（与 [baziRecordsListProvider] 同源，不重复请求）。
-final userRecordsProvider = Provider<List<BaziRecord>>((ref) {
-  return ref.watch(baziRecordsListProvider).records;
+/// AI 选盘等场景：同一命主（姓名+出生）仅一条，取最近保存。
+final deduplicatedRecordsProvider = Provider<List<BaziRecord>>((ref) {
+  return PersonIdentity.dedupeRecords(
+    ref.watch(baziRecordsListProvider).records,
+  );
 });
-
-List<BaziRecord> groupLatestRecordsPerPerson(List<BaziRecord> records) {
-  final seen = <String>{};
-  final result = <BaziRecord>[];
-  for (final r in records) {
-    if (seen.add(r.personName)) {
-      result.add(r);
-    }
-  }
-  return result;
-}

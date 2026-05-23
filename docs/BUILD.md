@@ -2,10 +2,25 @@
 
 ## 开发运行
 
+### Web
+
 ```powershell
 cd "d:\bazi app\bazi"
 .\scripts\run_web.ps1
 ```
+
+### Android 模拟器
+
+详见 [ANDROID_DEV.md](ANDROID_DEV.md)。**请用 `Pixel_6_API_35`**（不要用带 16KB 页大小的 `Pixel_9_Pro`，会黑屏）。
+
+```powershell
+cd "d:\bazi app\bazi"
+.\scripts\restart_android.ps1
+```
+
+或：先 `.\scripts\start_emulator.ps1`，再 `.\scripts\run_android.ps1`。  
+仅编译 APK：`.\scripts\build_android.ps1`。  
+VS Code / Trae 选 **「bazi Android (模拟器)」** 后 F5（需模拟器已启动；建议先设好上面的两个环境变量）。
 
 脚本会读取 `secrets.local.env` 并注入 `SUPABASE_*`、`DEEPSEEK_API_KEY`（AI 看盘必需）。勿直接 `flutter run`，否则 AI 会用空密钥或旧缓存。
 

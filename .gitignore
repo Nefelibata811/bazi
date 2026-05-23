@@ -43,6 +43,7 @@ app.*.map.json
 lib/core/api_config.dart
 secrets.local.env
 secrets.example.env
+.dart_defines.generated.json
 .env
 
 # Android Studio will place build artifacts here

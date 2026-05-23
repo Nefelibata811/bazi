@@ -2,26 +2,19 @@ import 'dart:convert';
 
 import '../../../domain/entities/bazi_report.dart';
 import '../../../domain/entities/pillar.dart';
-import '../../../domain/value_objects/calendar_type.dart';
-import '../../../domain/value_objects/gender.dart';
+import 'bazi_request_codec.dart';
 
 /// Encodes [BaziReport] to JSON strings stored in `bazi_records`.
 class BaziRecordEncoder {
   const BaziRecordEncoder._();
 
   static String encodeRequest(BaziReport report, String personName) {
-    return jsonEncode({
-      'calendarType': report.request.calendarType == CalendarType.lunar
-          ? 'lunar'
-          : 'solar',
-      'gender': report.request.gender == Gender.female ? 'female' : 'male',
-      'solarDateTime': report.request.solarDateTime.toIso8601String(),
-      'lunarYear': report.request.lunarYear,
-      'lunarMonth': report.request.lunarMonth,
-      'lunarDay': report.request.lunarDay,
-      'isLeapMonth': report.request.isLeapMonth,
-      'personName': personName.isNotEmpty ? personName : '未命名',
-    });
+    return jsonEncode(
+      BaziRequestCodec.toJson(
+        report.request,
+        personName: personName.isNotEmpty ? personName : '未命名',
+      ),
+    );
   }
 
   static String encodeReport(BaziReport report) {

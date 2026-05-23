@@ -3,6 +3,7 @@ import 'bazi_chart.dart';
 import 'bazi_request.dart';
 import 'calendar_snapshot.dart';
 import 'luck_cycle.dart';
+import 'ren_yuan_si_ling.dart';
 import 'solar_term_info.dart';
 
 class BoneWeight {
@@ -35,6 +36,7 @@ class BaziReport {
     required this.luckCycles,
     required this.analysis,
     this.boneWeight,
+    this.renYuanSiLing,
   });
 
   final BaziRequest request;
@@ -44,4 +46,5 @@ class BaziReport {
   final List<LuckCycle> luckCycles;
   final AnalysisResult analysis;
   final BoneWeight? boneWeight;
+  final RenYuanSiLing? renYuanSiLing;
 }

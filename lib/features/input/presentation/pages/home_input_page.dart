@@ -3,11 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/app.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../domain/value_objects/bazi_sect.dart';
 import '../../../../domain/value_objects/calendar_type.dart';
 import '../../../../domain/value_objects/gender.dart';
 import '../../../auth/application/auth_controller.dart';
 import '../../../../core/app_strings.dart';
 import '../../../history/application/save_bazi_record.dart';
+import '../../../reverse_lookup/presentation/pages/reverse_lookup_page.dart';
 import '../../../result/presentation/pages/bazi_result_page.dart';
 import '../../application/bazi_input_controller.dart';
 
@@ -40,22 +42,35 @@ int _nearestMinute(int actual, List<int> options) {
   return options.lastWhere((m) => m <= actual);
 }
 
-class HomeInputPage extends ConsumerWidget {
+class HomeInputPage extends ConsumerStatefulWidget {
   const HomeInputPage({super.key, this.initialPersonName});
 
   final String? initialPersonName;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeInputPage> createState() => _HomeInputPageState();
+}
+
+class _HomeInputPageState extends ConsumerState<HomeInputPage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.initialPersonName != null) {
+        ref.read(baziInputControllerProvider.notifier)
+            .setPersonName(widget.initialPersonName!);
+      } else {
+        ref.read(baziInputControllerProvider.notifier)
+            .setPersonName('未命名');
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(baziInputControllerProvider);
     final controller = ref.read(baziInputControllerProvider.notifier);
     final textTheme = Theme.of(context).textTheme;
-
-    if (initialPersonName != null && state.personName.isEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        controller.setPersonName(initialPersonName!);
-      });
-    }
 
     return Scaffold(
       appBar: AppBar(
@@ -134,6 +149,8 @@ class HomeInputPage extends ConsumerWidget {
                         onDayChanged: controller.setSolarDay,
                         onHourChanged: controller.setSolarHour,
                         onMinuteChanged: controller.setSolarMinute,
+                        baziSect: state.baziSect,
+                        onBaziSectChanged: controller.setBaziSect,
                       )
                     else
                       _LunarPanel(
@@ -149,8 +166,27 @@ class HomeInputPage extends ConsumerWidget {
                         minute: state.solarDateTime.minute,
                         onHourChanged: controller.setSolarHour,
                         onMinuteChanged: controller.setSolarMinute,
+                        baziSect: state.baziSect,
+                        onBaziSectChanged: controller.setBaziSect,
                       ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: state.loading
+                          ? null
+                          : () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => const ReverseLookupPage(),
+                                ),
+                              );
+                            },
+                      icon: const Icon(Icons.search),
+                      label: const Text('八字反查'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 48),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: state.loading
                           ? null
@@ -161,16 +197,17 @@ class HomeInputPage extends ConsumerWidget {
                               final inputState =
                                   ref.read(baziInputControllerProvider);
                               if (inputState.report != null) {
-                                final record = await saveBaziReport(
+                                final outcome = await saveBaziReport(
                                   ref,
                                   report: inputState.report!,
                                   personName: inputState.personName,
                                 );
                                 if (!context.mounted) return;
-                                if (record == null && ref
+                                if (outcome == null &&
+                                    ref
                                         .read(authControllerProvider)
                                         .user !=
-                                    null) {
+                                        null) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text(
@@ -227,6 +264,44 @@ class HomeInputPage extends ConsumerWidget {
   }
 }
 
+class _ZiHourSectPicker extends StatelessWidget {
+  const _ZiHourSectPicker({
+    required this.hour,
+    required this.baziSect,
+    required this.onBaziSectChanged,
+  });
+
+  final int hour;
+  final BaziSect baziSect;
+  final ValueChanged<BaziSect> onBaziSectChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!isZiHour(hour)) return const SizedBox.shrink();
+    final textTheme = Theme.of(context).textTheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 12),
+        Text('子时流派', style: textTheme.labelMedium),
+        const SizedBox(height: 8),
+        SegmentedButton<BaziSect>(
+          segments: BaziSect.values
+              .map((s) => ButtonSegment(value: s, label: Text(s.label)))
+              .toList(),
+          selected: {baziSect},
+          onSelectionChanged: (v) => onBaziSectChanged(v.first),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '23:00–01:00 出生时，日柱按当天或次日',
+          style: textTheme.bodySmall,
+        ),
+      ],
+    );
+  }
+}
+
 class _SolarDropdownPanel extends StatelessWidget {
   const _SolarDropdownPanel({
     required this.dateTime,
@@ -235,6 +310,8 @@ class _SolarDropdownPanel extends StatelessWidget {
     required this.onDayChanged,
     required this.onHourChanged,
     required this.onMinuteChanged,
+    required this.baziSect,
+    required this.onBaziSectChanged,
   });
 
   final DateTime dateTime;
@@ -243,6 +320,8 @@ class _SolarDropdownPanel extends StatelessWidget {
   final ValueChanged<int> onDayChanged;
   final ValueChanged<int> onHourChanged;
   final ValueChanged<int> onMinuteChanged;
+  final BaziSect baziSect;
+  final ValueChanged<BaziSect> onBaziSectChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -344,6 +423,11 @@ class _SolarDropdownPanel extends StatelessWidget {
             const Expanded(child: SizedBox()),
           ],
         ),
+        _ZiHourSectPicker(
+          hour: dateTime.hour,
+          baziSect: baziSect,
+          onBaziSectChanged: onBaziSectChanged,
+        ),
       ],
     );
   }
@@ -363,6 +447,8 @@ class _LunarPanel extends StatelessWidget {
     required this.minute,
     required this.onHourChanged,
     required this.onMinuteChanged,
+    required this.baziSect,
+    required this.onBaziSectChanged,
   });
 
   final int lunarYear;
@@ -377,6 +463,8 @@ class _LunarPanel extends StatelessWidget {
   final int minute;
   final ValueChanged<int> onHourChanged;
   final ValueChanged<int> onMinuteChanged;
+  final BaziSect baziSect;
+  final ValueChanged<BaziSect> onBaziSectChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -478,6 +566,11 @@ class _LunarPanel extends StatelessWidget {
             const SizedBox(width: 12),
             const Expanded(child: SizedBox()),
           ],
+        ),
+        _ZiHourSectPicker(
+          hour: hour,
+          baziSect: baziSect,
+          onBaziSectChanged: onBaziSectChanged,
         ),
         const SizedBox(height: 6),
         SwitchListTile(

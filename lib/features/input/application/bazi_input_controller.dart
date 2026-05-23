@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/entities/bazi_request.dart';
 import '../../../domain/services/bazi_calculator.dart';
+import '../../../domain/services/ren_yuan_si_ling_calculator.dart';
 import '../../../domain/services/bazi_rule_engine.dart';
 import '../../../domain/services/calendar_converter.dart';
 import '../../../domain/services/luck_cycle_calculator.dart';
@@ -12,8 +13,11 @@ import '../../../domain/services/useful_god_analyzer.dart';
 import '../../../domain/usecases/analyze_bazi_usecase.dart';
 import '../../../domain/usecases/build_bazi_chart_usecase.dart';
 import '../../../domain/usecases/build_bazi_report_usecase.dart';
+import '../../../domain/value_objects/bazi_sect.dart';
 import '../../../domain/value_objects/calendar_type.dart';
 import '../../../domain/value_objects/gender.dart';
+import '../../../domain/entities/bazi_reverse_candidate.dart';
+import '../../../infrastructure/calendar/astro_ren_yuan_si_ling_calculator.dart';
 import '../../../infrastructure/calendar/astro_solar_term_provider.dart';
 import '../../../infrastructure/calendar/lunar_bazi_calculator.dart';
 import '../../../infrastructure/calendar/lunar_calendar_converter.dart';
@@ -75,6 +79,12 @@ final analyzeBaziUseCaseProvider = Provider<AnalyzeBaziUseCase>((ref) {
   );
 });
 
+final renYuanSiLingCalculatorProvider = Provider<RenYuanSiLingCalculator>((ref) {
+  return AstroRenYuanSiLingCalculator(
+    solarTermProvider: ref.watch(solarTermProvider),
+  );
+});
+
 final buildBaziReportUseCaseProvider = Provider<BuildBaziReportUseCase>((ref) {
   return BuildBaziReportUseCase(
     calendarConverter: ref.watch(calendarConverterProvider),
@@ -83,6 +93,7 @@ final buildBaziReportUseCaseProvider = Provider<BuildBaziReportUseCase>((ref) {
     buildChartUseCase: ref.watch(buildBaziChartUseCaseProvider),
     analyzeBaziUseCase: ref.watch(analyzeBaziUseCaseProvider),
     baziCalculator: ref.watch(baziCalculatorProvider),
+    renYuanSiLingCalculator: ref.watch(renYuanSiLingCalculatorProvider),
   );
 });
 
@@ -171,6 +182,10 @@ class BaziInputController extends StateNotifier<BaziInputState> {
     state = state.copyWith(isLeapMonth: value, clearChart: true);
   }
 
+  void setBaziSect(BaziSect sect) {
+    state = state.copyWith(baziSect: sect, clearChart: true);
+  }
+
   Future<void> submit() async {
     state = state.copyWith(loading: true);
 
@@ -182,6 +197,7 @@ class BaziInputController extends StateNotifier<BaziInputState> {
       lunarMonth: state.lunarMonth,
       lunarDay: state.lunarDay,
       isLeapMonth: state.isLeapMonth,
+      baziSect: state.baziSect,
       personName: state.personName.isEmpty ? null : state.personName,
     );
 
@@ -191,8 +207,46 @@ class BaziInputController extends StateNotifier<BaziInputState> {
     }
   }
 
+  Future<void> applyFromReverseCandidate(BaziReverseCandidate candidate) async {
+    state = state.copyWith(
+      calendarType: CalendarType.solar,
+      gender: candidate.gender,
+      solarDateTime: candidate.solarDateTime,
+      baziSect: candidate.baziSect,
+      loading: true,
+      clearChart: true,
+    );
+    final request = BaziRequest(
+      calendarType: CalendarType.solar,
+      gender: candidate.gender,
+      solarDateTime: candidate.solarDateTime,
+      lunarYear: candidate.solarDateTime.year,
+      lunarMonth: candidate.solarDateTime.month,
+      lunarDay: candidate.solarDateTime.day,
+      isLeapMonth: false,
+      baziSect: candidate.baziSect,
+      personName: state.personName.isEmpty ? null : state.personName,
+    );
+    final report = await _buildBaziReportUseCase(request);
+    if (mounted) {
+      state = state.copyWith(
+        loading: false,
+        chart: report.chart,
+        report: report,
+      );
+    }
+  }
+
   Future<void> loadFromSavedRequest(BaziRequest request) async {
     state = state.copyWith(
+      calendarType: request.calendarType,
+      gender: request.gender,
+      solarDateTime: request.solarDateTime,
+      lunarYear: request.lunarYear,
+      lunarMonth: request.lunarMonth,
+      lunarDay: request.lunarDay,
+      isLeapMonth: request.isLeapMonth,
+      baziSect: request.baziSect,
       personName: request.personName ?? state.personName,
       loading: true,
     );

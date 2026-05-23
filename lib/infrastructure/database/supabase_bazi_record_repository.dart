@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/entities/bazi_record.dart';
 import '../../domain/services/bazi_record_repository.dart';
+import '../../features/history/infrastructure/person_identity.dart';
 
 class SupabaseBaziRecordRepository implements BaziRecordRepository {
   final SupabaseClient _client;
@@ -17,7 +18,13 @@ class SupabaseBaziRecordRepository implements BaziRecordRepository {
     required String requestJson,
     required String reportJson,
   }) async {
-    final idempotencyKey = _computeIdempotencyKey(userId, requestJson);
+    final normalizedName = PersonIdentity.normalizeName(personName);
+    final birth = PersonIdentity.birthFingerprintFromRequestJson(requestJson);
+    final idempotencyKey = _computeIdempotencyKey(
+      userId,
+      normalizedName,
+      requestJson,
+    );
 
     final existing = await _client
         .from('bazi_records')
@@ -26,21 +33,62 @@ class SupabaseBaziRecordRepository implements BaziRecordRepository {
         .eq('idempotency_key', idempotencyKey)
         .maybeSingle();
 
-    if (existing != null) {
-      return _mapRow(existing);
+    final now = DateTime.now().toIso8601String();
+
+    final keepId = await _resolveKeepRecordId(
+      userId: userId,
+      normalizedName: normalizedName,
+      birth: birth,
+      idempotencyRow: existing,
+    );
+
+    if (keepId != null) {
+      final response = await _client
+          .from('bazi_records')
+          .select()
+          .eq('id', keepId)
+          .single();
+      return _mapRow(response);
     }
 
-    final now = DateTime.now();
     final response = await _client.from('bazi_records').insert({
       'user_id': userId,
-      'person_name': personName,
+      'person_name': normalizedName,
       'request_json': requestJson,
       'report_json': reportJson,
       'idempotency_key': idempotencyKey,
-      'saved_at': now.toIso8601String(),
+      'saved_at': now,
     }).select().single();
 
+    await _deleteDuplicateSiblings(
+      userId: userId,
+      normalizedName: normalizedName,
+      birth: birth,
+      keepId: response['id'] as String,
+    );
     return _mapRow(response);
+  }
+
+  @override
+  Future<BaziRecord?> findByIdentity({
+    required String userId,
+    required String personName,
+    required String requestJson,
+  }) async {
+    final normalizedName = PersonIdentity.normalizeName(personName);
+    final birth = PersonIdentity.birthFingerprintFromRequestJson(requestJson);
+    final siblings = await _findByIdentity(
+      userId: userId,
+      normalizedName: normalizedName,
+      birth: birth,
+    );
+    if (siblings.isEmpty) return null;
+    siblings.sort((a, b) {
+      final at = DateTime.parse(a['saved_at'] as String);
+      final bt = DateTime.parse(b['saved_at'] as String);
+      return bt.compareTo(at);
+    });
+    return _mapRow(siblings.first);
   }
 
   BaziRecord _mapRow(Map<String, dynamic> row) {
@@ -54,8 +102,76 @@ class SupabaseBaziRecordRepository implements BaziRecordRepository {
     );
   }
 
-  String _computeIdempotencyKey(String userId, String requestJson) {
-    final hash = sha256.convert(utf8.encode('$userId|$requestJson'));
+  Future<String?> _resolveKeepRecordId({
+    required String userId,
+    required String normalizedName,
+    required String birth,
+    required Map<String, dynamic>? idempotencyRow,
+  }) async {
+    if (idempotencyRow != null) {
+      return idempotencyRow['id'] as String;
+    }
+    final siblings = await _findByIdentity(
+      userId: userId,
+      normalizedName: normalizedName,
+      birth: birth,
+    );
+    if (siblings.isEmpty) return null;
+    siblings.sort((a, b) {
+      final at = DateTime.parse(a['saved_at'] as String);
+      final bt = DateTime.parse(b['saved_at'] as String);
+      return bt.compareTo(at);
+    });
+    return siblings.first['id'] as String;
+  }
+
+  Future<List<Map<String, dynamic>>> _findByIdentity({
+    required String userId,
+    required String normalizedName,
+    required String birth,
+  }) async {
+    final rows = await _client
+        .from('bazi_records')
+        .select('id, person_name, request_json, saved_at')
+        .eq('user_id', userId);
+
+    return rows.where((row) {
+      final name =
+          PersonIdentity.normalizeName(row['person_name'] as String? ?? '');
+      if (name != normalizedName) return false;
+      final fp = PersonIdentity.birthFingerprintFromRequestJson(
+        row['request_json'] as String? ?? '',
+      );
+      return fp == birth;
+    }).toList();
+  }
+
+  Future<void> _deleteDuplicateSiblings({
+    required String userId,
+    required String normalizedName,
+    required String birth,
+    required String keepId,
+  }) async {
+    final siblings = await _findByIdentity(
+      userId: userId,
+      normalizedName: normalizedName,
+      birth: birth,
+    );
+    for (final row in siblings) {
+      final id = row['id'] as String;
+      if (id != keepId) {
+        await delete(id);
+      }
+    }
+  }
+
+  String _computeIdempotencyKey(
+    String userId,
+    String normalizedName,
+    String requestJson,
+  ) {
+    final birth = PersonIdentity.birthFingerprintFromRequestJson(requestJson);
+    final hash = sha256.convert(utf8.encode('$userId|$normalizedName|$birth'));
     return hash.toString();
   }
 
@@ -67,7 +183,7 @@ class SupabaseBaziRecordRepository implements BaziRecordRepository {
         .eq('user_id', userId)
         .order('saved_at', ascending: false);
 
-    return rows.map(_mapRow).toList();
+    return PersonIdentity.dedupeRecords(rows.map(_mapRow).toList());
   }
 
   @override
@@ -113,5 +229,35 @@ class SupabaseBaziRecordRepository implements BaziRecordRepository {
         .delete()
         .eq('user_id', userId)
         .eq('person_name', personName);
+  }
+
+  @override
+  Future<void> deleteByPersonIdentity({
+    required String userId,
+    required String displayName,
+    required String birthFingerprint,
+  }) async {
+    final rows = await _client
+        .from('bazi_records')
+        .select('id, person_name, request_json')
+        .eq('user_id', userId);
+
+    final targetName = PersonIdentity.normalizeName(displayName);
+    final ids = <String>[];
+    for (final row in rows) {
+      final name =
+          PersonIdentity.normalizeName(row['person_name'] as String? ?? '');
+      if (name != targetName) continue;
+      final birth = PersonIdentity.birthFingerprintFromRequestJson(
+        row['request_json'] as String? ?? '',
+      );
+      if (birth == birthFingerprint) {
+        ids.add(row['id'] as String);
+      }
+    }
+
+    for (final id in ids) {
+      await delete(id);
+    }
   }
 }

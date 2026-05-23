@@ -1,5 +1,6 @@
 import '../../../domain/entities/bazi_chart.dart';
 import '../../../domain/entities/bazi_report.dart';
+import '../../../domain/value_objects/bazi_sect.dart';
 import '../../../domain/value_objects/calendar_type.dart';
 import '../../../domain/value_objects/gender.dart';
 
@@ -12,6 +13,7 @@ class BaziInputState {
     required this.lunarMonth,
     required this.lunarDay,
     required this.isLeapMonth,
+    required this.baziSect,
     required this.personName,
     required this.loading,
     this.chart,
@@ -28,6 +30,7 @@ class BaziInputState {
       lunarMonth: 1,
       lunarDay: 1,
       isLeapMonth: false,
+      baziSect: BaziSect.sameDay,
       personName: '',
       loading: false,
     );
@@ -40,6 +43,7 @@ class BaziInputState {
   final int lunarMonth;
   final int lunarDay;
   final bool isLeapMonth;
+  final BaziSect baziSect;
   final String personName;
   final bool loading;
   final BaziChart? chart;
@@ -53,6 +57,7 @@ class BaziInputState {
     int? lunarMonth,
     int? lunarDay,
     bool? isLeapMonth,
+    BaziSect? baziSect,
     String? personName,
     bool? loading,
     BaziChart? chart,
@@ -67,6 +72,7 @@ class BaziInputState {
       lunarMonth: lunarMonth ?? this.lunarMonth,
       lunarDay: lunarDay ?? this.lunarDay,
       isLeapMonth: isLeapMonth ?? this.isLeapMonth,
+      baziSect: baziSect ?? this.baziSect,
       personName: personName ?? this.personName,
       loading: loading ?? this.loading,
       chart: clearChart ? null : (chart ?? this.chart),

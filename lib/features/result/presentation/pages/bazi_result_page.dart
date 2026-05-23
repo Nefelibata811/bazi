@@ -6,15 +6,17 @@ import '../../../../app/app.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../domain/entities/bazi_chart.dart';
 import '../../../../domain/entities/bazi_report.dart';
-import '../../../../domain/entities/user.dart';
 import '../../../../domain/value_objects/calendar_precision.dart';
 import '../../../../domain/value_objects/calendar_type.dart';
 import '../../../../domain/value_objects/gender.dart';
 import '../../../auth/application/auth_controller.dart';
 import '../../../../core/app_strings.dart';
+import '../../../history/application/open_ai_for_record.dart';
 import '../../../history/application/save_bazi_record.dart';
 import '../../../chart/presentation/widgets/bazi_core_chart_card.dart';
+import '../../../chart/presentation/widgets/extra_pillars_card.dart';
 import '../../../input/application/bazi_input_controller.dart';
+import '../widgets/interaction_card.dart';
 import '../widgets/luck_cycle_timeline.dart';
 import '../widgets/pattern_card.dart';
 import '../widgets/useful_god_card.dart';
@@ -83,10 +85,9 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
       CalendarPrecision.placeholder => '待校准',
     };
 
-    final firstCycle =
-        report.luckCycles.isNotEmpty ? report.luckCycles.first : null;
-    final startAgeText = firstCycle != null
-        ? '${firstCycle.startAge}岁（${firstCycle.startYear}年）'
+    final qiYunCycles = report.luckCycles.where((c) => c.index > 0);
+    final startAgeText = qiYunCycles.isNotEmpty
+        ? '${qiYunCycles.first.startAge}岁（${qiYunCycles.first.startYear}年）'
         : '--';
 
     return Scaffold(
@@ -145,7 +146,15 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
             BaziCoreChartCard(
               chart: report.chart,
               shenshaItems: report.analysis.shenshaItems,
+              renYuanSiLing: report.renYuanSiLing,
             ),
+            if (report.chart.extraPillars.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              ExtraPillarsCard(
+                chart: report.chart,
+                shenshaItems: report.analysis.shenshaItems,
+              ),
+            ],
             const SizedBox(height: 20),
             _StemBranchHintCard(chart: report.chart),
             const SizedBox(height: 20),
@@ -162,6 +171,8 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
             ),
             const SizedBox(height: 20),
             PatternCard(patterns: report.analysis.patterns),
+            const SizedBox(height: 20),
+            InteractionCard(interactions: report.analysis.interactions),
             const SizedBox(height: 20),
             UsefulGodCard(usefulGod: report.analysis.usefulGod),
             if (_hasSaved || _isSaving) ...[
@@ -228,38 +239,48 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
         return;
       }
 
-      await _doSaveAndGo(user, report, state.personName);
+      final personName =
+          state.personName.isNotEmpty ? state.personName : '未命名';
+
+      final existing = findSavedRecord(
+        ref,
+        report: report,
+        personName: personName,
+      );
+      if (existing != null || widget.isFromHistory || _hasSaved) {
+        if (existing == null) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('请先在结果页保存命盘，或从命主列表进入'),
+              ),
+            );
+          }
+          return;
+        }
+        await openAiForRecord(context, ref, record: existing);
+        return;
+      }
+
+      final outcome = await saveBaziReport(
+        ref,
+        report: report,
+        personName: personName,
+      );
+      if (!mounted) return;
+      if (outcome == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text(AppStrings.chartSaveFailed)),
+        );
+        return;
+      }
+      setState(() => _hasSaved = true);
+      await openAiForRecord(context, ref, record: outcome.record);
     } finally {
       if (mounted) {
         _isGoingToAi = false;
       }
     }
-  }
-
-  Future<void> _doSaveAndGo(User user, BaziReport report, String personName) async {
-    final record = await saveBaziReport(
-      ref,
-      report: report,
-      personName: personName,
-    );
-
-    if (!mounted) return;
-
-    if (record == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(AppStrings.chartSaveFailed)),
-      );
-      return;
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('app_tab_index', 1);
-    await prefs.setBool('pending_ai_auto_start', true);
-
-    if (!mounted) return;
-
-    ref.read(aiChatRefreshSignal.notifier).state++;
-    _returnToMain(tabIndex: 1);
   }
 
   void _onSaveTap() {
@@ -293,14 +314,25 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
         state.personName.isNotEmpty ? state.personName : '未命名';
 
     try {
-      final record = await saveBaziReport(
+      if (findSavedRecord(ref, report: report, personName: personName) != null) {
+        setState(() {
+          _isSaving = false;
+          _hasSaved = true;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text(AppStrings.chartAlreadySaved)),
+        );
+        return;
+      }
+
+      final outcome = await saveBaziReport(
         ref,
         report: report,
         personName: personName,
       );
 
       if (!mounted) return;
-      if (record == null) {
+      if (outcome == null) {
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text(AppStrings.chartSaveFailedRetry)),
@@ -312,13 +344,14 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
         _hasSaved = true;
       });
 
+      final msg = outcome.isNew ? '保存成功' : AppStrings.chartAlreadySaved;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Row(
+          content: Row(
             children: [
-              Icon(Icons.check_circle, color: Colors.white, size: 18),
-              SizedBox(width: 8),
-              Text('保存成功'),
+              const Icon(Icons.check_circle, color: Colors.white, size: 18),
+              const SizedBox(width: 8),
+              Text(msg),
             ],
           ),
           backgroundColor: AppColors.gold,

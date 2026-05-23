@@ -1,17 +1,18 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/app.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../domain/entities/bazi_record.dart';
 import '../../../../domain/entities/bazi_request.dart';
 import '../../../../domain/services/bazi_record_repository.dart';
-import '../../../../domain/value_objects/calendar_type.dart';
-import '../../../../domain/value_objects/gender.dart';
 import '../../../../infrastructure/database/supabase_bazi_record_repository.dart';
+import '../../infrastructure/bazi_request_codec.dart';
+import '../../infrastructure/person_identity.dart';
 import '../../../../infrastructure/database/supabase_collection_repository.dart';
 import '../../application/bazi_records_list_controller.dart';
+import '../../application/open_ai_for_record.dart';
 import '../../../auth/application/auth_controller.dart';
 import '../../../auth/presentation/pages/profile_page.dart';
 import '../../../input/application/bazi_input_controller.dart';
@@ -21,25 +22,35 @@ final peopleListProvider = Provider<List<PersonSummary>>((ref) {
   final records = ref.watch(baziRecordsListProvider).records;
   final grouped = <String, List<_RawRecord>>{};
   for (final r in records) {
-    grouped.putIfAbsent(r.personName, () => []).add(_RawRecord(
+    final identity = PersonIdentity.fromRecord(r);
+    grouped.putIfAbsent(identity.groupKey, () => []).add(_RawRecord(
           id: r.id,
           birthLabel: r.birthLabel,
           savedAt: r.savedAt,
           requestJson: r.requestJson,
           reportJson: r.reportJson,
+          displayName: identity.displayName,
+          birthFingerprint: identity.birthFingerprint,
         ));
   }
 
   return grouped.entries.map((e) {
     e.value.sort((a, b) => b.savedAt.compareTo(a.savedAt));
+    final latest = e.value.first;
     return PersonSummary(
-      name: e.key,
+      recordId: latest.id,
+      name: latest.displayName,
+      birthFingerprint: latest.birthFingerprint,
       recordCount: e.value.length,
-      latestRecord: e.value.isNotEmpty ? e.value.first.birthLabel : '',
-      latestRequestJson: e.value.isNotEmpty ? e.value.first.requestJson : '',
+      latestRecord: latest.birthLabel,
+      latestRequestJson: latest.requestJson,
     );
   }).toList()
-    ..sort((a, b) => a.name.compareTo(b.name));
+    ..sort((a, b) {
+      final byName = a.name.compareTo(b.name);
+      if (byName != 0) return byName;
+      return a.latestRecord.compareTo(b.latestRecord);
+    });
 });
 
 final _collectionsProvider =
@@ -57,26 +68,42 @@ class _RawRecord {
   final DateTime savedAt;
   final String requestJson;
   final String reportJson;
+  final String displayName;
+  final String birthFingerprint;
   _RawRecord({
     required this.id,
     required this.birthLabel,
     required this.savedAt,
     required this.requestJson,
     required this.reportJson,
+    required this.displayName,
+    required this.birthFingerprint,
   });
 }
 
 class PersonSummary {
+  final String recordId;
   final String name;
+  final String birthFingerprint;
   final int recordCount;
   final String latestRecord;
   final String latestRequestJson;
   const PersonSummary({
+    required this.recordId,
     required this.name,
+    required this.birthFingerprint,
     required this.recordCount,
     required this.latestRecord,
     required this.latestRequestJson,
   });
+
+  /// 同名不同出生时辰时，副标题需带出出生信息以便区分。
+  String get subtitle {
+    if (recordCount > 1) {
+      return '$latestRecord · 已保存 $recordCount 次（同一人）';
+    }
+    return latestRecord;
+  }
 }
 
 class PeopleListPage extends ConsumerWidget {
@@ -187,6 +214,24 @@ class PeopleListPage extends ConsumerWidget {
             else
               _PeopleList(
                 people: people,
+                onAiTap: (person) async {
+                  BaziRecord? record;
+                  for (final r in ref.read(baziRecordsListProvider).records) {
+                    if (r.id == person.recordId) {
+                      record = r;
+                      break;
+                    }
+                  }
+                  if (record == null) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('未找到该命盘，请下拉刷新后重试')),
+                      );
+                    }
+                    return;
+                  }
+                  await openAiForRecord(context, ref, record: record);
+                },
                 onTap: (person) async {
                         final request =
                             _parseRequest(person.latestRequestJson);
@@ -217,7 +262,11 @@ class PeopleListPage extends ConsumerWidget {
                         if (user == null) return;
                         final repo = SupabaseBaziRecordRepository(
                             Supabase.instance.client);
-                        await repo.deleteByPerson(user.id, person.name);
+                        await repo.deleteByPersonIdentity(
+                          userId: user.id,
+                          displayName: person.name,
+                          birthFingerprint: person.birthFingerprint,
+                        );
                         await ref
                             .read(baziRecordsListProvider.notifier)
                             .refresh(silent: true);
@@ -581,11 +630,13 @@ class _PeopleList extends StatelessWidget {
   const _PeopleList({
     required this.people,
     required this.onTap,
+    required this.onAiTap,
     required this.onDelete,
   });
 
   final List<PersonSummary> people;
   final ValueChanged<PersonSummary> onTap;
+  final ValueChanged<PersonSummary> onAiTap;
   final ValueChanged<PersonSummary> onDelete;
 
   @override
@@ -626,11 +677,17 @@ class _PeopleList extends StatelessWidget {
                         Text(person.name, style: textTheme.titleMedium),
                         const SizedBox(height: 3),
                         Text(
-                          '${person.recordCount} 条排盘 · ${person.latestRecord}',
+                          person.subtitle,
                           style: textTheme.bodySmall,
                         ),
                       ],
                     ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.auto_awesome_outlined, size: 20),
+                    tooltip: 'AI 看盘',
+                    onPressed: () => onAiTap(person),
+                    color: AppColors.gold,
                   ),
                   IconButton(
                     icon: const Icon(Icons.delete_outline, size: 20),
@@ -638,7 +695,9 @@ class _PeopleList extends StatelessWidget {
                       context: context,
                       builder: (ctx) => AlertDialog(
                         title: const Text('确认删除'),
-                        content: Text('确定要删除「${person.name}」的所有排盘记录吗？'),
+                        content: Text(
+                          '确定要删除「${person.name}」的这条命盘吗？\n${person.latestRecord}',
+                        ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.of(ctx).pop(),
@@ -717,22 +776,4 @@ class _UserAvatarButton extends StatelessWidget {
   }
 }
 
-BaziRequest? _parseRequest(String json) {
-  try {
-    final map = jsonDecode(json) as Map<String, dynamic>;
-    return BaziRequest(
-      calendarType: map['calendarType'] == 'lunar'
-          ? CalendarType.lunar
-          : CalendarType.solar,
-      gender: map['gender'] == 'female' ? Gender.female : Gender.male,
-      solarDateTime: DateTime.parse(map['solarDateTime'] as String),
-      lunarYear: map['lunarYear'] as int,
-      lunarMonth: map['lunarMonth'] as int,
-      lunarDay: map['lunarDay'] as int,
-      isLeapMonth: map['isLeapMonth'] as bool? ?? false,
-      personName: map['personName'] as String?,
-    );
-  } catch (_) {
-    return null;
-  }
-}
+BaziRequest? _parseRequest(String json) => BaziRequestCodec.fromJson(json);

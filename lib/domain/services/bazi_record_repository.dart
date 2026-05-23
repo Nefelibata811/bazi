@@ -8,6 +8,13 @@ abstract class BaziRecordRepository {
     required String reportJson,
   });
 
+  /// 已保存则返回该记录，否则 null（不修改已有数据）。
+  Future<BaziRecord?> findByIdentity({
+    required String userId,
+    required String personName,
+    required String requestJson,
+  });
+
   Future<List<BaziRecord>> listByUser(String userId);
 
   Future<List<String>> listPersonNames(String userId);
@@ -17,6 +24,12 @@ abstract class BaziRecordRepository {
   Future<void> delete(String recordId);
 
   Future<void> deleteByPerson(String userId, String personName);
+
+  Future<void> deleteByPersonIdentity({
+    required String userId,
+    required String displayName,
+    required String birthFingerprint,
+  });
 }
 
 abstract class CollectionRepository {

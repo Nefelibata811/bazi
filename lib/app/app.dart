@@ -15,6 +15,7 @@ import '../features/history/presentation/pages/chart_history_page.dart';
 import '../features/history/application/bazi_records_list_controller.dart';
 import '../features/history/presentation/pages/people_list_page.dart';
 import '../features/input/presentation/pages/home_input_page.dart';
+import '../features/reverse_lookup/presentation/pages/reverse_lookup_page.dart';
 import 'theme/app_theme.dart';
 import 'widgets/app_splash.dart';
 
@@ -22,13 +23,19 @@ final mainTabIndexProvider = StateProvider<int>((ref) => 0);
 final aiChatRefreshSignal = StateProvider<int>((ref) => 0);
 final chatClearSignal = StateProvider<int>((ref) => 0);
 
-/// 回到主页 Tab（命主列表），并关闭叠在上面的排盘/录入等路由。
-Future<void> navigateToHomeTab(BuildContext context, WidgetRef ref) async {
-  ref.read(mainTabIndexProvider.notifier).state = 0;
+/// 回到主页并切换 Tab，关闭叠在上面的排盘/录入等路由。
+Future<void> navigateToHomeTab(
+  BuildContext context,
+  WidgetRef ref, {
+  int tabIndex = 0,
+}) async {
+  ref.read(mainTabIndexProvider.notifier).state = tabIndex;
   try {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('app_tab_index', 0);
-    await prefs.setBool('pending_ai_auto_start', false);
+    await prefs.setInt('app_tab_index', tabIndex);
+    if (tabIndex != 1) {
+      await prefs.setBool('pending_ai_auto_start', false);
+    }
   } catch (_) {}
   if (context.mounted) {
     Navigator.of(context).popUntil((route) => route.isFirst);
@@ -114,6 +121,8 @@ class _BaziAppViewState extends ConsumerState<_BaziAppView> {
             return _slideRoute(const _MainShell(), settings);
           case '/input':
             return _slideRoute(const HomeInputPage(), settings);
+          case '/reverse_lookup':
+            return _slideRoute(const ReverseLookupPage(), settings);
           case '/profile':
             return _slideRoute(const ProfilePage(), settings);
           case '/history':

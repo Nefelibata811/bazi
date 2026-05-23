@@ -1,4 +1,5 @@
 import '../../domain/entities/bazi_chart.dart';
+import '../../domain/entities/pillar.dart';
 import '../../domain/entities/shensha_item.dart';
 import '../../domain/services/shensha_calculator.dart';
 
@@ -233,8 +234,25 @@ class RuleShenshaCalculator implements ShenshaCalculator {
     _checkJinShen(results, chart);
     _checkTianLuoDiWang(results, chart);
     _checkTongZi(results, chart);
+    _checkExtraPillars(results, chart, ds, ys);
 
     return results;
+  }
+
+  void _checkExtraPillars(
+    List<ShenshaItem> results,
+    BaziChart chart,
+    String ds,
+    String ys,
+  ) {
+    for (final p in chart.extraPillars) {
+      _checkTianYi(results, chart, ds, pillar: p);
+      _checkTaiJi(results, chart, ds, pillar: p);
+      _checkTianYi(results, chart, ys, pillar: p);
+      _checkTaiJi(results, chart, ys, pillar: p);
+      _checkStemBased(results, chart, ds, '日干', pillar: p);
+      _checkStemBased(results, chart, ys, '年干', pillar: p);
+    }
   }
 
   void _add(List<ShenshaItem> results, ShenshaItem item) {
@@ -243,24 +261,38 @@ class RuleShenshaCalculator implements ShenshaCalculator {
     results.add(item);
   }
 
-  void _checkTianYi(List<ShenshaItem> results, BaziChart chart, String stem) {
-    final b = _tianYiGuiRen[stem]; if (b == null) return;
+  void _checkTianYi(
+    List<ShenshaItem> results,
+    BaziChart chart,
+    String stem, {
+    Pillar? pillar,
+  }) {
+    final b = _tianYiGuiRen[stem];
+    if (b == null) return;
     final label = stem == chart.dayMaster ? '日干' : '年干';
-    for (final p in chart.pillars) {
+    final pool = pillar != null ? [pillar] : chart.pillars;
+    for (final p in pool) {
       if (b.contains(p.branch)) {
         _add(results, ShenshaItem(name: '天乙贵人', target: '${p.label}支${p.branch}',
-            description: '${label}$stem见${p.branch}为天乙贵人，主逢凶化吉、贵人相助', pillar: p.label));
+            description: '$label$stem见${p.branch}为天乙贵人，主逢凶化吉、贵人相助', pillar: p.label));
       }
     }
   }
 
-  void _checkTaiJi(List<ShenshaItem> results, BaziChart chart, String stem) {
-    final b = _taiJiGuiRen[stem]; if (b == null) return;
+  void _checkTaiJi(
+    List<ShenshaItem> results,
+    BaziChart chart,
+    String stem, {
+    Pillar? pillar,
+  }) {
+    final b = _taiJiGuiRen[stem];
+    if (b == null) return;
     final label = stem == chart.dayMaster ? '日干' : '年干';
-    for (final p in chart.pillars) {
+    final pool = pillar != null ? [pillar] : chart.pillars;
+    for (final p in pool) {
       if (b.contains(p.branch)) {
         _add(results, ShenshaItem(name: '太极贵人', target: '${p.label}支${p.branch}',
-            description: '${label}$stem见${p.branch}为太极贵人，主智慧超群、有玄学天赋', pillar: p.label));
+            description: '$label$stem见${p.branch}为太极贵人，主智慧超群、有玄学天赋', pillar: p.label));
       }
     }
   }
@@ -271,12 +303,18 @@ class RuleShenshaCalculator implements ShenshaCalculator {
     for (final p in chart.pillars) {
       if (branches.contains(p.branch)) {
         _add(results, ShenshaItem(name: '福星贵人', target: '${p.label}支${p.branch}',
-            description: '${label}$stem见${p.branch}为福星贵人，主福寿安康', pillar: p.label));
+            description: '$label$stem见${p.branch}为福星贵人，主福寿安康', pillar: p.label));
       }
     }
   }
 
-  void _checkStemBased(List<ShenshaItem> results, BaziChart chart, String ds, String bl) {
+  void _checkStemBased(
+    List<ShenshaItem> results,
+    BaziChart chart,
+    String ds,
+    String bl, {
+    Pillar? pillar,
+  }) {
     final checks = <String, Map<String, String>>{
       '文昌': _wenChang, '禄神': _luShen, '羊刃': _yangRen, '金舆': _jinYu,
     };
@@ -286,9 +324,11 @@ class RuleShenshaCalculator implements ShenshaCalculator {
       '羊刃': '$bl$ds见%s为羊刃，主刚强果断，过旺则宜制化',
       '金舆': '$bl$ds见%s为金舆，主车马衣食、出行顺遂之象',
     };
+    final pool = pillar != null ? [pillar] : chart.pillars;
     for (final e in checks.entries) {
-      final tb = e.value[ds]; if (tb == null) continue;
-      for (final p in chart.pillars) {
+      final tb = e.value[ds];
+      if (tb == null) continue;
+      for (final p in pool) {
         if (p.branch == tb) {
           _add(results, ShenshaItem(name: e.key, target: '${p.label}支${p.branch}',
               description: descs[e.key]!.replaceFirst('%s', p.branch), pillar: p.label));
@@ -304,11 +344,11 @@ class RuleShenshaCalculator implements ShenshaCalculator {
     for (final p in chart.pillars) {
       if (xt != null && p.branch == xt) {
         _add(results, ShenshaItem(name: '学堂', target: '${p.label}支${p.branch}',
-            description: '${label}$stem见${p.branch}为学堂，主学业有成、文采出众', pillar: p.label));
+            description: '$label$stem见${p.branch}为学堂，主学业有成、文采出众', pillar: p.label));
       }
       if (cg != null && p.branch == cg) {
         _add(results, ShenshaItem(name: '词馆', target: '${p.label}支${p.branch}',
-            description: '${label}$stem见${p.branch}为词馆，主文章锦绣、有文学天赋', pillar: p.label));
+            description: '$label$stem见${p.branch}为词馆，主文章锦绣、有文学天赋', pillar: p.label));
       }
     }
   }
@@ -448,7 +488,7 @@ class RuleShenshaCalculator implements ShenshaCalculator {
     for (final p in chart.pillars) {
       if (p.branch == tb) {
         _add(results, ShenshaItem(name: '飞刃', target: '${p.label}支${p.branch}',
-            description: '${label}$stem见${p.branch}为飞刃（羊刃对冲），主突如其来的冲突与变动', pillar: p.label));
+            description: '$label$stem见${p.branch}为飞刃（羊刃对冲），主突如其来的冲突与变动', pillar: p.label));
       }
     }
   }
@@ -459,7 +499,7 @@ class RuleShenshaCalculator implements ShenshaCalculator {
     for (final p in chart.pillars) {
       if (p.branch == tb) {
         _add(results, ShenshaItem(name: '国印贵人', target: '${p.label}支${p.branch}',
-            description: '${label}$stem见${p.branch}为国印贵人，主权柄、文书、公职之贵', pillar: p.label));
+            description: '$label$stem见${p.branch}为国印贵人，主权柄、文书、公职之贵', pillar: p.label));
       }
     }
   }
@@ -470,7 +510,7 @@ class RuleShenshaCalculator implements ShenshaCalculator {
     for (final p in chart.pillars) {
       if (p.branch == tb) {
         _add(results, ShenshaItem(name: '天厨贵人', target: '${p.label}支${p.branch}',
-            description: '${label}$stem见${p.branch}为天厨贵人（食神之禄），主食禄丰厚、安逸享福', pillar: p.label));
+            description: '$label$stem见${p.branch}为天厨贵人（食神之禄），主食禄丰厚、安逸享福', pillar: p.label));
       }
     }
   }

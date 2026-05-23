@@ -28,6 +28,13 @@ class BaziInteractionCalculator {
     '辰戌', '戌辰', '巳亥', '亥巳',
   };
 
+  static const _branchCombine3Groups = <({List<String> branches, String element})>[
+    (branches: ['申', '子', '辰'], element: '水'),
+    (branches: ['亥', '卯', '未'], element: '木'),
+    (branches: ['寅', '午', '戌'], element: '火'),
+    (branches: ['巳', '酉', '丑'], element: '金'),
+  ];
+
   static const _branchHarm = {
     '子未': '子未相害，水被土克',
     '未子': '子未相害，水被土克',
@@ -50,6 +57,8 @@ class BaziInteractionCalculator {
     _checkStemCombine(results, pillars);
     _checkStemClash(results, pillars);
     _checkBranchCombine6(results, pillars);
+    _checkBranchCombine3(results, pillars);
+    _checkBranchCombineHalf(results, pillars);
     _checkBranchClash(results, pillars);
     _checkBranchHarm(results, pillars);
     _checkBranchPunish(results, pillars);
@@ -122,6 +131,54 @@ class BaziInteractionCalculator {
     }
   }
 
+  void _checkBranchCombine3(
+      List<InteractionResult> results, List<Pillar> pillars) {
+    for (final group in _branchCombine3Groups) {
+      final hits =
+          pillars.where((p) => group.branches.contains(p.branch)).toList();
+      final branchSet = hits.map((p) => p.branch).toSet();
+      if (branchSet.length != 3 ||
+          !group.branches.every(branchSet.contains)) {
+        continue;
+      }
+      final nodes = hits.map((p) => '${p.label}支${p.branch}').join('、');
+      results.add(InteractionResult(
+        type: InteractionType.branchCombine3,
+        nodeA: '${hits[0].label}支${hits[0].branch}',
+        nodeB: '${hits[1].label}支${hits[1].branch}',
+        combinedElement: group.element,
+        description:
+            '${group.branches.join('')}三合${group.element}局（$nodes）',
+      ));
+    }
+  }
+
+  void _checkBranchCombineHalf(
+      List<InteractionResult> results, List<Pillar> pillars) {
+    for (final group in _branchCombine3Groups) {
+      final hits =
+          pillars.where((p) => group.branches.contains(p.branch)).toList();
+      final branchSet = hits.map((p) => p.branch).toSet();
+      if (branchSet.length == 3) continue;
+
+      for (var i = 0; i < hits.length; i++) {
+        for (var j = i + 1; j < hits.length; j++) {
+          final a = hits[i];
+          final b = hits[j];
+          if (a.branch == b.branch) continue;
+          results.add(InteractionResult(
+            type: InteractionType.branchCombineHalf,
+            nodeA: '${a.label}支${a.branch}',
+            nodeB: '${b.label}支${b.branch}',
+            combinedElement: group.element,
+            description:
+                '${a.branch}${b.branch}半合${group.element}（${group.branches.join('')}局缺一字）',
+          ));
+        }
+      }
+    }
+  }
+
   void _checkBranchClash(
       List<InteractionResult> results, List<Pillar> pillars) {
     for (var i = 0; i < pillars.length; i++) {
@@ -178,8 +235,8 @@ class BaziInteractionCalculator {
             if (a == '子' && b == '卯') desc = '子卯相刑，无礼之刑';
             results.add(InteractionResult(
               type: InteractionType.branchPunish,
-              nodeA: '${pillars[i].label}支$b',
-              nodeB: '${pillars[j].label}支$a',
+              nodeA: '${pillars[i].label}支$a',
+              nodeB: '${pillars[j].label}支$b',
               description: desc,
             ));
             break;

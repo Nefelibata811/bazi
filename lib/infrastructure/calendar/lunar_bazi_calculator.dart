@@ -6,7 +6,7 @@ import '../../../domain/entities/bazi_request.dart';
 import '../../../domain/entities/pillar.dart';
 import '../../../domain/services/bazi_calculator.dart';
 import '../../../domain/services/bazi_rule_engine.dart';
-import '../../../domain/value_objects/calendar_type.dart';
+import 'lunar_eight_char_factory.dart';
 
 class LunarBaziCalculator implements BaziCalculator {
   const LunarBaziCalculator({
@@ -17,34 +17,7 @@ class LunarBaziCalculator implements BaziCalculator {
 
   @override
   Future<BaziChart> calculate(BaziRequest request) async {
-    final EightChar ec;
-    final Lunar lunar;
-
-    if (request.calendarType == CalendarType.solar) {
-      final solar = Solar.fromYmdHms(
-        request.solarDateTime.year,
-        request.solarDateTime.month,
-        request.solarDateTime.day,
-        request.solarDateTime.hour,
-        request.solarDateTime.minute,
-        0,
-      );
-      lunar = solar.getLunar();
-      ec = lunar.getEightChar();
-    } else {
-      final month =
-          request.isLeapMonth ? -request.lunarMonth : request.lunarMonth;
-      final l = Lunar.fromYmdHms(
-        request.lunarYear,
-        month,
-        request.lunarDay,
-        request.solarDateTime.hour,
-        request.solarDateTime.minute,
-        0,
-      );
-      lunar = l;
-      ec = l.getEightChar();
-    }
+    final ec = LunarEightCharFactory.eightCharFromRequest(request);
 
     final dayGan = ec.getDayGan();
 
@@ -62,35 +35,48 @@ class LunarBaziCalculator implements BaziCalculator {
       hour: _pillar(ec, '时', dayGan, ec.getTimeGan(), ec.getTimeZhi(),
           ec.getTimeNaYin(), ec.getTimeShiShenGan(), ec.getTimeDiShi(),
           xunKong: ec.getTimeXunKong()),
+      extraPillars: _extraPillars(ec, dayGan),
+    );
+  }
+
+  List<Pillar> _extraPillars(EightChar ec, String dayGan) {
+    return [
+      _extraPillar(ec, dayGan, '命宫', ec.getMingGong(), ec.getMingGongNaYin()),
+      _extraPillar(ec, dayGan, '身宫', ec.getShenGong(), ec.getShenGongNaYin()),
+      _extraPillar(ec, dayGan, '胎元', ec.getTaiYuan(), ec.getTaiYuanNaYin()),
+      _extraPillar(ec, dayGan, '胎息', ec.getTaiXi(), ec.getTaiXiNaYin()),
+    ];
+  }
+
+  Pillar _extraPillar(
+    EightChar ec,
+    String dayGan,
+    String label,
+    String ganZhi,
+    String naYin,
+  ) {
+    final stem = ganZhi.substring(0, 1);
+    final branch = ganZhi.substring(1, 2);
+    return Pillar(
+      label: label,
+      stem: stem,
+      branch: branch,
+      tenGod: _ruleEngine.tenGodFor(dayMasterStem: dayGan, targetStem: stem),
+      hiddenStems: _ruleEngine.hiddenStemsFor(
+        dayMasterStem: dayGan,
+        branch: branch,
+      ),
+      naYin: naYin,
+      growthPhase: _ruleEngine.growthPhaseFor(
+        dayMasterStem: dayGan,
+        branch: branch,
+      ),
     );
   }
 
   BoneWeight? calculateBoneWeight(BaziRequest request) {
     try {
-      final Lunar lunar;
-      if (request.calendarType == CalendarType.solar) {
-        final solar = Solar.fromYmdHms(
-          request.solarDateTime.year,
-          request.solarDateTime.month,
-          request.solarDateTime.day,
-          request.solarDateTime.hour,
-          request.solarDateTime.minute,
-          0,
-        );
-        lunar = solar.getLunar();
-      } else {
-        final month = request.isLeapMonth
-            ? -request.lunarMonth
-            : request.lunarMonth;
-        lunar = Lunar.fromYmdHms(
-          request.lunarYear,
-          month,
-          request.lunarDay,
-          request.solarDateTime.hour,
-          request.solarDateTime.minute,
-          0,
-        );
-      }
+      final lunar = LunarEightCharFactory.lunarFromRequest(request);
 
       final yearGanZhi = '${lunar.getYearGan()}${lunar.getYearZhi()}';
       final yearW = _yearWeights[yearGanZhi];

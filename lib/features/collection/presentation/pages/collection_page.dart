@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -7,9 +6,8 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../domain/entities/bazi_record.dart';
 import '../../../../domain/entities/bazi_request.dart';
 import '../../../../domain/services/bazi_record_repository.dart';
-import '../../../../domain/value_objects/calendar_type.dart';
-import '../../../../domain/value_objects/gender.dart';
 import '../../../../infrastructure/database/supabase_bazi_record_repository.dart';
+import '../../../history/infrastructure/bazi_request_codec.dart';
 import '../../../../infrastructure/database/supabase_collection_repository.dart';
 import '../../../auth/application/auth_controller.dart';
 import '../../../input/application/bazi_input_controller.dart';
@@ -630,25 +628,7 @@ class CollectionDetailPage extends ConsumerWidget {
     );
   }
 
-  BaziRequest? _parseRequest(String json) {
-    try {
-      final map = jsonDecode(json) as Map<String, dynamic>;
-      return BaziRequest(
-        calendarType: map['calendarType'] == 'lunar'
-            ? CalendarType.lunar
-            : CalendarType.solar,
-        gender: map['gender'] == 'female' ? Gender.female : Gender.male,
-        solarDateTime: DateTime.parse(map['solarDateTime'] as String),
-        lunarYear: map['lunarYear'] as int,
-        lunarMonth: map['lunarMonth'] as int,
-        lunarDay: map['lunarDay'] as int,
-        isLeapMonth: map['isLeapMonth'] as bool? ?? false,
-        personName: map['personName'] as String?,
-      );
-    } catch (_) {
-      return null;
-    }
-  }
+  BaziRequest? _parseRequest(String json) => BaziRequestCodec.fromJson(json);
 }
 
 final _collectionRecordsProvider =

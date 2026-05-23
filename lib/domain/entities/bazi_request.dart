@@ -1,3 +1,4 @@
+import '../value_objects/bazi_sect.dart';
 import '../value_objects/calendar_type.dart';
 import '../value_objects/gender.dart';
 
@@ -10,6 +11,7 @@ class BaziRequest {
     required this.lunarMonth,
     required this.lunarDay,
     required this.isLeapMonth,
+    this.baziSect = BaziSect.sameDay,
     this.personName,
   });
 
@@ -20,5 +22,6 @@ class BaziRequest {
   final int lunarMonth;
   final int lunarDay;
   final bool isLeapMonth;
+  final BaziSect baziSect;
   final String? personName;
 }

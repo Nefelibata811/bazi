@@ -9,8 +9,22 @@
       "deviceId": "chrome",
       "toolArgs": [
         "--no-web-resources-cdn",
-        "--dart-define-from-file=secrets.local.env"
-      ]
+        "--dart-define-from-file=.dart_defines.generated.json"
+      ],
+      "preLaunchTask": "bazi: sync dart defines"
+    },
+    {
+      "name": "bazi Android (模拟器)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "deviceId": "android",
+      "toolArgs": [
+        "--no-enable-impeller",
+        "--enable-software-rendering",
+        "--dart-define-from-file=.dart_defines.generated.json"
+      ],
+      "preLaunchTask": "bazi: sync dart defines"
     },
     {
       "name": "bazi Windows 桌面",
@@ -18,7 +32,10 @@
       "type": "dart",
       "program": "lib/main.dart",
       "deviceId": "windows",
-      "toolArgs": ["--dart-define-from-file=secrets.local.env"]
+      "toolArgs": [
+        "--dart-define-from-file=.dart_defines.generated.json"
+      ],
+      "preLaunchTask": "bazi: sync dart defines"
     }
   ]
 }

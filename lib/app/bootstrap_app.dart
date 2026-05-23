@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
+import '../core/api_config.dart';
 import '../core/app_secrets.dart';
 import '../core/debug_log.dart';
 import '../features/auth/application/auth_controller.dart';
@@ -29,6 +30,12 @@ class _BootstrapAppState extends ConsumerState<BootstrapApp> {
   @override
   void initState() {
     super.initState();
+    if (kDebugMode && ApiConfig.deepseekApiKey.isEmpty) {
+      logDebug(
+        'DEEPSEEK_API_KEY is empty. Stop flutter run, then start via '
+        'bazi/scripts/run_web.ps1 or VS Code "bazi Web (Chrome)" (not hot reload).',
+      );
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_initSupabase());
     });
@@ -36,6 +43,12 @@ class _BootstrapAppState extends ConsumerState<BootstrapApp> {
 
   Future<void> _initSupabase() async {
     try {
+      final url = AppSecrets.supabaseUrl;
+      if (url.contains('x.supabase.co')) {
+        throw StateError(
+          '当前为测试用 Supabase 地址，请停止调试后执行 bazi/scripts/run_web.ps1 重新启动',
+        );
+      }
       final anonKey = AppSecrets.supabaseAnonKey;
       if (anonKey.isEmpty) {
         throw StateError(
@@ -43,7 +56,7 @@ class _BootstrapAppState extends ConsumerState<BootstrapApp> {
         );
       }
       await Supabase.initialize(
-        url: AppSecrets.supabaseUrl,
+        url: url,
         anonKey: anonKey,
         authOptions: FlutterAuthClientOptions(
           authFlowType:

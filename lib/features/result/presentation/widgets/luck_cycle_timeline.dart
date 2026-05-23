@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../domain/entities/flowing_year.dart';
 import '../../../../domain/entities/luck_cycle.dart';
 
 class LuckCycleTimeline extends StatefulWidget {
@@ -19,6 +20,7 @@ class LuckCycleTimeline extends StatefulWidget {
 
 class _LuckCycleTimelineState extends State<LuckCycleTimeline> {
   int? _expandedIndex;
+  int? _expandedYearIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -74,8 +76,13 @@ class _LuckCycleTimelineState extends State<LuckCycleTimeline> {
                         borderRadius: BorderRadius.circular(16),
                         onTap: () {
                           setState(() {
-                            _expandedIndex =
-                                isExpanded ? null : index;
+                            if (isExpanded) {
+                              _expandedIndex = null;
+                              _expandedYearIndex = null;
+                            } else {
+                              _expandedIndex = index;
+                              _expandedYearIndex = null;
+                            }
                           });
                         },
                         child: Padding(
@@ -94,7 +101,7 @@ class _LuckCycleTimelineState extends State<LuckCycleTimeline> {
                                 ),
                                 alignment: Alignment.center,
                                 child: Text(
-                                  '${cycle.index}',
+                                  cycle.isPreStart ? '小' : '${cycle.index}',
                                   style: textTheme.titleMedium?.copyWith(
                                     color: branchColor,
                                     fontWeight: FontWeight.w700,
@@ -161,7 +168,7 @@ class _LuckCycleTimelineState extends State<LuckCycleTimeline> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '流年',
+                                cycle.isPreStart ? '流年 · 小运' : '流年',
                                 style: textTheme.labelMedium?.copyWith(
                                   color: AppColors.deepGray,
                                 ),
@@ -170,45 +177,88 @@ class _LuckCycleTimelineState extends State<LuckCycleTimeline> {
                               Wrap(
                                 spacing: 8,
                                 runSpacing: 8,
-                                children: cycle.flowingYears.map((fy) {
-                                  return Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 8,
+                                children: [
+                                  for (var yi = 0; yi < cycle.flowingYears.length; yi++)
+                                    _FlowingYearChip(
+                                      fy: cycle.flowingYears[yi],
+                                      isSelected:
+                                          _expandedIndex == index &&
+                                          _expandedYearIndex == yi,
+                                      onTap: () {
+                                        setState(() {
+                                          if (_expandedYearIndex == yi) {
+                                            _expandedYearIndex = null;
+                                          } else {
+                                            _expandedYearIndex = yi;
+                                          }
+                                        });
+                                      },
                                     ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.84),
-                                      borderRadius: BorderRadius.circular(10),
-                                      border: Border.all(
-                                        color: AppColors.line,
-                                      ),
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        Text(
-                                          '${fy.year}',
-                                          style: textTheme.bodySmall?.copyWith(
-                                            color: AppColors.ink,
-                                            fontWeight: FontWeight.w600,
+                                ],
+                              ),
+                              if (_expandedIndex == index &&
+                                  _expandedYearIndex != null &&
+                                  _expandedYearIndex! <
+                                      cycle.flowingYears.length) ...[
+                                const SizedBox(height: 12),
+                                Text(
+                                  '流月 · ${cycle.flowingYears[_expandedYearIndex!].year}年',
+                                  style: textTheme.labelMedium?.copyWith(
+                                    color: AppColors.deepGray,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Wrap(
+                                  spacing: 6,
+                                  runSpacing: 6,
+                                  children: cycle
+                                      .flowingYears[_expandedYearIndex!]
+                                      .flowingMonths
+                                      .map(
+                                        (fm) => Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 6,
                                           ),
-                                        ),
-                                        Text(
-                                          fy.ganZhi,
-                                          style: textTheme.labelSmall?.copyWith(
-                                            color: AppColors.fiveElementByStem(
-                                              fy.ganZhi[0],
+                                          decoration: BoxDecoration(
+                                            color: Colors.white
+                                                .withValues(alpha: 0.84),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            border: Border.all(
+                                              color: AppColors.line,
                                             ),
                                           ),
+                                          child: Column(
+                                            children: [
+                                              Text(
+                                                fm.monthName,
+                                                style: textTheme.labelSmall
+                                                    ?.copyWith(
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                              Text(
+                                                fm.ganZhi,
+                                                style: textTheme.labelSmall
+                                                    ?.copyWith(
+                                                  color:
+                                                      AppColors.fiveElementByStem(
+                                                    fm.ganZhi[0],
+                                                  ),
+                                                ),
+                                              ),
+                                              Text(
+                                                fm.tenGod,
+                                                style: textTheme.labelSmall,
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                        Text(
-                                          fy.tenGod,
-                                          style: textTheme.labelSmall,
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
+                                      )
+                                      .toList(),
+                                ),
+                              ],
                             ],
                           ),
                         ),
@@ -218,6 +268,74 @@ class _LuckCycleTimelineState extends State<LuckCycleTimeline> {
               },
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FlowingYearChip extends StatelessWidget {
+  const _FlowingYearChip({
+    required this.fy,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final FlowingYear fy;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final borderColor = isSelected
+        ? AppColors.gold.withValues(alpha: 0.5)
+        : AppColors.line;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? AppColors.gold.withValues(alpha: 0.08)
+                : Colors.white.withValues(alpha: 0.84),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: borderColor),
+          ),
+          child: Column(
+            children: [
+              Text(
+                '${fy.year}',
+                style: textTheme.bodySmall?.copyWith(
+                  color: AppColors.ink,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Text(
+                fy.ganZhi,
+                style: textTheme.labelSmall?.copyWith(
+                  color: AppColors.fiveElementByStem(fy.ganZhi[0]),
+                ),
+              ),
+              Text(fy.tenGod, style: textTheme.labelSmall),
+              if (fy.xiaoYunGanZhi != null && fy.xiaoYunGanZhi!.isNotEmpty)
+                Text(
+                  '小运 ${fy.xiaoYunGanZhi}',
+                  style: textTheme.labelSmall?.copyWith(color: AppColors.gold),
+                ),
+              if (fy.flowingMonths.isNotEmpty)
+                Text(
+                  '流月',
+                  style: textTheme.labelSmall?.copyWith(
+                    color: isSelected ? AppColors.gold : AppColors.deepGray,
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

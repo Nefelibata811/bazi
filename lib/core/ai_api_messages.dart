@@ -25,6 +25,9 @@ String formatAiApiError(Object error) {
 
 String? missingDeepseekApiKeyMessage(String key) {
   if (key.trim().isNotEmpty) return null;
-  return '未配置 DeepSeek API 密钥。请复制 secrets.example.env 为 secrets.local.env，'
-      '填写 DEEPSEEK_API_KEY 后执行 scripts/run_web.ps1 启动。';
+  return '未配置 DeepSeek API 密钥（当前运行未带入编译参数）。'
+      '请完全退出 flutter run，在 bazi 目录执行：'
+      ' .\\scripts\\run_web.ps1 ；'
+      '或用 VS Code 启动「bazi Web (Chrome)」。'
+      '热重载无法加载密钥，必须重新运行。';
 }

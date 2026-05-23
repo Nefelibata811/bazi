@@ -13,6 +13,9 @@ abstract final class AppStrings {
       '排盘已生成，但云端保存失败，请检查网络后重试';
   static const chartSaveFailed = '保存失败，请稍后重试';
   static const chartSaveFailedRetry = '保存失败，请检查网络后重试';
+  static const chartAlreadySaved =
+      '该命盘已保存，不可重复保存或覆盖';
+  static const chartOpenAiFromSaved = '正在打开 AI 看盘…';
   static const noChartData = '暂无排盘数据';
 
   // —— AI 看盘 ——
