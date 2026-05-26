@@ -3,6 +3,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/entities/bazi_request.dart';
+import '../../../domain/entities/birth_place.dart';
 import '../../../domain/services/bazi_calculator.dart';
 import '../../../domain/services/ren_yuan_si_ling_calculator.dart';
 import '../../../domain/services/bazi_rule_engine.dart';
@@ -188,6 +189,28 @@ class BaziInputController extends StateNotifier<BaziInputState> {
     state = state.copyWith(baziSect: sect, clearChart: true);
   }
 
+  void setUseTrueSolarTime(bool value) {
+    state = state.copyWith(useTrueSolarTime: value, clearChart: true);
+  }
+
+  void setBirthPlace(BirthPlace place) {
+    state = state.copyWith(
+      birthPlaceName: place.displayLabel,
+      longitude: place.longitude,
+      latitude: place.latitude,
+      clearChart: true,
+    );
+  }
+
+  void setManualLongitude(double longitude) {
+    state = state.copyWith(
+      longitude: longitude,
+      birthPlaceName: '自定义经度 ${longitude.toStringAsFixed(2)}°E',
+      latitude: null,
+      clearChart: true,
+    );
+  }
+
   Future<void> submit() async {
     state = state.copyWith(loading: true);
 
@@ -201,6 +224,11 @@ class BaziInputController extends StateNotifier<BaziInputState> {
       isLeapMonth: state.isLeapMonth,
       baziSect: state.baziSect,
       personName: state.personName.isEmpty ? null : state.personName,
+      useTrueSolarTime: state.useTrueSolarTime,
+      longitude: state.longitude,
+      latitude: state.latitude,
+      birthPlaceName: state.birthPlaceName,
+      standardMeridian: state.standardMeridian,
     );
 
     final report = await _buildBaziReportUseCase(request);
@@ -256,6 +284,11 @@ class BaziInputController extends StateNotifier<BaziInputState> {
       isLeapMonth: request.isLeapMonth,
       baziSect: request.baziSect,
       personName: request.personName ?? state.personName,
+      useTrueSolarTime: request.useTrueSolarTime,
+      longitude: request.longitude,
+      latitude: request.latitude,
+      birthPlaceName: request.birthPlaceName,
+      standardMeridian: request.standardMeridian,
       loading: true,
     );
     final report = await _buildBaziReportUseCase(request);

@@ -48,7 +48,13 @@ class BaziRecord {
       final hour = solar.hour.toString().padLeft(2, '0');
       final minute = solar.minute.toString().padLeft(2, '0');
       final time = minute == '00' ? '$hour时' : '$hour:$minute';
-      return '${solar.year}年${solar.month}月${solar.day}日 $time';
+      final base = '${solar.year}年${solar.month}月${solar.day}日 $time';
+      final place = req['birthPlaceName'] as String?;
+      final useTst = req['useTrueSolarTime'] as bool? ?? false;
+      if (useTst && place != null && place.isNotEmpty) {
+        return '$base · $place（真太阳时）';
+      }
+      return base;
     } catch (_) {
       return dateLabel;
     }

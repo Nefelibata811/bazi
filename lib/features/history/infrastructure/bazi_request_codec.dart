@@ -20,6 +20,11 @@ class BaziRequestCodec {
       'isLeapMonth': request.isLeapMonth,
       'baziSect': request.baziSect.toJson(),
       if (personName != null) 'personName': personName,
+      'useTrueSolarTime': request.useTrueSolarTime,
+      if (request.longitude != null) 'longitude': request.longitude,
+      if (request.latitude != null) 'latitude': request.latitude,
+      if (request.birthPlaceName != null) 'birthPlaceName': request.birthPlaceName,
+      'standardMeridian': request.standardMeridian,
     };
   }
 
@@ -38,6 +43,12 @@ class BaziRequestCodec {
         isLeapMonth: map['isLeapMonth'] as bool? ?? false,
         baziSect: BaziSect.fromJson(map['baziSect'] as String?),
         personName: map['personName'] as String?,
+        useTrueSolarTime: map['useTrueSolarTime'] as bool? ?? false,
+        longitude: (map['longitude'] as num?)?.toDouble(),
+        latitude: (map['latitude'] as num?)?.toDouble(),
+        birthPlaceName: map['birthPlaceName'] as String?,
+        standardMeridian:
+            (map['standardMeridian'] as num?)?.toDouble() ?? 120.0,
       );
     } catch (_) {
       return null;

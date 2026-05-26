@@ -14,12 +14,6 @@ import 'save_bazi_record.dart' show baziRecordRepositoryProvider;
 /// Single bump counter for all record-list consumers (AI picker, 命主列表, etc.).
 final baziRecordsVersionProvider = StateProvider<int>((ref) => 0);
 
-/// @deprecated Use [baziRecordsVersionProvider].
-final refreshPeopleListProvider = baziRecordsVersionProvider;
-
-/// @deprecated Use [baziRecordsVersionProvider].
-final baziRecordsRefreshProvider = baziRecordsVersionProvider;
-
 @immutable
 class BaziRecordsListState {
   const BaziRecordsListState({

@@ -17,7 +17,7 @@ final baziRecordRepositoryProvider = Provider<SupabaseBaziRecordRepository>((ref
   return SupabaseBaziRecordRepository(Supabase.instance.client);
 });
 
-const _lastRecordKey = 'last_selected_record';
+const lastSelectedRecordPrefsKey = 'last_selected_record';
 
 class SaveBaziOutcome {
   const SaveBaziOutcome({
@@ -92,7 +92,7 @@ Future<void> persistLastSelectedRecord(BaziRecord record) async {
   try {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(
-      _lastRecordKey,
+      lastSelectedRecordPrefsKey,
       jsonEncode({
         'id': record.id,
         'personName': record.personName,
@@ -111,12 +111,12 @@ Future<void> clearLastSelectedRecordIfMatches({
 }) async {
   try {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_lastRecordKey);
+    final raw = prefs.getString(lastSelectedRecordPrefsKey);
     if (raw == null) return;
     final map = jsonDecode(raw) as Map<String, dynamic>;
     final savedId = map['id'] as String?;
     if (recordId != null && savedId == recordId) {
-      await prefs.remove(_lastRecordKey);
+      await prefs.remove(lastSelectedRecordPrefsKey);
       return;
     }
     if (displayName == null || birthFingerprint == null) return;
@@ -127,7 +127,7 @@ Future<void> clearLastSelectedRecordIfMatches({
     );
     final targetName = PersonIdentity.normalizeName(displayName);
     if (name == targetName && fp == birthFingerprint) {
-      await prefs.remove(_lastRecordKey);
+      await prefs.remove(lastSelectedRecordPrefsKey);
     }
   } catch (_) {}
 }

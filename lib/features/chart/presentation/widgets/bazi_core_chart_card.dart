@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_fonts.dart';
+import '../../../../app/theme/five_element_colors.dart';
+import 'five_element_char.dart';
 import '../../../../domain/entities/bazi_chart.dart';
 import '../../../../domain/entities/pillar.dart';
 import '../../../../domain/entities/ren_yuan_si_ling.dart';
@@ -59,6 +61,10 @@ class BaziCoreChartCard extends StatelessWidget {
             ),
           ),
           const Divider(height: 1, color: AppColors.line),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 10, 18, 4),
+            child: const FiveElementLegend(),
+          ),
           _ChartTableHeader(pillars: pillars),
           _ChartTableRow(
             stripe: true,
@@ -72,9 +78,9 @@ class BaziCoreChartCard extends StatelessWidget {
             minHeight: 58,
             cells: pillars
                 .map(
-                  (p) => _GanZhiChar(
-                    p.stem,
-                    color: AppColors.fiveElementByStem(p.stem),
+                  (p) => FiveElementChar(
+                    text: p.stem,
+                    color: FiveElementColors.byStem(p.stem),
                   ),
                 )
                 .toList(),
@@ -85,9 +91,9 @@ class BaziCoreChartCard extends StatelessWidget {
             minHeight: 58,
             cells: pillars
                 .map(
-                  (p) => _GanZhiChar(
-                    p.branch,
-                    color: _elementColor(p.branchFiveElement),
+                  (p) => FiveElementChar(
+                    text: p.branch,
+                    color: FiveElementColors.byBranch(p.branch),
                   ),
                 )
                 .toList(),
@@ -95,13 +101,7 @@ class BaziCoreChartCard extends StatelessWidget {
           _ChartTableRow(
             label: '藏干',
             cells: pillars
-                .map(
-                  (p) => _StackedLines(
-                    p.hiddenStems
-                        .map((h) => _ruleEngine.stemElementLabel(h.stem))
-                        .toList(),
-                  ),
-                )
+                .map((p) => _HiddenStemCell(pillar: p))
                 .toList(),
           ),
           _ChartTableRow(
@@ -253,18 +253,30 @@ class _ChartTableRow extends StatelessWidget {
   }
 }
 
-class _GanZhiChar extends StatelessWidget {
-  const _GanZhiChar(this.char, {required this.color});
+class _HiddenStemCell extends StatelessWidget {
+  const _HiddenStemCell({required this.pillar});
 
-  final String char;
-  final Color color;
+  final Pillar pillar;
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      char,
-      textAlign: TextAlign.center,
-      style: BaziChartTextStyles.ganZhi(color: color),
+    if (pillar.hiddenStems.isEmpty) {
+      return const _TableText('—', muted: true);
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final h in pillar.hiddenStems)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 1),
+            child: FiveElementChar(
+              text: _ruleEngine.stemElementLabel(h.stem),
+              color: FiveElementColors.byStem(h.stem),
+              large: false,
+            ),
+          ),
+      ],
     );
   }
 }
@@ -364,23 +376,6 @@ String _seatGrowthPhase(Pillar pillar) {
     dayMasterStem: pillar.stem,
     branch: pillar.branch,
   );
-}
-
-Color _elementColor(String element) {
-  switch (element) {
-    case '木':
-      return AppColors.wood;
-    case '火':
-      return AppColors.fire;
-    case '土':
-      return AppColors.earth;
-    case '金':
-      return AppColors.metal;
-    case '水':
-      return AppColors.water;
-    default:
-      return AppColors.ink;
-  }
 }
 
 Color _shenshaColor(String name) {

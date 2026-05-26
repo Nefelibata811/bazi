@@ -8,6 +8,7 @@ import '../../../../domain/entities/bazi_record.dart';
 import '../../../../domain/entities/bazi_request.dart';
 import '../../application/bazi_records_list_controller.dart';
 import '../../infrastructure/bazi_request_codec.dart';
+import '../../infrastructure/person_identity.dart';
 import '../../application/save_bazi_record.dart'
     show baziRecordRepositoryProvider, clearLastSelectedRecordIfMatches;
 import '../../../ai_chat/application/chat_controller.dart';
@@ -61,7 +62,11 @@ class ChartHistoryPage extends ConsumerWidget {
               );
             }
 
-            return ListView.builder(
+            return RefreshIndicator(
+              onRefresh: () =>
+                  ref.read(baziRecordsListProvider.notifier).refresh(),
+              child: ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
               itemCount: list.length,
               itemBuilder: (context, index) {
@@ -135,23 +140,11 @@ class ChartHistoryPage extends ConsumerWidget {
                           ),
                           IconButton(
                             icon: const Icon(Icons.delete_outline, size: 20),
-                            onPressed: () async {
-                              await ref
-                                  .read(baziRecordRepositoryProvider)
-                                  .delete(record.id);
-                              ref
-                                  .read(baziRecordsListProvider.notifier)
-                                  .removeRecord(record.id);
-                              await clearLastSelectedRecordIfMatches(
-                                recordId: record.id,
-                              );
-                              final chatId = ref
-                                  .read(chatControllerProvider)
-                                  .selectedRecordId;
-                              if (chatId == record.id) {
-                                ref.read(chatClearSignal.notifier).state++;
-                              }
-                            },
+                            onPressed: () => _confirmDeleteRecord(
+                              context,
+                              ref,
+                              record,
+                            ),
                             color: AppColors.deepGray,
                           ),
                         ],
@@ -160,6 +153,7 @@ class ChartHistoryPage extends ConsumerWidget {
                   ),
                 );
               },
+            ),
             );
           }),
       ),
@@ -168,4 +162,67 @@ class ChartHistoryPage extends ConsumerWidget {
 
   BaziRequest? _parseRequest(String json) =>
       BaziRequestCodec.fromJson(json);
+}
+
+Future<void> _confirmDeleteRecord(
+  BuildContext context,
+  WidgetRef ref,
+  BaziRecord record,
+) async {
+  final name =
+      record.personName.isNotEmpty ? record.personName : '未命名';
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('确认删除'),
+      content: Text('确定要删除「$name」的这条排盘记录吗？'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(false),
+          child: const Text('取消'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(true),
+          child: const Text('删除'),
+        ),
+      ],
+    ),
+  );
+  if (confirmed != true || !context.mounted) return;
+
+  try {
+    await ref.read(baziRecordRepositoryProvider).delete(record.id);
+    ref.read(baziRecordsListProvider.notifier).removeRecord(record.id);
+    await clearLastSelectedRecordIfMatches(recordId: record.id);
+
+    final input = ref.read(baziInputControllerProvider);
+    if (input.report != null) {
+      final loaded = BaziRequestCodec.fromJson(record.requestJson);
+      if (loaded != null &&
+          loaded.solarDateTime == input.report!.request.solarDateTime &&
+          PersonIdentity.normalizeName(record.personName) ==
+              PersonIdentity.normalizeName(input.personName)) {
+        ref.read(baziInputControllerProvider.notifier).clearCachedChart();
+      }
+    }
+
+    final chatId = ref.read(chatControllerProvider).selectedRecordId;
+    if (chatId == record.id) {
+      ref.read(chatClearSignal.notifier).state++;
+    }
+
+    await ref.read(baziRecordsListProvider.notifier).refresh(silent: true);
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('已删除「$name」')),
+      );
+    }
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('删除失败：$e')),
+      );
+    }
+  }
 }

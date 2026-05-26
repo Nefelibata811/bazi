@@ -139,6 +139,15 @@ abstract final class BaziChartTextStyles {
         height: 1.5,
       );
 
+  /// 藏干五行着色
+  static TextStyle stackedColored({required Color color}) => _sans(
+        size: 13,
+        weight: FontWeight.w700,
+        color: color,
+        height: 1.5,
+        letterSpacing: 0.3,
+      );
+
   /// 神煞
   static TextStyle shensha({required Color color}) => _sans(
         size: 12,

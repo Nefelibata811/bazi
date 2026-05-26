@@ -13,10 +13,16 @@ class BaziRequest {
     required this.isLeapMonth,
     this.baziSect = BaziSect.sameDay,
     this.personName,
+    this.useTrueSolarTime = false,
+    this.longitude,
+    this.latitude,
+    this.birthPlaceName,
+    this.standardMeridian = 120.0,
   });
 
   final CalendarType calendarType;
   final Gender gender;
+  /// 用户录入的钟表时间（北京时间 / 公历或农历对应的时刻）。
   final DateTime solarDateTime;
   final int lunarYear;
   final int lunarMonth;
@@ -24,4 +30,11 @@ class BaziRequest {
   final bool isLeapMonth;
   final BaziSect baziSect;
   final String? personName;
+  /// 是否按出生地经度换算真太阳时后排盘。
+  final bool useTrueSolarTime;
+  final double? longitude;
+  final double? latitude;
+  final String? birthPlaceName;
+  /// 标准时区基准经线，中国默认东经 120°。
+  final double standardMeridian;
 }

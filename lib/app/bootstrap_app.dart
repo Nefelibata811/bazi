@@ -47,9 +47,10 @@ class _BootstrapAppState extends ConsumerState<BootstrapApp> {
   Future<void> _initSupabase() async {
     try {
       final url = AppSecrets.supabaseUrl;
-      if (url.contains('x.supabase.co')) {
+      if (url.isEmpty) {
         throw StateError(
-          '当前为测试用 Supabase 地址，请停止调试后执行 bazi/scripts/run_web.ps1 重新启动',
+          '缺少 SUPABASE_URL。请复制 secrets.example.env 为 secrets.local.env 并填写，'
+          '然后执行 bazi/scripts/run_web.ps1 或 run_android.ps1 重新启动。',
         );
       }
       final anonKey = AppSecrets.supabaseAnonKey;

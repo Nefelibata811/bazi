@@ -1,13 +1,10 @@
 import 'package:flutter/foundation.dart';
 
-/// Runtime secrets via --dart-define. Debug builds may use fallbacks for local dev.
+/// Runtime secrets via --dart-define (see scripts/sync_dart_defines.ps1).
 class AppSecrets {
   AppSecrets._();
 
-  static const supabaseUrl = String.fromEnvironment(
-    'SUPABASE_URL',
-    defaultValue: 'https://iczcdybxotqzwatyvqdm.supabase.co',
-  );
+  static const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
 
   static const _supabaseAnonFromEnv = String.fromEnvironment('SUPABASE_ANON_KEY');
 
@@ -20,10 +17,6 @@ class AppSecrets {
       }(),
       'SUPABASE_ANON_KEY must be set for release builds',
     );
-    // Debug-only fallback so `flutter run` works without defines.
-    if (kDebugMode) {
-      return 'sb_publishable_C1tZZqL3i-HYl3D-a8-6uA_DyzgVgV6';
-    }
     return '';
   }
 
@@ -38,7 +31,6 @@ class AppSecrets {
       }(),
       'DEEPSEEK_API_KEY must be set for release builds',
     );
-    // Debug: no baked-in key — use secrets.local.env via scripts/run_web.ps1
     return '';
   }
 

@@ -12,6 +12,7 @@ import '../../../history/application/save_bazi_record.dart';
 import '../../../reverse_lookup/presentation/pages/reverse_lookup_page.dart';
 import '../../../result/presentation/pages/bazi_result_page.dart';
 import '../../application/bazi_input_controller.dart';
+import '../widgets/birth_place_field.dart';
 
 const _lunarMonthNames = [
   '正月', '二月', '三月', '四月', '五月', '六月',
@@ -210,6 +211,16 @@ class _HomeInputPageState extends ConsumerState<HomeInputPage> {
                       onSelectionChanged: (value) {
                         controller.setGender(value.first);
                       },
+                    ),
+                    const SizedBox(height: 18),
+                    BirthPlaceField(
+                      useTrueSolarTime: state.useTrueSolarTime,
+                      birthPlaceName: state.birthPlaceName,
+                      longitude: state.longitude,
+                      clockDateTime: state.solarDateTime,
+                      onUseTrueSolarTimeChanged: controller.setUseTrueSolarTime,
+                      onPlaceSelected: controller.setBirthPlace,
+                      onManualLongitudeChanged: controller.setManualLongitude,
                     ),
                     const SizedBox(height: 20),
                     if (state.calendarType == CalendarType.solar)

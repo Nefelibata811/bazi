@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../app/app.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/five_element_colors.dart';
+import '../../../chart/presentation/widgets/five_element_char.dart';
 import '../../../../domain/entities/bazi_chart.dart';
 import '../../../../domain/entities/bazi_report.dart';
 import '../../../../domain/services/bazi_rule_engine.dart';
@@ -76,11 +78,20 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
     final calendarLabel = report.request.calendarType == CalendarType.solar
         ? '公历'
         : '农历';
-    final birthDate = report.calendarSnapshot.solarDateTime;
+    final snapshot = report.calendarSnapshot;
+    final chartTime = snapshot.solarDateTime;
+    final clockTime = snapshot.clockDateTime ?? chartTime;
+    final tst = snapshot.trueSolarTime;
     final dateText =
-        '${birthDate.year}年${birthDate.month}月${birthDate.day}日';
-    final timeText =
-        '${birthDate.hour.toString().padLeft(2, '0')}:${birthDate.minute.toString().padLeft(2, '0')}';
+        '${clockTime.year}年${clockTime.month}月${clockTime.day}日';
+    final clockTimeText =
+        '${clockTime.hour.toString().padLeft(2, '0')}:${clockTime.minute.toString().padLeft(2, '0')}';
+    final chartTimeText =
+        '${chartTime.hour.toString().padLeft(2, '0')}:${chartTime.minute.toString().padLeft(2, '0')}';
+    final timeText = tst != null
+        ? '钟表 $clockTimeText · 真太阳时 $chartTimeText'
+        : clockTimeText;
+    final placeText = report.request.birthPlaceName;
 
     final precisionLabel = switch (report.calendarSnapshot.precision) {
       CalendarPrecision.exact => '精算',
@@ -143,6 +154,22 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
                   const SizedBox(width: 8),
                   Text('· $calendarLabel · $precisionLabel', style: textTheme.bodySmall),
                 ]),
+                if (placeText != null && placeText.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    report.request.useTrueSolarTime
+                        ? '出生地 $placeText（东经 ${report.request.longitude?.toStringAsFixed(2) ?? "--"}°）'
+                        : '出生地 $placeText',
+                    style: textTheme.bodySmall,
+                  ),
+                ],
+                if (tst != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    '时辰按真太阳时排盘，较钟表订正 ${tst.totalCorrectionMinutes >= 0 ? "+" : ""}${tst.totalCorrectionMinutes.toStringAsFixed(1)} 分',
+                    style: textTheme.bodySmall?.copyWith(color: AppColors.gold),
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: 20),
@@ -397,9 +424,11 @@ class _StemBranchHintCard extends StatelessWidget {
             Text('天干留意 · 地支留意 · 空亡',
                 style: textTheme.bodySmall),
             const SizedBox(height: 16),
+            const Padding(
+              padding: EdgeInsets.only(bottom: 12),
+              child: FiveElementLegend(),
+            ),
             ...pillars.map((pillar) {
-              final stemColor =
-                  AppColors.fiveElementByStem(pillar.stem);
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(14),
@@ -415,15 +444,16 @@ class _StemBranchHintCard extends StatelessWidget {
                       children: [
                         Text(pillar.label,
                             style: textTheme.titleMedium),
-                        const SizedBox(width: 10),
-                        Text(
-                          pillar.stem,
-                          style: textTheme.headlineSmall?.copyWith(
-                              color: stemColor),
+                        const SizedBox(width: 8),
+                        FiveElementChar(
+                          text: pillar.stem,
+                          color: FiveElementColors.byStem(pillar.stem),
                         ),
                         const SizedBox(width: 6),
-                        Text(pillar.branch,
-                            style: textTheme.headlineSmall),
+                        FiveElementChar(
+                          text: pillar.branch,
+                          color: FiveElementColors.byBranch(pillar.branch),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 10),

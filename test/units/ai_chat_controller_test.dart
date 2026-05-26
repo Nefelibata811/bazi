@@ -93,6 +93,7 @@ void main() {
     controller = ChatController(
       repository: mockRepo,
       historyStore: historyStore,
+      deepseekApiKey: 'test-key',
     );
   });
 

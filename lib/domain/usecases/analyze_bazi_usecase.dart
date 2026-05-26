@@ -25,7 +25,10 @@ class AnalyzeBaziUseCase {
   Future<AnalysisResult> call(BaziChart chart) async {
     final patterns = await _patternAnalyzer.analyze(chart);
     final shenshaItems = await _shenshaCalculator.calculate(chart);
-    final interactions = _interactionCalculator.calculate(chart);
+    final pillarInteractions = _interactionCalculator.calculate(chart);
+    final hiddenStemInteractions =
+        _interactionCalculator.calculateHiddenStemInteractions(chart);
+    final interactions = [...pillarInteractions, ...hiddenStemInteractions];
     final usefulGod = await _usefulGodAnalyzer.analyze(
       chart: chart,
       patterns: patterns,

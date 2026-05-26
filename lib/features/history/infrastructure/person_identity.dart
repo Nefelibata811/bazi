@@ -25,11 +25,14 @@ class PersonIdentity {
     final base =
         '${request.calendarType.name}|${request.gender.name}|${request.baziSect.name}|'
         '${dt.year}-${dt.month}-${dt.day}-${dt.hour}-${dt.minute}';
+    final location = request.useTrueSolarTime && request.longitude != null
+        ? '|tst:${request.longitude!.toStringAsFixed(4)}'
+        : '';
     if (request.calendarType == CalendarType.lunar) {
       return '$base|l:${request.lunarYear}-${request.lunarMonth}-'
-          '${request.lunarDay}-${request.isLeapMonth}';
+          '${request.lunarDay}-${request.isLeapMonth}$location';
     }
-    return base;
+    return '$base$location';
   }
 
   static String birthFingerprintFromRequestJson(String requestJson) {

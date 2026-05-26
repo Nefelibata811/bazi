@@ -40,9 +40,7 @@ app.*.symbols
 app.*.map.json
 
 # API keys / secrets
-lib/core/api_config.dart
 secrets.local.env
-secrets.example.env
 .dart_defines.generated.json
 .env
 

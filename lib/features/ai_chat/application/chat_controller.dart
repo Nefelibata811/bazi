@@ -12,8 +12,12 @@ import '../../../core/api_config.dart';
 import '../../../core/app_strings.dart';
 import '../../../domain/services/chat_repository.dart';
 import '../../../features/auth/application/auth_controller.dart';
+import '../../../features/history/infrastructure/bazi_request_codec.dart';
+import '../../../infrastructure/calendar/chart_datetime_resolver.dart';
 import '../../../infrastructure/ai/deepseek_chat_repository.dart';
 import '../../../infrastructure/database/supabase_chat_history_store.dart';
+import '../../../features/history/application/save_bazi_record.dart'
+    show lastSelectedRecordPrefsKey;
 import '../infrastructure/chat_history_store.dart';
 import 'assistant_reply_formatter.dart';
 import 'streaming_typing_reveal.dart';
@@ -95,11 +99,14 @@ class ChatController extends StateNotifier<ChatState> {
   ChatController({
     required this.repository,
     required ChatHistoryStore historyStore,
+    String? deepseekApiKey,
   })  : _historyStore = historyStore,
+        _deepseekApiKey = deepseekApiKey ?? ApiConfig.deepseekApiKey,
         super(const ChatState());
 
   final ChatRepository repository;
   final ChatHistoryStore _historyStore;
+  final String _deepseekApiKey;
   String? _analyzingRecordId;
   StreamSubscription<String>? _activeSubscription;
   StreamingTypingReveal? _typingReveal;
@@ -239,7 +246,7 @@ class ChatController extends StateNotifier<ChatState> {
 
   void _clearLastSelection() {
     SharedPreferences.getInstance().then((prefs) {
-      prefs.remove(_lastRecordKey);
+      prefs.remove(lastSelectedRecordPrefsKey);
     });
   }
 
@@ -328,7 +335,7 @@ class ChatController extends StateNotifier<ChatState> {
     );
     await _persistMessages(messagesForApi);
 
-    final keyError = missingDeepseekApiKeyMessage(ApiConfig.deepseekApiKey);
+    final keyError = missingDeepseekApiKeyMessage(_deepseekApiKey);
     if (keyError != null) {
       if (mounted && _analyzingRecordId == recordId) {
         state = state.copyWith(
@@ -398,7 +405,7 @@ class ChatController extends StateNotifier<ChatState> {
 
     final systemPrompt = _buildSystemPrompt(summary);
 
-    final keyError = missingDeepseekApiKeyMessage(ApiConfig.deepseekApiKey);
+    final keyError = missingDeepseekApiKeyMessage(_deepseekApiKey);
     if (keyError != null) {
       if (mounted) {
         state = state.copyWith(
@@ -508,25 +515,30 @@ class ChatController extends StateNotifier<ChatState> {
     state = state.copyWith(hasSavedHistory: true);
   }
 
-  static const _lastRecordKey = 'last_selected_record';
-
   Future<void> _saveLastSelectedRecord(
-      String recordId, String personName, String requestJson, String reportJson) async {
+    String recordId,
+    String personName,
+    String requestJson,
+    String reportJson,
+  ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_lastRecordKey, jsonEncode({
-        'id': recordId,
-        'personName': personName,
-        'requestJson': requestJson,
-        'reportJson': reportJson,
-      }));
+      await prefs.setString(
+        lastSelectedRecordPrefsKey,
+        jsonEncode({
+          'id': recordId,
+          'personName': personName,
+          'requestJson': requestJson,
+          'reportJson': reportJson,
+        }),
+      );
     } catch (_) {}
   }
 
   static Future<Map<String, dynamic>?> loadLastSelectedRecord() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final raw = prefs.getString(_lastRecordKey);
+      final raw = prefs.getString(lastSelectedRecordPrefsKey);
       if (raw == null) return null;
       return jsonDecode(raw) as Map<String, dynamic>;
     } catch (_) {
@@ -562,6 +574,7 @@ class ChatController extends StateNotifier<ChatState> {
       final time = minute == '00' ? '${solar.hour}时' : '${solar.hour}:$minute';
       buf.writeln(
           '性别：$gender，历法：$cal，出生日期：${solar.year}年${solar.month}月${solar.day}日 $time');
+      _appendTrueSolarTimeLines(buf, requestJson: requestJson, clockTimeLabel: time);
 
       final dayMaster = repMap['dayMaster'] as String? ?? '';
       if (dayMaster.isNotEmpty) buf.writeln('日主：$dayMaster');
@@ -688,6 +701,39 @@ class ChatController extends StateNotifier<ChatState> {
     return buf.toString();
   }
 
+  void _appendTrueSolarTimeLines(
+    StringBuffer buf, {
+    required String requestJson,
+    required String clockTimeLabel,
+  }) {
+    final request = BaziRequestCodec.fromJson(requestJson);
+    if (request == null) return;
+
+    if (!request.useTrueSolarTime || request.longitude == null) {
+      buf.writeln('真太阳时排盘：否（四柱按钟表时间 $clockTimeLabel 推算）');
+      return;
+    }
+
+    final info = ChartDateTimeResolver.resolveInfo(request);
+    if (info == null) return;
+
+    final place = request.birthPlaceName?.trim();
+    final placeLabel = place != null && place.isNotEmpty
+        ? place
+        : '东经 ${request.longitude!.toStringAsFixed(2)}°';
+    final trueDt = info.trueSolarDateTime;
+    final trueText =
+        '${trueDt.hour.toString().padLeft(2, '0')}:${trueDt.minute.toString().padLeft(2, '0')}';
+    final total = info.totalCorrectionMinutes;
+    final sign = total >= 0 ? '+' : '';
+
+    buf.writeln('真太阳时排盘：是（出生地 $placeLabel）');
+    buf.writeln(
+      '钟表 $clockTimeLabel → 真太阳时 $trueText（订正 $sign${total.toStringAsFixed(1)} 分；'
+      '四柱按时辰以真太阳时为准）',
+    );
+  }
+
   String _pillarLabel(String key) {
     switch (key) {
       case 'year':
@@ -724,12 +770,28 @@ class ChatController extends StateNotifier<ChatState> {
         return '地支三合';
       case 'branchCombineHalf':
         return '地支半合';
+      case 'branchArch':
+        return '地支拱合';
+      case 'branchCombineMeet3':
+        return '地支三会';
       case 'branchClash6':
         return '地支六冲';
       case 'branchHarm6':
         return '地支六害';
+      case 'branchBreak':
+        return '地支相破';
       case 'branchPunish':
         return '地支相刑';
+      case 'branchPunishTriple':
+        return '三刑会全';
+      case 'branchSelfPunish':
+        return '自刑';
+      case 'stemBranchBothClash':
+        return '天克地冲';
+      case 'fuYin':
+        return '伏吟';
+      case 'fanYin':
+        return '反吟';
       default:
         return type;
     }

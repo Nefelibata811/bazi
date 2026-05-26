@@ -17,14 +17,42 @@ class InteractionCard extends StatelessWidget {
       case InteractionType.branchCombine6:
       case InteractionType.branchCombine3:
       case InteractionType.branchCombineHalf:
+      case InteractionType.branchArch:
+      case InteractionType.branchCombineMeet3:
         return AppColors.water;
       case InteractionType.stemClash:
       case InteractionType.branchClash6:
       case InteractionType.branchHarm6:
+      case InteractionType.branchBreak:
       case InteractionType.branchPunish:
+      case InteractionType.branchPunishTriple:
+      case InteractionType.branchSelfPunish:
+      case InteractionType.stemBranchBothClash:
+      case InteractionType.fanYin:
         return AppColors.cinnabar;
+      case InteractionType.fuYin:
+        return AppColors.gold;
     }
   }
+
+  static const _displayOrder = [
+    InteractionType.stemCombine,
+    InteractionType.stemClash,
+    InteractionType.branchCombine6,
+    InteractionType.branchCombine3,
+    InteractionType.branchCombineMeet3,
+    InteractionType.branchCombineHalf,
+    InteractionType.branchArch,
+    InteractionType.branchClash6,
+    InteractionType.stemBranchBothClash,
+    InteractionType.fanYin,
+    InteractionType.branchHarm6,
+    InteractionType.branchBreak,
+    InteractionType.branchPunish,
+    InteractionType.branchPunishTriple,
+    InteractionType.branchSelfPunish,
+    InteractionType.fuYin,
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -44,14 +72,15 @@ class InteractionCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('刑冲合害', style: textTheme.titleLarge),
+            Text('干支关系', style: textTheme.titleLarge),
             const SizedBox(height: 4),
             Text(
-              '原局四柱天干地支互动关系',
+              '原局四柱：合、冲、刑、害、破、拱、伏吟、反吟等',
               style: textTheme.bodySmall,
             ),
             const SizedBox(height: 16),
-            ...grouped.entries.map((entry) {
+            ..._displayOrder.where(grouped.containsKey).map((type) {
+              final entry = MapEntry(type, grouped[type]!);
               final color = _accentFor(entry.key);
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12),

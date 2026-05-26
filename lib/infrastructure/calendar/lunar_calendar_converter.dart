@@ -6,22 +6,25 @@ import '../../../domain/entities/lunar_date.dart';
 import '../../../domain/services/calendar_converter.dart';
 import '../../../domain/value_objects/calendar_precision.dart';
 import '../../../domain/value_objects/calendar_type.dart';
+import 'chart_datetime_resolver.dart';
 
 class LunarCalendarConverter implements CalendarConverter {
   const LunarCalendarConverter();
 
   @override
   Future<CalendarSnapshot> resolve(BaziRequest request) async {
+    final chartTime = ChartDateTimeResolver.resolve(request);
+    final trueSolar = ChartDateTimeResolver.resolveInfo(request);
     final Solar solar;
     final Lunar lunar;
 
     if (request.calendarType == CalendarType.solar) {
       solar = Solar.fromYmdHms(
-        request.solarDateTime.year,
-        request.solarDateTime.month,
-        request.solarDateTime.day,
-        request.solarDateTime.hour,
-        request.solarDateTime.minute,
+        chartTime.year,
+        chartTime.month,
+        chartTime.day,
+        chartTime.hour,
+        chartTime.minute,
         0,
       );
       lunar = solar.getLunar();
@@ -32,8 +35,8 @@ class LunarCalendarConverter implements CalendarConverter {
         request.lunarYear,
         month,
         request.lunarDay,
-        request.solarDateTime.hour,
-        request.solarDateTime.minute,
+        chartTime.hour,
+        chartTime.minute,
         0,
       );
       solar = lunar.getSolar();
@@ -48,9 +51,11 @@ class LunarCalendarConverter implements CalendarConverter {
         solar.getYear(),
         solar.getMonth(),
         solar.getDay(),
-        request.solarDateTime.hour,
-        request.solarDateTime.minute,
+        chartTime.hour,
+        chartTime.minute,
       ),
+      clockDateTime: request.solarDateTime,
+      trueSolarTime: trueSolar,
       lunarDate: LunarDate(
         year: lunar.getYear(),
         month: isLeap ? -rawMonth : rawMonth,

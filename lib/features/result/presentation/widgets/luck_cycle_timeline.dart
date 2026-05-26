@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../domain/entities/flowing_year.dart';
 import '../../../../domain/entities/luck_cycle.dart';
+import '../../../chart/presentation/widgets/five_element_char.dart';
 
 class LuckCycleTimeline extends StatefulWidget {
   const LuckCycleTimeline({
@@ -58,7 +59,10 @@ class _LuckCycleTimelineState extends State<LuckCycleTimeline> {
               itemBuilder: (context, index) {
                 final cycle = widget.luckCycles[index];
                 final isExpanded = _expandedIndex == index;
-                final branchColor = AppColors.fiveElementByStem(cycle.ganZhi[1]);
+                final branchChar = cycle.ganZhi.length > 1
+                    ? cycle.ganZhi[1]
+                    : '';
+                final branchColor = AppColors.fiveElementByBranch(branchChar);
 
                 return Container(
                   decoration: BoxDecoration(
@@ -113,8 +117,8 @@ class _LuckCycleTimelineState extends State<LuckCycleTimeline> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      cycle.ganZhi,
+                                    FiveElementGanZhi(
+                                      ganZhi: cycle.ganZhi,
                                       style: textTheme.titleMedium,
                                     ),
                                     const SizedBox(height: 4),
@@ -238,15 +242,9 @@ class _LuckCycleTimelineState extends State<LuckCycleTimeline> {
                                                   fontWeight: FontWeight.w600,
                                                 ),
                                               ),
-                                              Text(
-                                                fm.ganZhi,
-                                                style: textTheme.labelSmall
-                                                    ?.copyWith(
-                                                  color:
-                                                      AppColors.fiveElementByStem(
-                                                    fm.ganZhi[0],
-                                                  ),
-                                                ),
+                                              FiveElementGanZhi(
+                                                ganZhi: fm.ganZhi,
+                                                style: textTheme.labelSmall,
                                               ),
                                               Text(
                                                 fm.tenGod,
@@ -315,18 +313,21 @@ class _FlowingYearChip extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              Text(
-                fy.ganZhi,
-                style: textTheme.labelSmall?.copyWith(
-                  color: AppColors.fiveElementByStem(fy.ganZhi[0]),
-                ),
+              FiveElementGanZhi(
+                ganZhi: fy.ganZhi,
+                style: textTheme.labelSmall,
               ),
               Text(fy.tenGod, style: textTheme.labelSmall),
-              if (fy.xiaoYunGanZhi != null && fy.xiaoYunGanZhi!.isNotEmpty)
+              if (fy.xiaoYunGanZhi != null && fy.xiaoYunGanZhi!.isNotEmpty) ...[
                 Text(
-                  '小运 ${fy.xiaoYunGanZhi}',
+                  '小运',
                   style: textTheme.labelSmall?.copyWith(color: AppColors.gold),
                 ),
+                FiveElementGanZhi(
+                  ganZhi: fy.xiaoYunGanZhi!,
+                  style: textTheme.labelSmall?.copyWith(color: AppColors.gold),
+                ),
+              ],
               if (fy.flowingMonths.isNotEmpty)
                 Text(
                   '流月',

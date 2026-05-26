@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/five_element_colors.dart';
+import 'five_element_char.dart';
 import '../../../../domain/entities/bazi_chart.dart';
 import '../../../../domain/entities/pillar.dart';
 import '../../../../domain/entities/shensha_item.dart';
@@ -81,10 +83,7 @@ class _ExtraPillarTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final stemColor = AppColors.fiveElementByStem(pillar.stem);
     final padding = compact ? 8.0 : 14.0;
-    final ganZhiStyle =
-        compact ? textTheme.titleLarge : textTheme.headlineSmall;
 
     return Container(
       padding: EdgeInsets.all(padding),
@@ -106,16 +105,14 @@ class _ExtraPillarTile extends StatelessWidget {
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                pillar.stem,
-                textAlign: TextAlign.center,
-                style: ganZhiStyle?.copyWith(color: stemColor),
+              FiveElementChar(
+                text: pillar.stem,
+                color: FiveElementColors.byStem(pillar.stem),
               ),
-              SizedBox(height: compact ? 2 : 6),
-              Text(
-                pillar.branch,
-                textAlign: TextAlign.center,
-                style: ganZhiStyle,
+              SizedBox(height: compact ? 4 : 6),
+              FiveElementChar(
+                text: pillar.branch,
+                color: FiveElementColors.byBranch(pillar.branch),
               ),
             ],
           ),
