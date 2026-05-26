@@ -5,28 +5,21 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../domain/entities/bazi_record.dart';
 import '../../../../domain/entities/bazi_request.dart';
-import '../../../../domain/services/bazi_record_repository.dart';
 import '../../../../infrastructure/database/supabase_bazi_record_repository.dart';
 import '../../../history/infrastructure/bazi_request_codec.dart';
 import '../../../../infrastructure/database/supabase_collection_repository.dart';
 import '../../../auth/application/auth_controller.dart';
+import '../../../history/application/collections_list_controller.dart';
 import '../../../input/application/bazi_input_controller.dart';
 import '../../../result/presentation/pages/bazi_result_page.dart';
-
-final _collectionListProvider =
-    FutureProvider.autoDispose<List<CollectionModel>>((ref) {
-  final user = ref.watch(authControllerProvider).user;
-  if (user == null) return Future.value([]);
-  final repo = SupabaseCollectionRepository(Supabase.instance.client);
-  return repo.listByUser(user.id);
-});
 
 class CollectionPage extends ConsumerWidget {
   const CollectionPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final collections = ref.watch(_collectionListProvider);
+    final collectionsState = ref.watch(collectionsListProvider);
+    final list = collectionsState.collections;
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
@@ -41,12 +34,12 @@ class CollectionPage extends ConsumerWidget {
         ],
       ),
       body: SafeArea(
-        child: collections.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (_, __) => const Center(child: Text('加载失败')),
-          data: (list) {
-            if (list.isEmpty) {
-              return Center(
+        child: collectionsState.isLoading && !collectionsState.hasCollections
+            ? const Center(child: CircularProgressIndicator())
+            : collectionsState.error != null && !collectionsState.hasCollections
+                ? const Center(child: Text('加载失败'))
+                : list.isEmpty
+            ? Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -65,10 +58,8 @@ class CollectionPage extends ConsumerWidget {
                     ),
                   ],
                 ),
-              );
-            }
-
-            return ListView.builder(
+              )
+            : ListView.builder(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
               itemCount: list.length,
               itemBuilder: (context, index) {
@@ -140,9 +131,7 @@ class CollectionPage extends ConsumerWidget {
                   ),
                 );
               },
-            );
-          },
-        ),
+            ),
       ),
     );
   }
@@ -281,10 +270,9 @@ class CollectionPage extends ConsumerWidget {
     if (user == null) return;
     setDialogState(() => setCreating(true));
     try {
-      final repo =
-          SupabaseCollectionRepository(Supabase.instance.client);
-      await repo.create(userId: user.id, name: name);
-      ref.invalidate(_collectionListProvider);
+      await ref
+          .read(collectionsListProvider.notifier)
+          .createCollection(userId: user.id, name: name);
       if (ctx.mounted) Navigator.of(ctx).pop();
     } catch (_) {
       setDialogState(() => setCreating(false));
@@ -361,10 +349,9 @@ class CollectionPage extends ConsumerWidget {
                             if (name.isEmpty) return;
                             setDialogState(() => isSaving = true);
                             try {
-                              final repo = SupabaseCollectionRepository(
-                                  Supabase.instance.client);
-                              await repo.rename(id, name);
-                              ref.invalidate(_collectionListProvider);
+                              await ref
+                                  .read(collectionsListProvider.notifier)
+                                  .renameCollection(id, name);
                               if (ctx.mounted) Navigator.of(ctx).pop();
                             } catch (_) {
                               setDialogState(() => isSaving = false);
@@ -397,10 +384,9 @@ class CollectionPage extends ConsumerWidget {
                                   if (name.isEmpty) return;
                                   setDialogState(() => isSaving = true);
                                   try {
-                                    final repo = SupabaseCollectionRepository(
-                                        Supabase.instance.client);
-                                    await repo.rename(id, name);
-                                    ref.invalidate(_collectionListProvider);
+                                    await ref
+                                        .read(collectionsListProvider.notifier)
+                                        .renameCollection(id, name);
                                     if (ctx.mounted) Navigator.of(ctx).pop();
                                   } catch (_) {
                                     setDialogState(() => isSaving = false);
@@ -447,10 +433,9 @@ class CollectionPage extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () async {
-              final repo =
-                  SupabaseCollectionRepository(Supabase.instance.client);
-              await repo.deleteCollection(id);
-              ref.invalidate(_collectionListProvider);
+              await ref
+                  .read(collectionsListProvider.notifier)
+                  .deleteCollection(id);
               if (ctx.mounted) Navigator.of(ctx).pop();
             },
             child:

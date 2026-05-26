@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/app_fonts.dart';
 import '../../../../domain/entities/bazi_chart.dart';
 import '../../../../domain/entities/pillar.dart';
 import '../../../../domain/entities/ren_yuan_si_ling.dart';
 import '../../../../domain/entities/shensha_item.dart';
+import '../../../../domain/services/bazi_rule_engine.dart';
 
+const _ruleEngine = BaziRuleEngine();
+
+/// 表格式四柱排盘：左侧行标签 + 年/月/日/时四列，类似传统排盘软件。
 class BaziCoreChartCard extends StatelessWidget {
   const BaziCoreChartCard({
     super.key,
@@ -21,19 +26,22 @@ class BaziCoreChartCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final pillars = chart.pillars;
 
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 16, 18, 12),
+            child: Row(
               children: [
                 Text('四柱排盘', style: textTheme.titleLarge),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: AppColors.cinnabar.withValues(alpha: 0.10),
                     borderRadius: BorderRadius.circular(999),
@@ -47,354 +55,435 @@ class BaziCoreChartCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final isWide = constraints.maxWidth >= 720;
-                final pillars = chart.pillars;
-                final tiles = pillars.map((pillar) {
-                  final items = shenshaItems
-                      .where((s) => s.pillar == pillar.label)
-                      .toList();
-                  return _PillarTile(
-                    pillar: pillar,
-                    shensha: items,
-                    siLingNote: pillar.label == '月柱' ? renYuanSiLing?.summary : null,
-                  );
-                }).toList();
-
-                if (isWide) {
-                  return IntrinsicHeight(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        for (var i = 0; i < 4; i++) ...[
-                          if (i > 0) const SizedBox(width: 12),
-                          Expanded(child: tiles[i]),
-                        ],
-                      ],
-                    ),
-                  );
-                }
-                return Column(
-                  children: [
-                    IntrinsicHeight(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Expanded(child: tiles[0]),
-                          const SizedBox(width: 12),
-                          Expanded(child: tiles[1]),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    IntrinsicHeight(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Expanded(child: tiles[2]),
-                          const SizedBox(width: 12),
-                          Expanded(child: tiles[3]),
-                        ],
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PillarTile extends StatelessWidget {
-  const _PillarTile({
-    required this.pillar,
-    required this.shensha,
-    this.siLingNote,
-  });
-
-  final Pillar pillar;
-  final List<ShenshaItem> shensha;
-  final String? siLingNote;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final stemColor = AppColors.fiveElementByStem(pillar.stem);
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.84),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.line),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(pillar.label, style: textTheme.bodySmall),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  pillar.stem,
-                  textAlign: TextAlign.center,
-                  style: textTheme.headlineSmall?.copyWith(
-                    color: stemColor,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  pillar.branch,
-                  textAlign: TextAlign.center,
-                  style: textTheme.headlineSmall,
-                ),
-              ),
-            ],
           ),
-          const SizedBox(height: 12),
-          _MetaRow(label: '十神', value: pillar.tenGod),
-          if (siLingNote != null) ...[
-            const SizedBox(height: 8),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.gold.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.gold.withValues(alpha: 0.2)),
-              ),
-              child: Text(
-                '人元司令 · $siLingNote',
-                style: textTheme.labelSmall?.copyWith(color: AppColors.gold),
-              ),
-            ),
-          ],
-          const SizedBox(height: 8),
-          _MetaRow(label: '纳音', value: pillar.naYin),
-          if (pillar.xunKong.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            _MetaRow(label: '空亡', value: pillar.xunKong),
-          ],
-          const SizedBox(height: 8),
-          _MetaRow(label: '长生', value: pillar.growthPhase),
-          const SizedBox(height: 12),
-          Text('藏干', style: textTheme.labelMedium),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: pillar.hiddenStems
+          const Divider(height: 1, color: AppColors.line),
+          _ChartTableHeader(pillars: pillars),
+          _ChartTableRow(
+            stripe: true,
+            label: '主星',
+            cells: pillars
+                .map((p) => _TableText(p.tenGod, bold: true))
+                .toList(),
+          ),
+          _ChartTableRow(
+            label: '天干',
+            minHeight: 58,
+            cells: pillars
                 .map(
-                  (item) => Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                    decoration: BoxDecoration(
-                      color: AppColors.fiveElementByStem(item.stem)
-                          .withValues(alpha: 0.10),
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(
-                        color: AppColors.fiveElementByStem(item.stem)
-                            .withValues(alpha: 0.18),
-                      ),
-                    ),
-                    child: Text(
-                      '${item.stem} ${item.tenGod}',
-                      style: textTheme.labelSmall?.copyWith(
-                        color: AppColors.ink,
-                      ),
-                    ),
+                  (p) => _GanZhiChar(
+                    p.stem,
+                    color: AppColors.fiveElementByStem(p.stem),
                   ),
                 )
                 .toList(),
           ),
-          if (shensha.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            ...shensha.map((item) => _ShenshaTag(item: item)),
-          ],
+          _ChartTableRow(
+            stripe: true,
+            label: '地支',
+            minHeight: 58,
+            cells: pillars
+                .map(
+                  (p) => _GanZhiChar(
+                    p.branch,
+                    color: _elementColor(p.branchFiveElement),
+                  ),
+                )
+                .toList(),
+          ),
+          _ChartTableRow(
+            label: '藏干',
+            cells: pillars
+                .map(
+                  (p) => _StackedLines(
+                    p.hiddenStems
+                        .map((h) => _ruleEngine.stemElementLabel(h.stem))
+                        .toList(),
+                  ),
+                )
+                .toList(),
+          ),
+          _ChartTableRow(
+            stripe: true,
+            label: '副星',
+            cells: pillars
+                .map(
+                  (p) => _StackedLines(
+                    p.hiddenStems.map((h) => h.tenGod).toList(),
+                    muted: true,
+                  ),
+                )
+                .toList(),
+          ),
+          _ChartTableRow(
+            label: '纳音',
+            cells: pillars.map((p) => _TableText(p.naYin)).toList(),
+          ),
+          _ChartTableRow(
+            stripe: true,
+            label: '星运',
+            cells: pillars.map((p) => _TableText(p.growthPhase)).toList(),
+          ),
+          _ChartTableRow(
+            label: '自坐',
+            cells: pillars
+                .map((p) => _TableText(_seatGrowthPhase(p)))
+                .toList(),
+          ),
+          if (pillars.any((p) => p.xunKong.isNotEmpty))
+            _ChartTableRow(
+              stripe: true,
+              label: '空亡',
+              cells: pillars
+                  .map(
+                    (p) => _TableText(
+                      p.xunKong.isEmpty ? '—' : p.xunKong,
+                      muted: p.xunKong.isEmpty,
+                    ),
+                  )
+                  .toList(),
+            ),
+          if (renYuanSiLing?.summary != null &&
+              renYuanSiLing!.summary.isNotEmpty)
+            _ChartTableRow(
+              stripe: false,
+              label: '司令',
+              cells: [
+                const _TableText('—', muted: true),
+                _TableText(renYuanSiLing!.summary, color: AppColors.gold),
+                const _TableText('—', muted: true),
+                const _TableText('—', muted: true),
+              ],
+            ),
+          if (shenshaItems.isNotEmpty)
+            _ChartTableRow(
+              stripe: true,
+              label: '神煞',
+              cells: pillars
+                  .map(
+                    (p) => _ShenshaCell(
+                      items: shenshaItems
+                          .where((s) => s.pillar == p.label)
+                          .toList(),
+                    ),
+                  )
+                  .toList(),
+            ),
+          const SizedBox(height: 4),
         ],
       ),
     );
   }
 }
 
-class _ShenshaTag extends StatelessWidget {
-  const _ShenshaTag({required this.item});
+class _ChartTableHeader extends StatelessWidget {
+  const _ChartTableHeader({required this.pillars});
 
-  final ShenshaItem item;
-
-  Color _color() {
-    const auspicious = {
-      '天乙贵人', '太极贵人', '福星贵人', '天德贵人', '月德贵人',
-      '文昌', '学堂', '词馆', '禄神', '金舆', '国印贵人',
-      '天厨贵人', '德秀贵人', '天赦日', '天医',
-      '红鸾', '天喜', '将星', '三奇贵人', '十灵日', '六秀日',
-    };
-    const inauspicious = {
-      '亡神', '劫煞', '灾煞', '羊刃', '飞刃',
-      '孤辰', '寡宿', '魁罡', '十恶大败', '孤鸾煞', '阴错阳差',
-      '丧门', '吊客', '披麻', '血刃',
-      '红艳煞', '流霞', '四废日', '八专日', '九丑日',
-      '天转', '地转', '天罗', '地网',
-    };
-    if (auspicious.contains(item.name)) return AppColors.gold;
-    if (inauspicious.contains(item.name)) return AppColors.cinnabar;
-    return AppColors.deepGray;
-  }
+  final List<Pillar> pillars;
 
   @override
   Widget build(BuildContext context) {
-    final color = _color();
-    final textTheme = Theme.of(context).textTheme;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: GestureDetector(
-        onTap: () => _showDetail(context),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.06),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: color.withValues(alpha: 0.15)),
-          ),
-          child: Text(
-            item.name,
-            style: textTheme.labelSmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showDetail(BuildContext context) {
-    final category = _categoryLabel();
-    final color = _color();
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Row(
-          children: [
-            Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-              ),
-            ),
-            const SizedBox(width: 10),
+    return Container(
+      color: AppColors.ink.withValues(alpha: 0.92),
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+      child: Row(
+        children: [
+          const SizedBox(width: _ChartTableRow.labelWidth),
+          for (final p in pillars)
             Expanded(
-              child: Text(item.name,
-                  style: TextStyle(
-                    color: color,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 18,
-                  )),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(4),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    p.label,
+                    textAlign: TextAlign.center,
+                    style: BaziChartTextStyles.headerPillar(),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '${p.stem}${p.branch}',
+                    textAlign: TextAlign.center,
+                    style: BaziChartTextStyles.headerGanZhi(),
+                  ),
+                ],
               ),
-              child: Text(category,
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  )),
             ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(item.target,
-                style: Theme.of(ctx)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 10),
-            Text(item.description,
-                style: Theme.of(ctx)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(height: 1.6)),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('关闭'),
-          ),
         ],
       ),
     );
   }
-
-  String _categoryLabel() {
-    const auspicious = {
-      '天乙贵人', '太极贵人', '福星贵人', '天德贵人', '月德贵人',
-      '文昌', '学堂', '词馆', '禄神', '金舆', '国印贵人',
-      '天厨贵人', '德秀贵人', '天赦日', '天医',
-      '红鸾', '天喜', '将星', '三奇贵人', '十灵日', '六秀日',
-    };
-    const inauspicious = {
-      '亡神', '劫煞', '灾煞', '羊刃', '飞刃',
-      '孤辰', '寡宿', '魁罡', '十恶大败', '孤鸾煞', '阴错阳差',
-      '丧门', '吊客', '披麻', '血刃',
-      '红艳煞', '流霞', '四废日', '八专日', '九丑日',
-      '天转', '地转', '天罗', '地网',
-    };
-    if (auspicious.contains(item.name)) return '吉';
-    if (inauspicious.contains(item.name)) return '凶';
-    return '平';
-  }
 }
 
-class _MetaRow extends StatelessWidget {
-  const _MetaRow({
+class _ChartTableRow extends StatelessWidget {
+  const _ChartTableRow({
     required this.label,
-    required this.value,
+    required this.cells,
+    this.stripe = false,
+    this.minHeight = 40,
   });
 
+  static const labelWidth = 56.0;
+
   final String label;
-  final String value;
+  final List<Widget> cells;
+  final bool stripe;
+  final double minHeight;
 
   @override
   Widget build(BuildContext context) {
-    final body = Theme.of(context).textTheme.bodyMedium;
-
-    return Row(
-      children: [
-        SizedBox(
-          width: 34,
-          child: Text(label, style: body),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            value,
-            style: body?.copyWith(
-              color: AppColors.ink,
-              fontWeight: FontWeight.w600,
+    return Container(
+      constraints: BoxConstraints(minHeight: minHeight),
+      color: stripe ? AppColors.rice.withValues(alpha: 0.65) : Colors.white,
+      padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: labelWidth,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Text(label, style: BaziChartTextStyles.rowLabel()),
             ),
           ),
-        ),
+          for (final cell in cells) Expanded(child: cell),
+        ],
+      ),
+    );
+  }
+}
+
+class _GanZhiChar extends StatelessWidget {
+  const _GanZhiChar(this.char, {required this.color});
+
+  final String char;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      char,
+      textAlign: TextAlign.center,
+      style: BaziChartTextStyles.ganZhi(color: color),
+    );
+  }
+}
+
+class _TableText extends StatelessWidget {
+  const _TableText(
+    this.text, {
+    this.bold = false,
+    this.muted = false,
+    this.color,
+  });
+
+  final String text;
+  final bool bold;
+  final bool muted;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      textAlign: TextAlign.center,
+      maxLines: 3,
+      overflow: TextOverflow.ellipsis,
+      style: muted
+          ? BaziChartTextStyles.cellMuted()
+          : BaziChartTextStyles.cell(
+              bold: bold,
+              color: color ?? AppColors.ink,
+            ),
+    );
+  }
+}
+
+class _StackedLines extends StatelessWidget {
+  const _StackedLines(this.lines, {this.muted = false});
+
+  final List<String> lines;
+  final bool muted;
+
+  @override
+  Widget build(BuildContext context) {
+    if (lines.isEmpty) {
+      return const _TableText('—', muted: true);
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final line in lines)
+          Text(
+            line,
+            textAlign: TextAlign.center,
+            style: BaziChartTextStyles.stacked(muted: muted),
+          ),
       ],
     );
   }
+}
+
+class _ShenshaCell extends StatelessWidget {
+  const _ShenshaCell({required this.items});
+
+  final List<ShenshaItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    if (items.isEmpty) {
+      return const _TableText('—', muted: true);
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final item in items)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: GestureDetector(
+              onTap: () => _showShenshaDetail(context, item),
+              child: Text(
+                item.name,
+                textAlign: TextAlign.center,
+                style: BaziChartTextStyles.shensha(
+                  color: _shenshaColor(item.name),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+String _seatGrowthPhase(Pillar pillar) {
+  if (pillar.seatGrowthPhase.isNotEmpty) return pillar.seatGrowthPhase;
+  return _ruleEngine.growthPhaseFor(
+    dayMasterStem: pillar.stem,
+    branch: pillar.branch,
+  );
+}
+
+Color _elementColor(String element) {
+  switch (element) {
+    case '木':
+      return AppColors.wood;
+    case '火':
+      return AppColors.fire;
+    case '土':
+      return AppColors.earth;
+    case '金':
+      return AppColors.metal;
+    case '水':
+      return AppColors.water;
+    default:
+      return AppColors.ink;
+  }
+}
+
+Color _shenshaColor(String name) {
+  const auspicious = {
+    '天乙贵人', '太极贵人', '福星贵人', '天德贵人', '月德贵人',
+    '文昌', '学堂', '词馆', '禄神', '金舆', '国印贵人',
+    '天厨贵人', '德秀贵人', '天赦日', '天医',
+    '红鸾', '天喜', '将星', '三奇贵人', '十灵日', '六秀日',
+  };
+  const inauspicious = {
+    '亡神', '劫煞', '灾煞', '羊刃', '飞刃',
+    '孤辰', '寡宿', '魁罡', '十恶大败', '孤鸾煞', '阴错阳差',
+    '丧门', '吊客', '披麻', '血刃',
+    '红艳煞', '流霞', '四废日', '八专日', '九丑日',
+    '天转', '地转', '天罗', '地网',
+  };
+  if (auspicious.contains(name)) return AppColors.gold;
+  if (inauspicious.contains(name)) return AppColors.cinnabar;
+  return AppColors.deepGray;
+}
+
+String _shenshaCategory(String name) {
+  const auspicious = {
+    '天乙贵人', '太极贵人', '福星贵人', '天德贵人', '月德贵人',
+    '文昌', '学堂', '词馆', '禄神', '金舆', '国印贵人',
+    '天厨贵人', '德秀贵人', '天赦日', '天医',
+    '红鸾', '天喜', '将星', '三奇贵人', '十灵日', '六秀日',
+  };
+  const inauspicious = {
+    '亡神', '劫煞', '灾煞', '羊刃', '飞刃',
+    '孤辰', '寡宿', '魁罡', '十恶大败', '孤鸾煞', '阴错阳差',
+    '丧门', '吊客', '披麻', '血刃',
+    '红艳煞', '流霞', '四废日', '八专日', '九丑日',
+    '天转', '地转', '天罗', '地网',
+  };
+  if (auspicious.contains(name)) return '吉';
+  if (inauspicious.contains(name)) return '凶';
+  return '平';
+}
+
+void _showShenshaDetail(BuildContext context, ShenshaItem item) {
+  final category = _shenshaCategory(item.name);
+  final color = _shenshaColor(item.name);
+  showDialog(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: Row(
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              item.name,
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.w700,
+                fontSize: 18,
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              category,
+              style: TextStyle(
+                color: color,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            item.target,
+            style: Theme.of(ctx)
+                .textTheme
+                .bodySmall
+                ?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            item.description,
+            style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(height: 1.6),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(),
+          child: const Text('关闭'),
+        ),
+      ],
+    ),
+  );
 }

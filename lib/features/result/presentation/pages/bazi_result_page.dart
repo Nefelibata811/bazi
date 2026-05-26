@@ -6,6 +6,7 @@ import '../../../../app/app.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../domain/entities/bazi_chart.dart';
 import '../../../../domain/entities/bazi_report.dart';
+import '../../../../domain/services/bazi_rule_engine.dart';
 import '../../../../domain/value_objects/calendar_precision.dart';
 import '../../../../domain/value_objects/calendar_type.dart';
 import '../../../../domain/value_objects/gender.dart';
@@ -20,6 +21,8 @@ import '../widgets/interaction_card.dart';
 import '../widgets/luck_cycle_timeline.dart';
 import '../widgets/pattern_card.dart';
 import '../widgets/useful_god_card.dart';
+
+const _chartRuleEngine = BaziRuleEngine();
 
 class BaziResultPage extends ConsumerStatefulWidget {
   const BaziResultPage({super.key, this.isFromHistory = false});
@@ -433,7 +436,8 @@ class _StemBranchHintCard extends StatelessWidget {
                     _HintRow(
                       icon: Icons.bedtime_outlined,
                       label: '地支留意',
-                      value: '${pillar.branch}（${pillar.branchHint}，藏干${pillar.hiddenStems.map((h) => h.stem).join('、')}）',
+                      value:
+                          '${pillar.branch}（${pillar.branchHint}，藏干${pillar.hiddenStems.map((h) => _chartRuleEngine.stemElementLabel(h.stem)).join('、')}）',
                     ),
                     const SizedBox(height: 6),
                     _HintRow(
@@ -452,8 +456,17 @@ class _StemBranchHintCard extends StatelessWidget {
                     const SizedBox(height: 6),
                     _HintRow(
                       icon: Icons.cyclone_outlined,
-                      label: '长生',
+                      label: '星运',
                       value: pillar.growthPhase,
+                    ),
+                    const SizedBox(height: 6),
+                    _HintRow(
+                      icon: Icons.event_seat_outlined,
+                      label: '自坐',
+                      value: _chartRuleEngine.growthPhaseFor(
+                        dayMasterStem: pillar.stem,
+                        branch: pillar.branch,
+                      ),
                     ),
                   ],
                 ),

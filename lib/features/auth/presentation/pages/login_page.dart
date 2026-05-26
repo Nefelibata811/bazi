@@ -402,8 +402,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
+  void _goToMainAfterLogin() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.of(context).pushNamedAndRemoveUntil('/main', (_) => false);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    ref.listen(authControllerProvider, (previous, next) {
+      if (next.isLoggedIn && !(previous?.isLoggedIn ?? false)) {
+        _goToMainAfterLogin();
+      }
+    });
     final state = ref.watch(authControllerProvider);
     final supabaseReady = ref.watch(supabaseReadyProvider);
     final initError = ref.watch(supabaseInitErrorProvider);

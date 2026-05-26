@@ -4,6 +4,8 @@ import '../value_objects/five_element.dart';
 import '../value_objects/yin_yang.dart';
 
 class BaziRuleEngine {
+  const BaziRuleEngine();
+
   static const stems = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
   static const branches = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
   static const growthPhases = [
@@ -210,6 +212,13 @@ class BaziRuleEngine {
     return _naYinMap[key] ?? '未知纳音';
   }
 
+  /// 天干配五行，如 丁 → 丁火。
+  String stemElementLabel(String stem) {
+    final element = _stemElements[stem];
+    if (element == null) return stem;
+    return '$stem${element.label}';
+  }
+
   String growthPhaseFor({
     required String dayMasterStem,
     required String branch,
@@ -252,6 +261,7 @@ class BaziRuleEngine {
       naYin: naYinFor(stem: stem, branch: branch),
       growthPhase:
           '${growthPhaseFor(dayMasterStem: dayMasterStem, branch: branch)}$growthPhaseSuffix',
+      seatGrowthPhase: growthPhaseFor(dayMasterStem: stem, branch: branch),
     );
   }
 

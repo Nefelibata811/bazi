@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
+import 'app_fonts.dart';
 
 class AppTheme {
   static ThemeData light() {
@@ -19,7 +20,7 @@ class AppTheme {
       scaffoldBackgroundColor: AppColors.paper,
     );
 
-    var textTheme = base.textTheme.copyWith(
+    var textTheme = AppFonts.applyTo(base.textTheme.copyWith(
       displaySmall: const TextStyle(
         fontSize: 30,
         fontWeight: FontWeight.w600,
@@ -72,8 +73,8 @@ class AppTheme {
         fontWeight: FontWeight.w500,
         color: AppColors.deepGray,
       ),
-    );
-    final primaryTextTheme = base.primaryTextTheme;
+    ));
+    final primaryTextTheme = AppFonts.applyTo(base.primaryTextTheme);
 
     return base.copyWith(
       textTheme: textTheme,

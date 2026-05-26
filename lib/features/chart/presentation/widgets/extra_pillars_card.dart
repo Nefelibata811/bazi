@@ -34,42 +34,25 @@ class ExtraPillarsCard extends StatelessWidget {
             const SizedBox(height: 16),
             LayoutBuilder(
               builder: (context, constraints) {
-                final isWide = constraints.maxWidth >= 720;
-                final tiles = chart.extraPillars.map((pillar) {
-                  final items = shenshaItems
-                      .where((s) => s.pillar == pillar.label)
-                      .toList();
-                  return _ExtraPillarTile(pillar: pillar, shensha: items);
-                }).toList();
+                final gap = constraints.maxWidth < 420 ? 6.0 : 10.0;
+                final count = chart.extraPillars.length;
+                final pillarWidth =
+                    (constraints.maxWidth - gap * (count - 1)) / count;
+                final compact = pillarWidth < 120;
 
-                if (isWide) {
-                  return IntrinsicHeight(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        for (var i = 0; i < tiles.length; i++) ...[
-                          if (i > 0) const SizedBox(width: 12),
-                          Expanded(child: tiles[i]),
-                        ],
-                      ],
-                    ),
-                  );
-                }
-
-                return Column(
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    for (var i = 0; i < tiles.length; i += 2) ...[
-                      if (i > 0) const SizedBox(height: 12),
-                      IntrinsicHeight(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Expanded(child: tiles[i]),
-                            if (i + 1 < tiles.length) ...[
-                              const SizedBox(width: 12),
-                              Expanded(child: tiles[i + 1]),
-                            ],
-                          ],
+                    for (var i = 0; i < count; i++) ...[
+                      if (i > 0) SizedBox(width: gap),
+                      Expanded(
+                        child: _ExtraPillarTile(
+                          pillar: chart.extraPillars[i],
+                          shensha: shenshaItems
+                              .where(
+                                  (s) => s.pillar == chart.extraPillars[i].label)
+                              .toList(),
+                          compact: compact,
                         ),
                       ),
                     ],
@@ -88,63 +71,74 @@ class _ExtraPillarTile extends StatelessWidget {
   const _ExtraPillarTile({
     required this.pillar,
     required this.shensha,
+    required this.compact,
   });
 
   final Pillar pillar;
   final List<ShenshaItem> shensha;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final stemColor = AppColors.fiveElementByStem(pillar.stem);
+    final padding = compact ? 8.0 : 14.0;
+    final ganZhiStyle =
+        compact ? textTheme.titleLarge : textTheme.headlineSmall;
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.84),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(compact ? 16 : 20),
         border: Border.all(color: AppColors.line),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment:
+            compact ? CrossAxisAlignment.center : CrossAxisAlignment.start,
         children: [
-          Text(pillar.label, style: textTheme.bodySmall),
-          const SizedBox(height: 10),
-          Row(
+          Text(
+            pillar.label,
+            style: textTheme.bodySmall,
+            textAlign: compact ? TextAlign.center : null,
+          ),
+          SizedBox(height: compact ? 6 : 10),
+          Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(
-                child: Text(
-                  pillar.stem,
-                  textAlign: TextAlign.center,
-                  style: textTheme.headlineSmall?.copyWith(color: stemColor),
-                ),
+              Text(
+                pillar.stem,
+                textAlign: TextAlign.center,
+                style: ganZhiStyle?.copyWith(color: stemColor),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  pillar.branch,
-                  textAlign: TextAlign.center,
-                  style: textTheme.headlineSmall,
-                ),
+              SizedBox(height: compact ? 2 : 6),
+              Text(
+                pillar.branch,
+                textAlign: TextAlign.center,
+                style: ganZhiStyle,
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: compact ? 8 : 10),
           Text(
             '${pillar.tenGod} · ${pillar.naYin}',
             style: textTheme.bodySmall?.copyWith(color: AppColors.deepGray),
+            textAlign: compact ? TextAlign.center : TextAlign.start,
+            maxLines: compact ? 3 : null,
+            overflow: compact ? TextOverflow.ellipsis : null,
           ),
           if (shensha.isNotEmpty) ...[
-            const SizedBox(height: 10),
+            SizedBox(height: compact ? 8 : 10),
             Wrap(
-              spacing: 6,
-              runSpacing: 6,
+              spacing: compact ? 4 : 6,
+              runSpacing: compact ? 4 : 6,
+              alignment: compact ? WrapAlignment.center : WrapAlignment.start,
               children: shensha
                   .map(
                     (item) => Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: compact ? 6 : 8,
+                        vertical: compact ? 3 : 4,
                       ),
                       decoration: BoxDecoration(
                         color: AppColors.gold.withValues(alpha: 0.10),

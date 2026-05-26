@@ -71,6 +71,10 @@ class LunarBaziCalculator implements BaziCalculator {
         dayMasterStem: dayGan,
         branch: branch,
       ),
+      seatGrowthPhase: _ruleEngine.growthPhaseFor(
+        dayMasterStem: stem,
+        branch: branch,
+      ),
     );
   }
 
@@ -132,6 +136,10 @@ class LunarBaziCalculator implements BaziCalculator {
       hiddenStems: hiddenStems,
       naYin: naYin,
       growthPhase: growthPhase,
+      seatGrowthPhase: _ruleEngine.growthPhaseFor(
+        dayMasterStem: stem,
+        branch: branch,
+      ),
       xunKong: xunKong,
     );
   }

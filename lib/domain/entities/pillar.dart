@@ -9,6 +9,7 @@ class Pillar {
     required this.hiddenStems,
     required this.naYin,
     required this.growthPhase,
+    this.seatGrowthPhase = '',
     this.xunKong = '',
   });
 
@@ -18,7 +19,10 @@ class Pillar {
   final String tenGod;
   final List<HiddenStem> hiddenStems;
   final String naYin;
+  /// 日主在该柱地支的十二长生（星运）。
   final String growthPhase;
+  /// 天干自坐地支的十二长生。
+  final String seatGrowthPhase;
   final String xunKong;
 
   static const _yangStems = {'甲', '丙', '戊', '庚', '壬'};

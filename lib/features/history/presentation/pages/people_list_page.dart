@@ -10,8 +10,8 @@ import '../../../../domain/services/bazi_record_repository.dart';
 import '../../../../infrastructure/database/supabase_bazi_record_repository.dart';
 import '../../infrastructure/bazi_request_codec.dart';
 import '../../infrastructure/person_identity.dart';
-import '../../../../infrastructure/database/supabase_collection_repository.dart';
 import '../../application/bazi_records_list_controller.dart';
+import '../../application/collections_list_controller.dart';
 import '../../application/open_ai_for_record.dart';
 import '../../../auth/application/auth_controller.dart';
 import '../../../auth/presentation/pages/profile_page.dart';
@@ -51,15 +51,6 @@ final peopleListProvider = Provider<List<PersonSummary>>((ref) {
       if (byName != 0) return byName;
       return a.latestRecord.compareTo(b.latestRecord);
     });
-});
-
-final _collectionsProvider =
-    FutureProvider.autoDispose<List<CollectionModel>>((ref) async {
-  ref.watch(baziRecordsVersionProvider);
-  final user = ref.watch(authControllerProvider).user;
-  if (user == null) return [];
-  final repo = SupabaseCollectionRepository(Supabase.instance.client);
-  return repo.listByUser(user.id);
 });
 
 class _RawRecord {
@@ -111,7 +102,7 @@ class PeopleListPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final collections = ref.watch(_collectionsProvider);
+    final collectionsState = ref.watch(collectionsListProvider);
     final recordsState = ref.watch(baziRecordsListProvider);
     final people = ref.watch(peopleListProvider);
     final authState = ref.watch(authControllerProvider);
@@ -157,37 +148,35 @@ class PeopleListPage extends ConsumerWidget {
               onAdd: () => _showCreateCollectionDialog(context, ref),
             ),
             const SizedBox(height: 8),
-            collections.when(
-              loading: () => const Padding(
+            if (collectionsState.isLoading && !collectionsState.hasCollections)
+              const Padding(
                 padding: EdgeInsets.all(20),
                 child: Center(child: CircularProgressIndicator()),
+              )
+            else if (collectionsState.collections.isEmpty)
+              _HintCard(
+                icon: Icons.folder_open,
+                text: '暂无合集，创建合集来归总排盘记录',
+                actionLabel: '创建合集',
+                onAction: () => _showCreateCollectionDialog(context, ref),
+              )
+            else
+              _CollectionsList(
+                collections: collectionsState.collections,
+                onTap: (col) {
+                  Navigator.of(context).pushNamed(
+                    '/collection_detail',
+                    arguments: {
+                      'collectionId': col.id,
+                      'collectionName': col.name,
+                    },
+                  );
+                },
+                onRename: (col) =>
+                    _showRenameDialog(context, ref, col.id, col.name),
+                onDelete: (col) =>
+                    _showDeleteCollectionDialog(context, ref, col.id),
               ),
-              error: (_, __) => const SizedBox.shrink(),
-              data: (list) => list.isEmpty
-                  ? _HintCard(
-                      icon: Icons.folder_open,
-                      text: '暂无合集，创建合集来归总排盘记录',
-                      actionLabel: '创建合集',
-                      onAction: () =>
-                          _showCreateCollectionDialog(context, ref),
-                    )
-                  : _CollectionsList(
-                      collections: list,
-                      onTap: (col) {
-                        Navigator.of(context).pushNamed(
-                          '/collection_detail',
-                          arguments: {
-                            'collectionId': col.id,
-                            'collectionName': col.name,
-                          },
-                        );
-                      },
-                      onRename: (col) =>
-                          _showRenameDialog(context, ref, col.id, col.name),
-                      onDelete: (col) =>
-                          _showDeleteCollectionDialog(context, ref, col.id),
-                    ),
-            ),
             const SizedBox(height: 24),
             _SectionHeader(
               icon: Icons.people,
@@ -413,10 +402,9 @@ class PeopleListPage extends ConsumerWidget {
     if (user == null) return;
     setDialogState(() => setCreating(true));
     try {
-      final repo =
-          SupabaseCollectionRepository(Supabase.instance.client);
-      await repo.create(userId: user.id, name: name);
-      ref.invalidate(_collectionsProvider);
+      await ref
+          .read(collectionsListProvider.notifier)
+          .createCollection(userId: user.id, name: name);
       if (ctx.mounted) Navigator.of(ctx).pop();
     } catch (_) {
       setDialogState(() => setCreating(false));
@@ -449,10 +437,9 @@ class PeopleListPage extends ConsumerWidget {
             onPressed: () async {
               final name = controller.text.trim();
               if (name.isEmpty) return;
-              final repo =
-                  SupabaseCollectionRepository(Supabase.instance.client);
-              await repo.rename(collectionId, name);
-              ref.invalidate(_collectionsProvider);
+              await ref
+                  .read(collectionsListProvider.notifier)
+                  .renameCollection(collectionId, name);
               if (ctx.mounted) Navigator.of(ctx).pop();
             },
             child: const Text('确认'),
@@ -475,10 +462,9 @@ class PeopleListPage extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () async {
-              final repo =
-                  SupabaseCollectionRepository(Supabase.instance.client);
-              await repo.deleteCollection(collectionId);
-              ref.invalidate(_collectionsProvider);
+              await ref
+                  .read(collectionsListProvider.notifier)
+                  .deleteCollection(collectionId);
               if (ctx.mounted) Navigator.of(ctx).pop();
             },
             child: const Text('删除',

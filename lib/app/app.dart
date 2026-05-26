@@ -13,6 +13,7 @@ import '../features/ai_chat/presentation/pages/chat_page.dart';
 import '../features/collection/presentation/pages/collection_page.dart';
 import '../features/history/presentation/pages/chart_history_page.dart';
 import '../features/history/application/bazi_records_list_controller.dart';
+import '../features/history/application/collections_list_controller.dart';
 import '../features/history/presentation/pages/people_list_page.dart';
 import '../features/input/presentation/pages/home_input_page.dart';
 import '../features/reverse_lookup/presentation/pages/reverse_lookup_page.dart';
@@ -197,6 +198,7 @@ class _MainShellState extends ConsumerState<_MainShell> {
       Future<void>.delayed(const Duration(milliseconds: 400), () {
         if (!mounted) return;
         ref.read(baziRecordsListProvider.notifier).ensureLoaded();
+        ref.read(collectionsListProvider.notifier).ensureLoaded();
       });
     });
   }
@@ -227,9 +229,13 @@ class _MainShellState extends ConsumerState<_MainShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _currentIndex == 0
-          ? const PeopleListPage()
-          : const ChatPage(),
+      body: IndexedStack(
+        index: _currentIndex,
+        children: const [
+          PeopleListPage(),
+          ChatPage(),
+        ],
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           border: Border(top: BorderSide(color: AppColors.line)),

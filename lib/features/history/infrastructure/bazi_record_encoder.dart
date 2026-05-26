@@ -84,6 +84,7 @@ class BaziRecordEncoder {
       'tenGod': p.tenGod,
       'naYin': p.naYin,
       'growthPhase': p.growthPhase,
+      'seatGrowthPhase': p.seatGrowthPhase,
       'xunKong': p.xunKong,
       'hiddenStems': p.hiddenStems
           .map((h) => {

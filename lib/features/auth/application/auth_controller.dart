@@ -48,8 +48,15 @@ class AuthState {
   }
 
   /// 未登录并带错误提示
-  factory AuthState.unauthenticated({String? error}) {
-    return AuthState(error: error, loading: false);
+  factory AuthState.unauthenticated({
+    String? error,
+    bool isSubmitting = false,
+  }) {
+    return AuthState(
+      error: error,
+      loading: false,
+      isSubmitting: isSubmitting,
+    );
   }
 
   final User? user;
@@ -123,11 +130,8 @@ class AuthController extends StateNotifier<AuthState> {
       }
       if (data.event == AuthChangeEvent.signedOut) {
         if (mounted) {
-          state = state.copyWith(
-            needsPasswordReset: false,
-            loading: false,
-            clearUser: true,
-          );
+          _loadingFailsafe?.cancel();
+          state = AuthState.unauthenticated();
         }
       }
     });
@@ -247,14 +251,24 @@ class AuthController extends StateNotifier<AuthState> {
         otp: code,
       );
       if (user == null) {
-        state = AuthState.unauthenticated(error: '验证码错误或已过期');
+        state = AuthState.unauthenticated(
+          error: '验证码错误或已过期',
+          isSubmitting: false,
+        );
         return false;
       }
       state = AuthState.authenticated(user);
       return true;
     } catch (e) {
-      state = AuthState.unauthenticated(error: _authMessage(e, '验证失败，请重试'));
+      state = AuthState.unauthenticated(
+        error: _authMessage(e, '验证失败，请重试'),
+        isSubmitting: false,
+      );
       return false;
+    } finally {
+      if (mounted && state.isSubmitting) {
+        state = state.copyWith(isSubmitting: false);
+      }
     }
   }
 
@@ -322,24 +336,37 @@ class AuthController extends StateNotifier<AuthState> {
       );
 
       if (user == null) {
-        state = AuthState.unauthenticated(error: '登录失败，请重试');
+        state = AuthState.unauthenticated(
+          error: '登录失败，请重试',
+          isSubmitting: false,
+        );
         return false;
       }
 
-      state = AuthState.authenticated(user);
+      if (mounted) {
+        state = AuthState.authenticated(user);
+      }
       unawaited(_enrichProfileFromServer());
       return true;
     } on AuthException catch (e) {
-      state = AuthState.unauthenticated(error: loginErrorMessage(e));
+      if (mounted) {
+        state = AuthState.unauthenticated(
+          error: loginErrorMessage(e),
+          isSubmitting: false,
+        );
+      }
       return false;
     } catch (e) {
       debugPrint('login failed: $e');
-      state = AuthState.unauthenticated(
-        error: '网络异常，请检查网络后重试',
-      );
+      if (mounted) {
+        state = AuthState.unauthenticated(
+          error: '网络异常，请检查网络后重试',
+          isSubmitting: false,
+        );
+      }
       return false;
     } finally {
-      if (mounted) {
+      if (mounted && state.isSubmitting) {
         state = state.copyWith(isSubmitting: false);
       }
     }
@@ -440,8 +467,16 @@ class AuthController extends StateNotifier<AuthState> {
   }
 
   Future<void> logout() async {
-    await _authRepository.logout();
-    state = const AuthState();
+    _loadingFailsafe?.cancel();
+    state = AuthState.unauthenticated();
+    try {
+      await _authRepository.logout();
+    } catch (e) {
+      debugPrint('logout failed: $e');
+    }
+    if (mounted) {
+      state = AuthState.unauthenticated();
+    }
   }
 
   void clearError() {

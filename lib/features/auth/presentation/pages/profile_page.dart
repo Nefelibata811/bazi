@@ -177,7 +177,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
     await ref.read(authControllerProvider.notifier).logout();
     if (mounted) {
-      Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false);
+      Navigator.of(context).pushNamedAndRemoveUntil('/main', (_) => false);
     }
   }
 
