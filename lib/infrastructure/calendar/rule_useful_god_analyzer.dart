@@ -65,7 +65,7 @@ class RuleUsefulGodAnalyzer implements UsefulGodAnalyzer {
     double score = _monthScore(dayElement, monthElement, reservoirElement);
 
     for (final pillar in chart.pillars) {
-      if (pillar.label == '日柱') continue;
+      if (pillar.isDayColumn) continue;
 
       final stemGod = _ruleEngine.tenGodFor(
         dayMasterStem: chart.dayMaster,

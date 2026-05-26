@@ -49,7 +49,10 @@ class BuildBaziReportUseCase {
       chart: chart,
       solarTerms: solarTerms,
     );
-    final analysis = await _analyzeBaziUseCase(chart);
+    final analysis = await _analyzeBaziUseCase(
+      chart,
+      gender: request.gender,
+    );
 
     BoneWeight? boneWeight;
     if (_baziCalculator is LunarBaziCalculator) {

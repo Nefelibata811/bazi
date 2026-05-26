@@ -57,6 +57,9 @@ class LunarBaziCalculator implements BaziCalculator {
     String ganZhi,
     String naYin,
   ) {
+    if (ganZhi.length < 2) {
+      throw StateError('辅宫 $label 干支无效: "$ganZhi"');
+    }
     final stem = ganZhi.substring(0, 1);
     final branch = ganZhi.substring(1, 2);
     return Pillar(

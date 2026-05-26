@@ -178,7 +178,7 @@ class RulePatternAnalyzer implements PatternAnalyzer {
     int zhengGuan = 0, qiSha = 0, zhengCai = 0, pianCai = 0, zhengYin = 0, pianYin = 0;
 
     for (final pillar in chart.pillars) {
-      final god = pillar.label == '日柱'
+      final god = pillar.isDayColumn
           ? null
           : _ruleEngine.tenGodFor(
               dayMasterStem: chart.dayMaster,

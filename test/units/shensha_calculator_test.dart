@@ -133,10 +133,67 @@ void main() {
       }
     });
 
-    test('神煞数量合理（3-60 项之间）', () async {
+    test('神煞数量合理（3-80 项之间）', () async {
       final items = await calculator.calculate(testChart());
       expect(items.length, greaterThanOrEqualTo(3));
-      expect(items.length, lessThanOrEqualTo(60));
+      expect(items.length, lessThanOrEqualTo(80));
+    });
+
+    test('年支辰见酉为桃花，日支未自见华盖', () async {
+      final items = await calculator.calculate(testChart());
+      expect(items.any((i) => i.name == '桃花' && i.target.contains('酉')), isFalse);
+      expect(items.any((i) => i.name == '华盖' && i.target.contains('未')), isTrue);
+    });
+
+    test('年支子 → 大耗在未', () async {
+      final chart = BaziChart(
+        dayMaster: '癸',
+        year: const Pillar(
+          label: '年柱',
+          stem: '甲',
+          branch: '子',
+          tenGod: '',
+          hiddenStems: [],
+          naYin: '',
+          growthPhase: '',
+        ),
+        month: testChart().month,
+        day: const Pillar(
+          label: '日柱',
+          stem: '癸',
+          branch: '未',
+          tenGod: '日主',
+          hiddenStems: [],
+          naYin: '',
+          growthPhase: '',
+        ),
+        hour: testChart().hour,
+      );
+      final items = await calculator.calculate(chart);
+      expect(
+        items.any((i) => i.name == '大耗' && i.target.contains('未')),
+        isTrue,
+      );
+    });
+
+    test('日柱癸未非日贵，日柱丁酉为日贵', () async {
+      final chart = BaziChart(
+        dayMaster: '丁',
+        year: testChart().year,
+        month: testChart().month,
+        day: const Pillar(
+          label: '日柱',
+          stem: '丁',
+          branch: '酉',
+          tenGod: '日主',
+          hiddenStems: [],
+          naYin: '',
+          growthPhase: '',
+        ),
+        hour: testChart().hour,
+      );
+      final items = await calculator.calculate(chart);
+      expect(items.any((i) => i.name == '日贵'), isTrue);
     });
   });
 }

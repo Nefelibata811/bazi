@@ -1,3 +1,4 @@
+// 自研大运推算，仅单测/算法基准；生产见 LunarLuckCycleCalculator。
 import '../../domain/entities/bazi_chart.dart';
 import '../../domain/entities/bazi_request.dart';
 import '../../domain/entities/calendar_snapshot.dart';

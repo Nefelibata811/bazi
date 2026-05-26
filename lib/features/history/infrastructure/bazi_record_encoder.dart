@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import '../../../domain/entities/bazi_chart.dart';
 import '../../../domain/entities/bazi_report.dart';
 import '../../../domain/entities/pillar.dart';
 import 'bazi_request_codec.dart';
@@ -74,7 +75,20 @@ class BaziRecordEncoder {
               'startYear': lc.startYear,
               'endYear': lc.endYear,
             }).toList(),
+      if (report.chart.extraPillars.isNotEmpty)
+        'extraPillars': extraPillarsToJson(report.chart),
     });
+  }
+
+  static List<Map<String, dynamic>> extraPillarsToJson(BaziChart chart) {
+    return chart.extraPillars
+        .map(
+          (p) => {
+            'label': p.label,
+            ...pillarToJson(p),
+          },
+        )
+        .toList();
   }
 
   static Map<String, dynamic> pillarToJson(Pillar p) {

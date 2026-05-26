@@ -4,6 +4,7 @@ import 'package:bazi_app/domain/services/chat_repository.dart';
 import 'package:bazi_app/features/ai_chat/application/chat_controller.dart';
 import 'package:bazi_app/features/ai_chat/infrastructure/chat_history_store.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class _MockChatRepository implements ChatRepository {
   _MockChatRepository();
@@ -63,7 +64,11 @@ void main() {
     "notes": ["注意调和"]
   },
   "boneWeight": {"totalWeight": 4.2, "maleComment": "此命推来事不同", "femaleComment": ""},
-  "luckCycles": [{"index": 0, "ganZhi": "辛巳", "tenGod": "正官", "startAge": 5, "startYear": 1995, "endYear": 2004}]
+  "luckCycles": [{"index": 0, "ganZhi": "辛巳", "tenGod": "正官", "startAge": 5, "startYear": 1995, "endYear": 2004}],
+  "extraPillars": [
+    {"label": "命宫", "stem": "己", "branch": "丑", "tenGod": "正财", "naYin": "霹雳火", "growthPhase": "墓", "hiddenStems": []},
+    {"label": "身宫", "stem": "辛", "branch": "未", "tenGod": "正官", "naYin": "路旁土", "growthPhase": "衰", "hiddenStems": []}
+  ]
 }''';
 
   const recordId = 'test-record';
@@ -87,7 +92,8 @@ void main() {
     );
   }
 
-  setUp(() {
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
     mockRepo = _MockChatRepository();
     historyStore = InMemoryChatHistoryStore();
     controller = ChatController(
@@ -208,6 +214,12 @@ void main() {
       expect(mockRepo.lastSystemPrompt, contains('不要重新生成完整报告'));
     });
 
+    test('7. systemPrompt 包含辅命宫位', () async {
+      await runAnalysisAndClose();
+      expect(mockRepo.lastSystemPrompt, contains('辅命宫位'));
+      expect(mockRepo.lastSystemPrompt, contains('命宫：己丑'));
+    });
+
     test('5. 流式结束后 streamingContent 被清空（避免 UI 重复显示）', () async {
       final analysis = selectAndAnalyze();
       await Future.delayed(const Duration(milliseconds: 50));
@@ -237,7 +249,7 @@ void main() {
   });
 
   group('clearSelection', () {
-    test('清除选盘时复位全部会话状态（含 isRestoringChart）', () {
+    test('清除选盘时复位全部会话状态（含 isRestoringChart）', () async {
       controller.state = controller.state.copyWith(
         selectedRecordId: recordId,
         selectedPersonName: personName,
@@ -249,6 +261,7 @@ void main() {
       );
 
       controller.clearSelection();
+      await Future<void>.delayed(Duration.zero);
 
       expect(controller.state, const ChatState());
     });

@@ -18,7 +18,8 @@ class LunarCalendarConverter implements CalendarConverter {
     final Solar solar;
     final Lunar lunar;
 
-    if (request.calendarType == CalendarType.solar) {
+    if (request.calendarType == CalendarType.solar ||
+        (request.useTrueSolarTime && request.longitude != null)) {
       solar = Solar.fromYmdHms(
         chartTime.year,
         chartTime.month,

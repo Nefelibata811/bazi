@@ -69,4 +69,20 @@ class Pillar {
     final element = branchFiveElement;
     return '$yinYang$element';
   }
+
+  /// 是否为日柱（生产 [LunarBaziCalculator] 用 `'日'`，部分测试/工具用 `'日柱'`）。
+  bool get isDayColumn => label == '日' || label == '日柱';
+
+  /// 是否为年柱。
+  bool get isYearColumn => label == '年' || label == '年柱';
+
+  /// 是否为月柱。
+  bool get isMonthColumn => label == '月' || label == '月柱';
+
+  /// 是否为时柱。
+  bool get isHourColumn => label == '时' || label == '时柱';
+
+  /// 本命四柱之一（不含命宫等辅宫）。
+  bool get isCoreFourColumn =>
+      isYearColumn || isMonthColumn || isDayColumn || isHourColumn;
 }

@@ -1,5 +1,6 @@
 import '../entities/analysis_result.dart';
 import '../entities/bazi_chart.dart';
+import '../value_objects/gender.dart';
 import '../services/pattern_analyzer.dart';
 import '../services/shensha_calculator.dart';
 import '../services/useful_god_analyzer.dart';
@@ -22,9 +23,15 @@ class AnalyzeBaziUseCase {
   final UsefulGodAnalyzer _usefulGodAnalyzer;
   final BaziInteractionCalculator _interactionCalculator;
 
-  Future<AnalysisResult> call(BaziChart chart) async {
+  Future<AnalysisResult> call(
+    BaziChart chart, {
+    Gender? gender,
+  }) async {
     final patterns = await _patternAnalyzer.analyze(chart);
-    final shenshaItems = await _shenshaCalculator.calculate(chart);
+    final shenshaItems = await _shenshaCalculator.calculate(
+      chart,
+      gender: gender,
+    );
     final pillarInteractions = _interactionCalculator.calculate(chart);
     final hiddenStemInteractions =
         _interactionCalculator.calculateHiddenStemInteractions(chart);

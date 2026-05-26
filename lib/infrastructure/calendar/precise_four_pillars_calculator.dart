@@ -1,3 +1,4 @@
+// 自研四柱推算，仅单测/算法基准；生产排盘见 LunarBaziCalculator。
 import '../../domain/entities/calendar_snapshot.dart';
 import '../../domain/entities/four_pillars.dart';
 import '../../domain/entities/gan_zhi.dart';

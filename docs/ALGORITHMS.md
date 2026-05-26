@@ -12,9 +12,12 @@
 | 历法 | `LunarCalendarConverter` | |
 | 节气 | `AstroSolarTermProvider` | |
 | 格局/神煞/用神 | `RulePatternAnalyzer` / `RuleShenshaCalculator` / `RuleUsefulGodAnalyzer` | |
-| 刑冲合害 | `BaziInteractionCalculator` | |
+| 刑冲合害 | `BaziInteractionCalculator` | 仅本命四柱（`chart.pillars`）；辅宫仅展示不参与 |
+| 柱位标签 | `Pillar.isDayColumn` 等 | 生产用 `年/月/日/时`，工具/单测可用 `年柱` 等 |
 
-自研 `PreciseFourPillarsCalculator`、`RealLuckCycleCalculator` 等仅用于单测与算法基准，**未接入** `BaziInputController` 生产链。
+自研 `PreciseFourPillarsCalculator`、`RealLuckCycleCalculator`、`basic_lunar_solar_mapper` 等仅用于单测与算法基准，**未接入** `BaziInputController` 生产链。
+
+农历录入且开启真太阳时时，排盘与历法快照均按 [ChartDateTimeResolver] 换算后的**公历时刻**锚定（避免跨公历日界时日柱与四柱不一致）。
 
 [BaziSect]: ../lib/domain/value_objects/bazi_sect.dart
 
@@ -76,7 +79,9 @@ JD_frac = JD_int + (h × 3600 + m × 60 + s) / 86400
 
 ---
 
-## 2. 历法层 — 农历映射器
+## 2. 历法层 — 农历映射器（基准 / 单测）
+
+> **生产路径**使用 `package:lunar`（`LunarCalendarConverter` / `LunarEightCharFactory`），本节描述的自研映射器不参与应用排盘。
 
 ### 文件
 `lib/infrastructure/calendar/basic_lunar_solar_mapper.dart`

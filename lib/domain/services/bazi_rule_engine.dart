@@ -248,7 +248,7 @@ class BaziRuleEngine {
     required String dayMasterStem,
     String growthPhaseSuffix = '',
   }) {
-    final tenGod = label == '日柱'
+    final tenGod = label == '日' || label == '日柱'
         ? '日主'
         : tenGodFor(dayMasterStem: dayMasterStem, targetStem: stem);
 

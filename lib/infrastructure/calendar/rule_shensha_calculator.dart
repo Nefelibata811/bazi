@@ -2,6 +2,7 @@ import '../../domain/entities/bazi_chart.dart';
 import '../../domain/entities/pillar.dart';
 import '../../domain/entities/shensha_item.dart';
 import '../../domain/services/shensha_calculator.dart';
+import '../../domain/value_objects/gender.dart';
 
 class RuleShenshaCalculator implements ShenshaCalculator {
   const RuleShenshaCalculator();
@@ -185,8 +186,63 @@ class RuleShenshaCalculator implements ShenshaCalculator {
     '春': ['戊寅'], '夏': ['甲午'], '秋': ['戊申'], '冬': ['甲子'],
   };
 
+  static const _daHao = {
+    '子': '未', '丑': '申', '寅': '酉', '卯': '戌', '辰': '亥', '巳': '子',
+    '午': '丑', '未': '寅', '申': '卯', '酉': '辰', '戌': '巳', '亥': '午',
+  };
+  static const _xiaoHao = {
+    '子': '巳', '丑': '午', '寅': '未', '卯': '申', '辰': '酉', '巳': '戌',
+    '午': '亥', '未': '子', '申': '丑', '酉': '寅', '戌': '卯', '亥': '辰',
+  };
+  static const _wuGui = {
+    '子': '辰', '丑': '巳', '寅': '午', '卯': '未', '辰': '申', '巳': '酉',
+    '午': '戌', '未': '亥', '申': '子', '酉': '丑', '戌': '寅', '亥': '卯',
+  };
+  static const _yuanChenYangMale = {
+    '子': '未', '丑': '申', '寅': '酉', '卯': '戌', '辰': '亥', '巳': '子',
+    '午': '丑', '未': '寅', '申': '卯', '酉': '辰', '戌': '巳', '亥': '午',
+  };
+  static const _yuanChenYinMale = {
+    '子': '巳', '丑': '午', '寅': '未', '卯': '申', '辰': '酉', '巳': '戌',
+    '午': '亥', '未': '子', '申': '丑', '酉': '寅', '戌': '卯', '亥': '辰',
+  };
+  static const _yueSha = {
+    '寅': '未', '午': '未', '戌': '未',
+    '申': '丑', '子': '丑', '辰': '丑',
+    '巳': '辰', '酉': '辰', '丑': '辰',
+    '亥': '戌', '卯': '戌', '未': '戌',
+  };
+  static const _gouSha = {
+    '申': '卯', '子': '卯', '辰': '卯',
+    '寅': '酉', '午': '酉', '戌': '酉',
+    '巳': '午', '酉': '午', '丑': '午',
+    '亥': '子', '卯': '子', '未': '子',
+  };
+  static const _jiaoSha = {
+    '申': '酉', '子': '酉', '辰': '酉',
+    '寅': '卯', '午': '卯', '戌': '卯',
+    '巳': '子', '酉': '子', '丑': '子',
+    '亥': '午', '卯': '午', '未': '午',
+  };
+  static const _tianGuan = {
+    '甲': '未', '乙': '辰', '丙': '巳', '丁': '酉', '戊': '戌',
+    '己': '酉', '庚': '亥', '辛': '寅', '壬': '戌', '癸': '午',
+  };
+  static const _anLu = {
+    '甲': '亥', '乙': '戌', '丙': '申', '丁': '未', '戊': '午',
+    '己': '巳', '庚': '辰', '辛': '卯', '壬': '寅', '癸': '丑',
+  };
+  static const _riDeDays = {'甲寅', '丙辰', '戊辰', '庚辰', '壬戌'};
+  static const _riGuiDays = {'丁酉', '丁亥', '癸卯', '癸巳'};
+  static const _guaJianDays = {'庚申', '辛酉', '壬子', '癸丑', '戊辰'};
+
+  static const _yangYearStems = {'甲', '丙', '戊', '庚', '壬'};
+
   @override
-  Future<List<ShenshaItem>> calculate(BaziChart chart) async {
+  Future<List<ShenshaItem>> calculate(
+    BaziChart chart, {
+    Gender? gender,
+  }) async {
     final results = <ShenshaItem>[];
     final ds = chart.dayMaster;
     final ys = chart.year.stem;
@@ -235,8 +291,49 @@ class RuleShenshaCalculator implements ShenshaCalculator {
     _checkTianLuoDiWang(results, chart);
     _checkTongZi(results, chart);
     _checkExtraPillars(results, chart, ds, ys);
+    _checkTianYueDeHe(results, chart, mb);
+    _checkRiDeRiGui(results, chart, dgz);
+    _checkAnLu(results, chart, ds);
+    _checkAnLu(results, chart, ys);
+    _checkTianGuan(results, chart, ds);
+    _checkTianGuan(results, chart, ys);
+    _checkYearHaoGui(results, chart, yb);
+    _checkYueSha(results, chart, yb);
+    _checkGouJiao(results, chart, yb);
+    _checkYuanChen(results, chart, yb, gender);
+    _checkJinTuiShen(results, chart);
+    _checkGuaJian(results, chart, dgz);
 
     return results;
+  }
+
+  static String? _heGan(String gan) {
+    const map = {
+      '甲': '己', '己': '甲',
+      '乙': '庚', '庚': '乙',
+      '丙': '辛', '辛': '丙',
+      '丁': '壬', '壬': '丁',
+      '戊': '癸', '癸': '戊',
+    };
+    return map[gan];
+  }
+
+  static int? _jiaZiIndex(String ganZhi) {
+    if (ganZhi.length != 2) return null;
+    final g = '甲乙丙丁戊己庚辛壬癸'.indexOf(ganZhi[0]);
+    final z = '子丑寅卯辰巳午未申酉戌亥'.indexOf(ganZhi[1]);
+    if (g < 0 || z < 0) return null;
+    for (var i = 0; i < 60; i++) {
+      if (i % 10 == g && i % 12 == z) return i;
+    }
+    return null;
+  }
+
+  static bool _isYangMaleYinFemale(Gender? gender, String yearStem) {
+    if (gender == null) return true;
+    final yangYear = _yangYearStems.contains(yearStem);
+    final male = gender == Gender.male;
+    return (male && yangYear) || (!male && !yangYear);
   }
 
   void _checkExtraPillars(
@@ -270,7 +367,7 @@ class RuleShenshaCalculator implements ShenshaCalculator {
     final b = _tianYiGuiRen[stem];
     if (b == null) return;
     final label = stem == chart.dayMaster ? '日干' : '年干';
-    final pool = pillar != null ? [pillar] : chart.pillars;
+    final pool = pillar != null ? [pillar] : chart.allPillars;
     for (final p in pool) {
       if (b.contains(p.branch)) {
         _add(results, ShenshaItem(name: '天乙贵人', target: '${p.label}支${p.branch}',
@@ -288,7 +385,7 @@ class RuleShenshaCalculator implements ShenshaCalculator {
     final b = _taiJiGuiRen[stem];
     if (b == null) return;
     final label = stem == chart.dayMaster ? '日干' : '年干';
-    final pool = pillar != null ? [pillar] : chart.pillars;
+    final pool = pillar != null ? [pillar] : chart.allPillars;
     for (final p in pool) {
       if (b.contains(p.branch)) {
         _add(results, ShenshaItem(name: '太极贵人', target: '${p.label}支${p.branch}',
@@ -300,7 +397,7 @@ class RuleShenshaCalculator implements ShenshaCalculator {
   void _checkFuXing(List<ShenshaItem> results, BaziChart chart, String stem) {
     final branches = _fuXing[stem]; if (branches == null) return;
     final label = stem == chart.dayMaster ? '日干' : '年干';
-    for (final p in chart.pillars) {
+    for (final p in chart.allPillars) {
       if (branches.contains(p.branch)) {
         _add(results, ShenshaItem(name: '福星贵人', target: '${p.label}支${p.branch}',
             description: '$label$stem见${p.branch}为福星贵人，主福寿安康', pillar: p.label));
@@ -324,7 +421,7 @@ class RuleShenshaCalculator implements ShenshaCalculator {
       '羊刃': '$bl$ds见%s为羊刃，主刚强果断，过旺则宜制化',
       '金舆': '$bl$ds见%s为金舆，主车马衣食、出行顺遂之象',
     };
-    final pool = pillar != null ? [pillar] : chart.pillars;
+    final pool = pillar != null ? [pillar] : chart.allPillars;
     for (final e in checks.entries) {
       final tb = e.value[ds];
       if (tb == null) continue;
@@ -341,7 +438,7 @@ class RuleShenshaCalculator implements ShenshaCalculator {
     final label = stem == chart.dayMaster ? '日干' : '年干';
     final xt = _xueTang[stem];
     final cg = _ciGuan[stem];
-    for (final p in chart.pillars) {
+    for (final p in chart.allPillars) {
       if (xt != null && p.branch == xt) {
         _add(results, ShenshaItem(name: '学堂', target: '${p.label}支${p.branch}',
             description: '$label$stem见${p.branch}为学堂，主学业有成、文采出众', pillar: p.label));
@@ -369,7 +466,7 @@ class RuleShenshaCalculator implements ShenshaCalculator {
     };
     for (final e in rules.entries) {
       final tb = e.value[bb]; if (tb == null) continue;
-      for (final p in chart.pillars) {
+      for (final p in chart.allPillars) {
         if (p.branch == tb) {
           _add(results, ShenshaItem(name: e.key, target: '${p.label}支${p.branch}',
               description: descs[e.key]!.replaceFirst('%s', p.branch), pillar: p.label));
@@ -380,7 +477,7 @@ class RuleShenshaCalculator implements ShenshaCalculator {
 
   void _checkTianDe(List<ShenshaItem> results, BaziChart chart, String mb) {
     final ts = _tianDe[mb]; if (ts == null) return;
-    for (final p in chart.pillars) {
+    for (final p in chart.allPillars) {
       if (p.stem == ts) {
         _add(results, ShenshaItem(name: '天德贵人', target: '${p.label}干${p.stem}',
             description: '月支$mb见${p.stem}为天德贵人，上天庇护，主逢凶化吉、福泽深厚', pillar: p.label));
@@ -390,7 +487,7 @@ class RuleShenshaCalculator implements ShenshaCalculator {
 
   void _checkYueDe(List<ShenshaItem> results, BaziChart chart, String mb) {
     final ts = _yueDe[mb]; if (ts == null) return;
-    for (final p in chart.pillars) {
+    for (final p in chart.allPillars) {
       if (p.stem == ts) {
         _add(results, ShenshaItem(name: '月德贵人', target: '${p.label}干${p.stem}',
             description: '月支$mb见${p.stem}为月德贵人，得天地月德之力，主温和善良', pillar: p.label));
@@ -400,7 +497,7 @@ class RuleShenshaCalculator implements ShenshaCalculator {
 
   void _checkDeXiu(List<ShenshaItem> results, BaziChart chart, String mb) {
     final stems = _deXiu[mb]; if (stems == null) return;
-    for (final p in chart.pillars) {
+    for (final p in chart.allPillars) {
       if (stems.contains(p.stem)) {
         _add(results, ShenshaItem(name: '德秀贵人', target: '${p.label}干${p.stem}',
             description: '月支$mb见${p.stem}为德秀贵人，主品德优良、才华秀美、福泽绵长', pillar: p.label));
@@ -410,7 +507,7 @@ class RuleShenshaCalculator implements ShenshaCalculator {
 
   void _checkYearBranchSingle(List<ShenshaItem> results, BaziChart chart, String yb) {
     final hl = _hongLuan[yb], tx = _tianXi[yb], gc = _guChen[yb], gs = _guaSu[yb];
-    for (final p in chart.pillars) {
+    for (final p in chart.allPillars) {
       if (hl != null && p.branch == hl) {
         _add(results, ShenshaItem(name: '红鸾', target: '${p.label}支${p.branch}',
             description: '年支$yb见${p.branch}为红鸾，主婚恋喜庆、人缘和合', pillar: p.label));
@@ -470,7 +567,7 @@ class RuleShenshaCalculator implements ShenshaCalculator {
 
   void _checkKongWang(List<ShenshaItem> results, BaziChart chart) {
     final dk = chart.day.xunKong, yk = chart.year.xunKong;
-    for (final p in chart.pillars) {
+    for (final p in chart.allPillars) {
       if (p.label == '日' || p.label == '年') continue;
       final kongs = <String>{};
       if (dk.isNotEmpty && dk.contains(p.branch)) kongs.add('日空');
@@ -485,7 +582,7 @@ class RuleShenshaCalculator implements ShenshaCalculator {
   void _checkFeiRen(List<ShenshaItem> results, BaziChart chart, String stem) {
     final tb = _feiRen[stem]; if (tb == null) return;
     final label = stem == chart.dayMaster ? '日干' : '年干';
-    for (final p in chart.pillars) {
+    for (final p in chart.allPillars) {
       if (p.branch == tb) {
         _add(results, ShenshaItem(name: '飞刃', target: '${p.label}支${p.branch}',
             description: '$label$stem见${p.branch}为飞刃（羊刃对冲），主突如其来的冲突与变动', pillar: p.label));
@@ -496,7 +593,7 @@ class RuleShenshaCalculator implements ShenshaCalculator {
   void _checkGuoYin(List<ShenshaItem> results, BaziChart chart, String stem) {
     final tb = _guoYinGuiRen[stem]; if (tb == null) return;
     final label = stem == chart.dayMaster ? '日干' : '年干';
-    for (final p in chart.pillars) {
+    for (final p in chart.allPillars) {
       if (p.branch == tb) {
         _add(results, ShenshaItem(name: '国印贵人', target: '${p.label}支${p.branch}',
             description: '$label$stem见${p.branch}为国印贵人，主权柄、文书、公职之贵', pillar: p.label));
@@ -507,7 +604,7 @@ class RuleShenshaCalculator implements ShenshaCalculator {
   void _checkTianChu(List<ShenshaItem> results, BaziChart chart, String stem) {
     final tb = _tianChuGuiRen[stem]; if (tb == null) return;
     final label = stem == chart.dayMaster ? '日干' : '年干';
-    for (final p in chart.pillars) {
+    for (final p in chart.allPillars) {
       if (p.branch == tb) {
         _add(results, ShenshaItem(name: '天厨贵人', target: '${p.label}支${p.branch}',
             description: '$label$stem见${p.branch}为天厨贵人（食神之禄），主食禄丰厚、安逸享福', pillar: p.label));
@@ -517,7 +614,7 @@ class RuleShenshaCalculator implements ShenshaCalculator {
 
   void _checkHongYan(List<ShenshaItem> results, BaziChart chart, String ds) {
     final tb = _hongYan[ds]; if (tb == null) return;
-    for (final p in chart.pillars) {
+    for (final p in chart.allPillars) {
       if (p.branch == tb) {
         _add(results, ShenshaItem(name: '红艳煞', target: '${p.label}支${p.branch}',
             description: '日干$ds见${p.branch}为红艳煞，主异性缘佳、情感丰富，易有风流韵事', pillar: p.label));
@@ -527,7 +624,7 @@ class RuleShenshaCalculator implements ShenshaCalculator {
 
   void _checkLiuXia(List<ShenshaItem> results, BaziChart chart, String ds) {
     final tb = _liuXia[ds]; if (tb == null) return;
-    for (final p in chart.pillars) {
+    for (final p in chart.allPillars) {
       if (p.branch == tb) {
         _add(results, ShenshaItem(name: '流霞', target: '${p.label}支${p.branch}',
             description: '日干$ds见${p.branch}为流霞，男主他乡死、女主产厄多，宜行善积德化解', pillar: p.label));
@@ -537,7 +634,7 @@ class RuleShenshaCalculator implements ShenshaCalculator {
 
   void _checkYearBranchFixed(List<ShenshaItem> results, BaziChart chart, String yb) {
     final sm = _sangMen[yb], dk = _diaoKe[yb], pm = _piMa[yb];
-    for (final p in chart.pillars) {
+    for (final p in chart.allPillars) {
       if (sm != null && p.branch == sm) {
         _add(results, ShenshaItem(name: '丧门', target: '${p.label}支${p.branch}',
             description: '年支$yb见${p.branch}为丧门（岁前二辰），主孝服、病灾', pillar: p.label));
@@ -555,7 +652,7 @@ class RuleShenshaCalculator implements ShenshaCalculator {
 
   void _checkMonthBranchFixed(List<ShenshaItem> results, BaziChart chart, String mb) {
     final xr = _xueRen[mb], ty = _tianYiYue[mb];
-    for (final p in chart.pillars) {
+    for (final p in chart.allPillars) {
       if (xr != null && p.branch == xr) {
         _add(results, ShenshaItem(name: '血刃', target: '${p.label}支${p.branch}',
             description: '月支$mb见${p.branch}为血刃，主血光外伤，宜注意安全', pillar: p.label));
@@ -677,5 +774,213 @@ class RuleShenshaCalculator implements ShenshaCalculator {
             description: '冬夏月见${p.branch}为童子，主有仙缘', pillar: p.label));
       }
     }
+  }
+
+  void _checkTianYueDeHe(List<ShenshaItem> results, BaziChart chart, String mb) {
+    final td = _tianDe[mb];
+    final yd = _yueDe[mb];
+    final tdHe = td != null ? _heGan(td) : null;
+    final ydHe = yd != null ? _heGan(yd) : null;
+    for (final p in chart.allPillars) {
+      if (tdHe != null && p.stem == tdHe) {
+        _add(results, ShenshaItem(
+          name: '天德合',
+          target: '${p.label}干${p.stem}',
+          description: '月支$mb天德$td，见${p.stem}为天德合（$td五合），主和合化煞',
+          pillar: p.label,
+        ));
+      }
+      if (ydHe != null && p.stem == ydHe) {
+        _add(results, ShenshaItem(
+          name: '月德合',
+          target: '${p.label}干${p.stem}',
+          description: '月支$mb月德$yd，见${p.stem}为月德合（$yd五合），主温和逢凶化吉',
+          pillar: p.label,
+        ));
+      }
+    }
+  }
+
+  void _checkRiDeRiGui(List<ShenshaItem> results, BaziChart chart, String dgz) {
+    if (_riDeDays.contains(dgz)) {
+      _add(results, ShenshaItem(
+        name: '日德',
+        target: '日柱$dgz',
+        description: '日柱$dgz为日德，主心地善良、逢凶化吉',
+        pillar: '日',
+      ));
+    }
+    if (_riGuiDays.contains(dgz)) {
+      _add(results, ShenshaItem(
+        name: '日贵',
+        target: '日柱$dgz',
+        description: '日柱$dgz为日贵，主气质高雅、易得贵人提携',
+        pillar: '日',
+      ));
+    }
+  }
+
+  void _checkAnLu(List<ShenshaItem> results, BaziChart chart, String stem) {
+    final tb = _anLu[stem];
+    if (tb == null) return;
+    final label = stem == chart.dayMaster ? '日干' : '年干';
+    for (final p in chart.allPillars) {
+      if (p.branch == tb) {
+        _add(results, ShenshaItem(
+          name: '暗禄',
+          target: '${p.label}支${p.branch}',
+          description: '$label$stem见${p.branch}为暗禄，主暗中福禄、不显扬而实得',
+          pillar: p.label,
+        ));
+      }
+    }
+  }
+
+  void _checkTianGuan(List<ShenshaItem> results, BaziChart chart, String stem) {
+    final tb = _tianGuan[stem];
+    if (tb == null) return;
+    final label = stem == chart.dayMaster ? '日干' : '年干';
+    for (final p in chart.allPillars) {
+      if (p.branch == tb) {
+        _add(results, ShenshaItem(
+          name: '天官贵人',
+          target: '${p.label}支${p.branch}',
+          description: '$label$stem见${p.branch}为天官贵人，主仕途顺遂、官运亨通',
+          pillar: p.label,
+        ));
+      }
+    }
+  }
+
+  void _checkYearHaoGui(List<ShenshaItem> results, BaziChart chart, String yb) {
+    final checks = <String, Map<String, String>>{
+      '大耗': _daHao,
+      '小耗': _xiaoHao,
+      '五鬼': _wuGui,
+    };
+    final descs = {
+      '大耗': '年支$yb见%s为大耗，主破财耗散，宜守不宜攻',
+      '小耗': '年支$yb见%s为小耗，主小破财、零星损耗',
+      '五鬼': '年支$yb见%s为五鬼，主口舌是非、小人暗害',
+    };
+    for (final e in checks.entries) {
+      final tb = e.value[yb];
+      if (tb == null) continue;
+      for (final p in chart.allPillars) {
+        if (p.branch == tb) {
+          _add(results, ShenshaItem(
+            name: e.key,
+            target: '${p.label}支${p.branch}',
+            description: descs[e.key]!.replaceFirst('%s', p.branch),
+            pillar: p.label,
+          ));
+        }
+      }
+    }
+  }
+
+  void _checkYueSha(List<ShenshaItem> results, BaziChart chart, String yb) {
+    final tb = _yueSha[yb];
+    if (tb == null) return;
+    for (final p in chart.allPillars) {
+      if (p.branch == tb) {
+        _add(results, ShenshaItem(
+          name: '月煞',
+          target: '${p.label}支${p.branch}',
+          description: '年支$yb见${p.branch}为月煞，主阻滞、官非口舌，宜谨慎行事',
+          pillar: p.label,
+        ));
+      }
+    }
+  }
+
+  void _checkGouJiao(
+    List<ShenshaItem> results,
+    BaziChart chart,
+    String yb,
+  ) {
+    final gou = _gouSha[yb];
+    final jiao = _jiaoSha[yb];
+    for (final p in chart.allPillars) {
+      if (gou != null && p.branch == gou) {
+        _add(results, ShenshaItem(
+          name: '勾煞',
+          target: '${p.label}支${p.branch}',
+          description: '年支$yb见${p.branch}为勾煞，主牵连、拖延、事多羁绊',
+          pillar: p.label,
+        ));
+      }
+      if (jiao != null && p.branch == jiao) {
+        _add(results, ShenshaItem(
+          name: '绞煞',
+          target: '${p.label}支${p.branch}',
+          description: '年支$yb见${p.branch}为绞煞，主纠缠、反复、难脱困境',
+          pillar: p.label,
+        ));
+      }
+    }
+  }
+
+  void _checkYuanChen(
+    List<ShenshaItem> results,
+    BaziChart chart,
+    String yb,
+    Gender? gender,
+  ) {
+    if (gender == null) return;
+    final yangTable = _isYangMaleYinFemale(gender, chart.year.stem);
+    final tb = yangTable ? _yuanChenYangMale[yb] : _yuanChenYinMale[yb];
+    if (tb == null) return;
+    for (final p in chart.allPillars) {
+      if (p.branch == tb) {
+        _add(results, ShenshaItem(
+          name: '元辰',
+          target: '${p.label}支${p.branch}',
+          description: '年支$yb见${p.branch}为元辰，主精神不宁、易有虚惊或远行波折',
+          pillar: p.label,
+        ));
+      }
+    }
+  }
+
+  void _checkJinTuiShen(List<ShenshaItem> results, BaziChart chart) {
+    final pillars = chart.allPillars;
+    for (var i = 0; i < pillars.length; i++) {
+      for (var j = i + 1; j < pillars.length; j++) {
+        final a = pillars[i];
+        final b = pillars[j];
+        final gzA = '${a.stem}${a.branch}';
+        final gzB = '${b.stem}${b.branch}';
+        final iA = _jiaZiIndex(gzA);
+        final iB = _jiaZiIndex(gzB);
+        if (iA == null || iB == null) continue;
+        final diff = (iB - iA + 60) % 60;
+        if (diff == 1) {
+          _add(results, ShenshaItem(
+            name: '进神',
+            target: '${a.label}柱$gzA → ${b.label}柱$gzB',
+            description: '${a.label}柱$gzA与${b.label}柱$gzB为进神，主运势递进、事物向前发展',
+            pillar: b.label,
+          ));
+        } else if (diff == 59) {
+          _add(results, ShenshaItem(
+            name: '退神',
+            target: '${a.label}柱$gzA → ${b.label}柱$gzB',
+            description: '${a.label}柱$gzA与${b.label}柱$gzB为退神，主反复、回退、进展受阻',
+            pillar: b.label,
+          ));
+        }
+      }
+    }
+  }
+
+  void _checkGuaJian(List<ShenshaItem> results, BaziChart chart, String dgz) {
+    if (!_guaJianDays.contains(dgz)) return;
+    _add(results, ShenshaItem(
+      name: '挂剑煞',
+      target: '日柱$dgz',
+      description: '日柱$dgz为挂剑煞，主刚烈易伤、须防血光或突发之灾',
+      pillar: '日',
+    ));
   }
 }

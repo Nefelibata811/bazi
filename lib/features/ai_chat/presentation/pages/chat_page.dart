@@ -433,6 +433,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                 child: ChatMessageList(
                   state: chatState,
                   scrollController: _scrollController,
+                  sessionKey: chatState.selectedRecordId ?? '',
                   onSuggestionTap: (q) {
                     ref.read(chatControllerProvider.notifier).askQuestion(q);
                   },

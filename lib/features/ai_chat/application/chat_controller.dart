@@ -10,9 +10,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/ai_api_messages.dart';
 import '../../../core/api_config.dart';
 import '../../../core/app_strings.dart';
+import '../../../domain/services/bazi_calculator.dart';
 import '../../../domain/services/chat_repository.dart';
 import '../../../features/auth/application/auth_controller.dart';
 import '../../../features/history/infrastructure/bazi_request_codec.dart';
+import '../../../features/history/infrastructure/report_json_extra_pillars.dart';
+import '../../../features/input/application/bazi_input_controller.dart';
 import '../../../infrastructure/calendar/chart_datetime_resolver.dart';
 import '../../../infrastructure/ai/deepseek_chat_repository.dart';
 import '../../../infrastructure/database/supabase_chat_history_store.dart';
@@ -38,6 +41,7 @@ final chatControllerProvider =
       baseUrl: ApiConfig.deepseekBaseUrl,
     ),
     historyStore: ref.watch(chatHistoryStoreProvider),
+    chartCalculator: ref.watch(baziCalculatorProvider),
   );
 });
 
@@ -99,6 +103,7 @@ class ChatController extends StateNotifier<ChatState> {
   ChatController({
     required this.repository,
     required ChatHistoryStore historyStore,
+    this.chartCalculator,
     String? deepseekApiKey,
   })  : _historyStore = historyStore,
         _deepseekApiKey = deepseekApiKey ?? ApiConfig.deepseekApiKey,
@@ -106,6 +111,7 @@ class ChatController extends StateNotifier<ChatState> {
 
   final ChatRepository repository;
   final ChatHistoryStore _historyStore;
+  final BaziCalculator? chartCalculator;
   final String _deepseekApiKey;
   String? _analyzingRecordId;
   StreamSubscription<String>? _activeSubscription;
@@ -155,8 +161,16 @@ class ChatController extends StateNotifier<ChatState> {
     required String requestJson,
     required String reportJson,
   }) async {
+    final resolvedReportJson = await _resolveReportJson(
+      requestJson: requestJson,
+      reportJson: reportJson,
+    );
     final isSameRecord = state.selectedRecordId == recordId;
-    final summary = _buildReportSummary(personName, requestJson, reportJson);
+    final summary = _buildReportSummary(
+      personName,
+      requestJson,
+      resolvedReportJson,
+    );
 
     if (isSameRecord &&
         state.messages.isNotEmpty &&
@@ -200,7 +214,12 @@ class ChatController extends StateNotifier<ChatState> {
         clearStreamingContent: true,
       );
 
-      _saveLastSelectedRecord(recordId, personName, requestJson, reportJson);
+      _saveLastSelectedRecord(
+        recordId,
+        personName,
+        requestJson,
+        resolvedReportJson,
+      );
     } catch (_) {
       if (mounted) {
         state = state.copyWith(
@@ -610,6 +629,8 @@ class ChatController extends StateNotifier<ChatState> {
             '${_pillarLabel(key)}：$stem$branch${tenGodStr.isNotEmpty ? ' ($tenGodStr)' : ''}$naYinStr$growthPhaseStr$xunKongStr$hiddenStr');
       }
 
+      _appendExtraPillarsSummary(buf, repMap);
+
       final luckCyclesRaw = repMap['luckCycles'] as List<dynamic>?;
       if (luckCyclesRaw != null && luckCyclesRaw.isNotEmpty) {
         final lcLines = luckCyclesRaw.map((lc) {
@@ -740,6 +761,51 @@ class ChatController extends StateNotifier<ChatState> {
     );
   }
 
+  Future<String> _resolveReportJson({
+    required String requestJson,
+    required String reportJson,
+  }) async {
+    final calculator = chartCalculator;
+    if (calculator == null) return reportJson;
+    return ReportJsonExtraPillars.ensureEncoded(
+      requestJson: requestJson,
+      reportJson: reportJson,
+      calculator: calculator,
+    );
+  }
+
+  void _appendExtraPillarsSummary(
+    StringBuffer buf,
+    Map<String, dynamic> repMap,
+  ) {
+    final raw = repMap['extraPillars'] as List<dynamic>?;
+    if (raw == null || raw.isEmpty) return;
+
+    buf.writeln('辅命宫位（命宫、身宫、胎元、胎息，辅助参考）：');
+    for (final item in raw) {
+      if (item is! Map<String, dynamic>) continue;
+      final label = item['label'] as String? ?? '';
+      final stem = item['stem'] as String? ?? '';
+      final branch = item['branch'] as String? ?? '';
+      if (stem.isEmpty || branch.isEmpty) continue;
+
+      final tenGod = item['tenGod'] as String? ?? '';
+      final tenGodStr = tenGod.isNotEmpty ? ' ($tenGod)' : '';
+      final naYin = item['naYin'] as String? ?? '';
+      final naYinStr = naYin.isNotEmpty ? '，纳音 $naYin' : '';
+      final growthPhase = item['growthPhase'] as String? ?? '';
+      final growthPhaseStr = growthPhase.isNotEmpty ? '，$growthPhase' : '';
+
+      final hiddenStemsRaw = item['hiddenStems'] as List<dynamic>?;
+      final hiddenStr = hiddenStemsRaw != null && hiddenStemsRaw.isNotEmpty
+          ? '，藏干：${hiddenStemsRaw.map((h) => '${(h as Map)['stem']}(${(h)['tenGod']})').join('、')}'
+          : '';
+
+      final name = label.isNotEmpty ? label : '辅宫';
+      buf.writeln('$name：$stem$branch$tenGodStr$naYinStr$growthPhaseStr$hiddenStr');
+    }
+  }
+
   String _pillarLabel(String key) {
     switch (key) {
       case 'year':
@@ -820,7 +886,7 @@ class ChatController extends StateNotifier<ChatState> {
     buf.writeln(reportSummary);
     buf.writeln();
     buf.writeln(
-        '请严格基于以上数据进行分析，以连贯自然的段落撰写命理解读，涵盖命局概述、格局与用神、神煞要点及综合建议，不要分条编号，也不要重复同一内容。');
+        '请严格基于以上数据进行分析，以连贯自然的段落撰写命理解读，涵盖命局概述、格局与用神、神煞要点及综合建议；辅命宫位可作补充参考，仍以本命四柱为主，不要分条编号，也不要重复同一内容。');
     buf.writeln('对 **日主**、**用神**、**格局**、**大运**、**神煞** 名称及关键结论，请用双星号包裹强调，例如 **甲木日主**、**正官格**。');
     buf.writeln('用户若有追问，请针对其问题作答，不要重新生成完整报告。');
     buf.writeln('【对话记忆】严格延续本会话全部上文，记住用户已提出的需求、设定与约定；禁止忽略历史、禁止无故重置对话或重复完整报告。');

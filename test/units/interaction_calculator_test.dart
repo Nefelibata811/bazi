@@ -206,6 +206,30 @@ void main() {
       );
     });
 
+    test('辅宫不参与刑冲合害（仅本命四柱）', () {
+      final chart = BaziChart(
+        dayMaster: '甲',
+        year: _p('年', '甲', '子'),
+        month: _p('月', '丙', '寅'),
+        day: _p('日', '戊', '卯'),
+        hour: _p('时', '庚', '辰'),
+        extraPillars: [
+          _p('命宫', '壬', '午'),
+        ],
+      );
+      final results = calc.calculate(chart);
+      expect(
+        results.any(
+          (r) => r.nodeA.contains('命宫') || r.nodeB.contains('命宫'),
+        ),
+        isFalse,
+      );
+      expect(
+        results.any((r) => r.type == InteractionType.branchClash6),
+        isFalse,
+      );
+    });
+
     test('藏干与透干五合（甲己）', () {
       final chart = BaziChart(
         dayMaster: '甲',

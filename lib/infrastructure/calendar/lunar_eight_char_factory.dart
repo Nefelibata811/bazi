@@ -10,7 +10,8 @@ class LunarEightCharFactory {
 
   static Lunar lunarFromRequest(BaziRequest request) {
     final chartTime = ChartDateTimeResolver.resolve(request);
-    if (request.calendarType == CalendarType.solar) {
+    if (request.calendarType == CalendarType.solar ||
+        (request.useTrueSolarTime && request.longitude != null)) {
       return Solar.fromYmdHms(
         chartTime.year,
         chartTime.month,

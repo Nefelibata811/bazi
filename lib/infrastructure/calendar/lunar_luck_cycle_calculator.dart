@@ -95,8 +95,6 @@ class LunarLuckCycleCalculator implements LuckCycleCalculator {
 
       final lnGanZhi = ln.getGanZhi();
 
-      lnGanZhi.substring(0, 1);
-
       final xiaoYunGanZhi =
 
           i < xiaoYuns.length ? xiaoYuns[i].getGanZhi() : null;

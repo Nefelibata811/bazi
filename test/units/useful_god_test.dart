@@ -211,6 +211,62 @@ void main() {
       expect(result.dayMasterStrength, contains('强'));
     });
 
+    test('生产日柱标签「日」时日主天干不计入旺衰', () async {
+      final chart = BaziChart(
+        dayMaster: '癸',
+        year: const Pillar(
+          label: '年',
+          stem: '丙',
+          branch: '午',
+          tenGod: '偏财',
+          hiddenStems: [
+            HiddenStem(stem: '丁', tenGod: '偏财'),
+            HiddenStem(stem: '己', tenGod: '七杀'),
+          ],
+          naYin: '',
+          growthPhase: '',
+        ),
+        month: const Pillar(
+          label: '月',
+          stem: '丙',
+          branch: '午',
+          tenGod: '偏财',
+          hiddenStems: [
+            HiddenStem(stem: '丁', tenGod: '偏财'),
+            HiddenStem(stem: '己', tenGod: '七杀'),
+          ],
+          naYin: '',
+          growthPhase: '',
+        ),
+        day: const Pillar(
+          label: '日',
+          stem: '癸',
+          branch: '酉',
+          tenGod: '日主',
+          hiddenStems: [
+            HiddenStem(stem: '辛', tenGod: '偏印'),
+          ],
+          naYin: '',
+          growthPhase: '',
+        ),
+        hour: const Pillar(
+          label: '时',
+          stem: '丁',
+          branch: '巳',
+          tenGod: '偏财',
+          hiddenStems: [
+            HiddenStem(stem: '丙', tenGod: '正财'),
+            HiddenStem(stem: '戊', tenGod: '正官'),
+            HiddenStem(stem: '庚', tenGod: '正印'),
+          ],
+          naYin: '',
+          growthPhase: '',
+        ),
+      );
+      final result = await analyzer.analyze(chart: chart, patterns: []);
+      expect(result.dayMasterStrength, contains('弱'));
+    });
+
     test('不同格局影响 summary 内容', () async {
       final chart = testChart();
       final noPattern = await analyzer.analyze(
