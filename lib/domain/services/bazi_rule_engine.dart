@@ -1,8 +1,11 @@
+// 八字规则引擎：十神、藏干、纳音、十二长生等查表与推算（无 UI、无网络）。
+// 排盘主数据来自 lunar 库，本类补充规则层；详见 docs/ALGORITHMS.md。
 import '../entities/hidden_stem.dart';
 import '../entities/pillar.dart';
 import '../value_objects/five_element.dart';
 import '../value_objects/yin_yang.dart';
 
+/// 纯 Dart 规则表与计算方法，供 [LunarBaziCalculator] 等基础设施调用。
 class BaziRuleEngine {
   const BaziRuleEngine();
 

@@ -1,3 +1,5 @@
+// 命盘合集列表：keepAlive 缓存，主页预加载，避免每次进入重复请求。
+
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';

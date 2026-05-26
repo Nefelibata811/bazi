@@ -1,5 +1,9 @@
+// 八字单柱领域模型：干支、十神、藏干、纳音、星运、自坐等。
+// - growthPhase：日主看地支的十二长生（表中「星运」）
+// - seatGrowthPhase：天干自坐地支的十二长生（表中「自坐」）
 import 'hidden_stem.dart';
 
+/// 年/月/日/时柱或命宫等辅柱的一条记录。
 class Pillar {
   const Pillar({
     required this.label,

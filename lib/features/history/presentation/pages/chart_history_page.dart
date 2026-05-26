@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../app/app.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/app_strings.dart';
 import '../../../../domain/entities/bazi_record.dart';
 import '../../../../domain/entities/bazi_request.dart';
 import '../../application/bazi_records_list_controller.dart';
 import '../../infrastructure/bazi_request_codec.dart';
-import '../../application/save_bazi_record.dart';
+import '../../application/save_bazi_record.dart'
+    show baziRecordRepositoryProvider, clearLastSelectedRecordIfMatches;
+import '../../../ai_chat/application/chat_controller.dart';
 import '../../../input/application/bazi_input_controller.dart';
 import '../../../result/presentation/pages/bazi_result_page.dart';
 
@@ -139,6 +142,15 @@ class ChartHistoryPage extends ConsumerWidget {
                               ref
                                   .read(baziRecordsListProvider.notifier)
                                   .removeRecord(record.id);
+                              await clearLastSelectedRecordIfMatches(
+                                recordId: record.id,
+                              );
+                              final chatId = ref
+                                  .read(chatControllerProvider)
+                                  .selectedRecordId;
+                              if (chatId == record.id) {
+                                ref.read(chatClearSignal.notifier).state++;
+                              }
                             },
                             color: AppColors.deepGray,
                           ),

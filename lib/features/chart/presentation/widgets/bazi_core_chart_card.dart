@@ -1,3 +1,5 @@
+// 表格式四柱排盘 UI：左侧行标签 + 年/月/日/时四列（主星、干支、藏干、副星、星运、自坐、神煞）。
+
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';

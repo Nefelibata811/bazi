@@ -1,3 +1,6 @@
+// 启动壳：先渲染 BaziApp，后台异步初始化 Supabase，避免首屏长时间白屏。
+// supabaseReadyProvider 表示云后端是否可用；成功后调用 AuthController.onSupabaseReady。
+
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';

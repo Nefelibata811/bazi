@@ -1,3 +1,6 @@
+// 认证状态机：登录/注册/登出、Session 恢复、手机绑定（Supabase）。
+// Supabase 就绪后由 BootstrapApp 调用 onSupabaseReady。
+
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';

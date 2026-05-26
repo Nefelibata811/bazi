@@ -1,3 +1,5 @@
+// 命主/排盘记录列表：keepAlive 缓存，与合集列表同样在主页预加载。
+
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -127,6 +129,24 @@ class BaziRecordsListNotifier extends Notifier<BaziRecordsListState> {
 
   void removeRecord(String recordId) {
     final list = state.records.where((r) => r.id != recordId).toList();
+    state = BaziRecordsListState(records: list);
+    final userId = _activeUserId;
+    if (userId != null) {
+      unawaited(BaziRecordsLocalCache.save(userId, list));
+    }
+  }
+
+  /// 按命主身份（姓名+出生）从内存与本地缓存移除，删除云端前应优先调用。
+  void removeByPersonIdentity({
+    required String displayName,
+    required String birthFingerprint,
+  }) {
+    final targetName = PersonIdentity.normalizeName(displayName);
+    final list = state.records.where((r) {
+      final id = PersonIdentity.fromRecord(r);
+      return id.displayName != targetName ||
+          id.birthFingerprint != birthFingerprint;
+    }).toList();
     state = BaziRecordsListState(records: list);
     final userId = _activeUserId;
     if (userId != null) {

@@ -9,7 +9,9 @@ import '../../../../core/app_strings.dart';
 import '../../../../domain/entities/bazi_record.dart';
 import '../../../auth/application/auth_controller.dart';
 import '../../../history/application/bazi_records_list_controller.dart';
-import '../../../history/application/save_bazi_record.dart';
+import '../../../history/application/save_bazi_record.dart'
+    show clearLastSelectedRecordIfMatches, persistLastSelectedRecord,
+        saveBaziReport;
 import '../../../input/application/bazi_input_controller.dart';
 import '../../application/chat_controller.dart';
 import '../widgets/chart_loading_widgets.dart';
@@ -58,6 +60,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   /// Persists the in-memory chart from 排盘 into Supabase so AI 看盘 can list it.
   Future<void> _syncPendingChart() async {
     if (_isSyncingChart) return;
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(_pendingAutoStartKey) != true) return;
+
     final input = ref.read(baziInputControllerProvider);
     final report = input.report;
     if (report == null) return;
@@ -110,7 +115,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     if (!mounted) return;
 
     final chat = ref.read(chatControllerProvider.notifier);
-    final user = ref.read(authControllerProvider).user;
 
     final recordId = saved['id'] as String;
     final personName = saved['personName'] as String? ?? '';
@@ -125,16 +129,13 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       }
     }
 
+    if (fromList == null) {
+      await clearLastSelectedRecordIfMatches(recordId: recordId);
+      return;
+    }
+
     setState(() {
-      _selectedRecord = fromList ??
-          BaziRecord(
-            id: recordId,
-            userId: user?.id ?? '',
-            personName: personName,
-            requestJson: requestJson,
-            reportJson: reportJson,
-            savedAt: DateTime.now(),
-          );
+      _selectedRecord = fromList;
     });
 
     await _selectChartOnController(

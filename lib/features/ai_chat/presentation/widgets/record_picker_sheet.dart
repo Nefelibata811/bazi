@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/app_strings.dart';
@@ -33,8 +34,13 @@ class _RecordPickerSheetState extends ConsumerState<RecordPickerSheet> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _maybeSavePendingChart());
   }
 
+  static const _pendingAutoStartKey = 'pending_ai_auto_start';
+
   Future<void> _maybeSavePendingChart() async {
     if (_pendingSave) return;
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(_pendingAutoStartKey) != true) return;
+
     final input = ref.read(baziInputControllerProvider);
     if (input.report == null) return;
 

@@ -1,3 +1,5 @@
+// 四柱排盘实现：基于 lunar 包的 EightChar，组装 BaziChart 与称骨等。
+// 规则补充见 BaziRuleEngine；请求入口 LunarEightCharFactory。
 import 'package:lunar/lunar.dart';
 
 import '../../../domain/entities/bazi_chart.dart';

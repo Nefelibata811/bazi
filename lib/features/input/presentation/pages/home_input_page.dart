@@ -42,6 +42,77 @@ int _nearestMinute(int actual, List<int> options) {
   return options.lastWhere((m) => m <= actual);
 }
 
+/// 下拉框横向间距；略小于 12 可减少窄屏 Row 子像素溢出。
+const _pickerGap = 8.0;
+
+/// 低于此宽度时，三个选择器改为「年单独一行 + 月日一行」。
+const _narrowPickerBreakpoint = 400.0;
+
+/// 公历/农历日期行：窄屏堆叠首项，宽屏按 [flexes] 横排。
+class _ResponsivePickerRow extends StatelessWidget {
+  const _ResponsivePickerRow({
+    required this.children,
+    this.flexes,
+  });
+
+  final List<Widget> children;
+  final List<int>? flexes;
+
+  @override
+  Widget build(BuildContext context) {
+    assert(children.isNotEmpty);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxW = constraints.maxWidth;
+        final narrow = maxW < _narrowPickerBreakpoint;
+
+        if (children.length == 3 && narrow) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              children[0],
+              const SizedBox(height: _pickerGap),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: children[1]),
+                  const SizedBox(width: _pickerGap),
+                  Expanded(child: children[2]),
+                ],
+              ),
+            ],
+          );
+        }
+
+        if (children.length == 2 && narrow) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              children[0],
+              const SizedBox(height: _pickerGap),
+              children[1],
+            ],
+          );
+        }
+
+        final flexList = flexes ?? List.filled(children.length, 1);
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (var i = 0; i < children.length; i++) ...[
+              if (i > 0) const SizedBox(width: _pickerGap),
+              Expanded(
+                flex: i < flexList.length ? flexList[i] : 1,
+                child: children[i],
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+}
+
 class HomeInputPage extends ConsumerStatefulWidget {
   const HomeInputPage({super.key, this.initialPersonName});
 
@@ -333,94 +404,99 @@ class _SolarDropdownPanel extends StatelessWidget {
 
     return Column(
       children: [
-        Row(
+        _ResponsivePickerRow(
+          flexes: const [3, 2, 2],
           children: [
-            Expanded(
-              child: DropdownButtonFormField<int>(
-                key: ValueKey('solar-year-${dateTime.year}'),
-                initialValue: dateTime.year,
-                decoration: const InputDecoration(labelText: '年'),
-                items: years
-                    .map((y) => DropdownMenuItem(
-                        value: y, child: Text('$y年')))
-                    .toList(),
-                onChanged: (v) {
-                  if (v != null) onYearChanged(v);
-                },
+            DropdownButtonFormField<int>(
+              key: ValueKey('solar-year-${dateTime.year}'),
+              isExpanded: true,
+              initialValue: dateTime.year,
+              decoration: const InputDecoration(
+                labelText: '年',
+                isDense: true,
               ),
+              items: years
+                  .map((y) => DropdownMenuItem(
+                      value: y, child: Text('$y年')))
+                  .toList(),
+              onChanged: (v) {
+                if (v != null) onYearChanged(v);
+              },
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: DropdownButtonFormField<int>(
-                key: ValueKey('solar-month-${dateTime.year}-${dateTime.month}'),
-                initialValue: dateTime.month,
-                decoration: const InputDecoration(labelText: '月'),
-                items: months
-                    .map((m) => DropdownMenuItem(
-                        value: m,
-                        child: Text(_solarMonthNames[m - 1])))
-                    .toList(),
-                onChanged: (v) {
-                  if (v != null) onMonthChanged(v);
-                },
+            DropdownButtonFormField<int>(
+              key: ValueKey('solar-month-${dateTime.year}-${dateTime.month}'),
+              isExpanded: true,
+              initialValue: dateTime.month,
+              decoration: const InputDecoration(
+                labelText: '月',
+                isDense: true,
               ),
+              items: months
+                  .map((m) => DropdownMenuItem(
+                      value: m,
+                      child: Text(_solarMonthNames[m - 1])))
+                  .toList(),
+              onChanged: (v) {
+                if (v != null) onMonthChanged(v);
+              },
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: DropdownButtonFormField<int>(
-                key: ValueKey(
-                    'solar-day-${dateTime.year}-${dateTime.month}-${days.contains(dateTime.day) ? dateTime.day : days.last}'),
-                initialValue:
-                    days.contains(dateTime.day) ? dateTime.day : days.last,
-                decoration: const InputDecoration(labelText: '日'),
-                items: days
-                    .map((d) => DropdownMenuItem(
-                        value: d, child: Text('$d日')))
-                    .toList(),
-                onChanged: (v) {
-                  if (v != null) onDayChanged(v);
-                },
+            DropdownButtonFormField<int>(
+              key: ValueKey(
+                  'solar-day-${dateTime.year}-${dateTime.month}-${days.contains(dateTime.day) ? dateTime.day : days.last}'),
+              isExpanded: true,
+              initialValue:
+                  days.contains(dateTime.day) ? dateTime.day : days.last,
+              decoration: const InputDecoration(
+                labelText: '日',
+                isDense: true,
               ),
+              items: days
+                  .map((d) => DropdownMenuItem(
+                      value: d, child: Text('$d日')))
+                  .toList(),
+              onChanged: (v) {
+                if (v != null) onDayChanged(v);
+              },
             ),
           ],
         ),
         const SizedBox(height: 12),
-        Row(
+        _ResponsivePickerRow(
           children: [
-            Expanded(
-              child: DropdownButtonFormField<int>(
-                key: ValueKey('solar-hour-${dateTime.hour}'),
-                initialValue: dateTime.hour,
-                decoration: const InputDecoration(labelText: '时'),
-                items: hours
-                    .map((h) => DropdownMenuItem(
-                        value: h,
-                        child: Text(
-                            '${h.toString().padLeft(2, '0')}时')))
-                    .toList(),
-                onChanged: (v) {
-                  if (v != null) onHourChanged(v);
-                },
+            DropdownButtonFormField<int>(
+              key: ValueKey('solar-hour-${dateTime.hour}'),
+              isExpanded: true,
+              initialValue: dateTime.hour,
+              decoration: const InputDecoration(
+                labelText: '时',
+                isDense: true,
               ),
+              items: hours
+                  .map((h) => DropdownMenuItem(
+                      value: h,
+                      child: Text('${h.toString().padLeft(2, '0')}时')))
+                  .toList(),
+              onChanged: (v) {
+                if (v != null) onHourChanged(v);
+              },
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: DropdownButtonFormField<int>(
-                key: ValueKey(
-                    'solar-minute-${_nearestMinute(dateTime.minute, minutes)}'),
-                initialValue: _nearestMinute(dateTime.minute, minutes),
-                decoration: const InputDecoration(labelText: '分'),
-                items: minutes
-                    .map((m) => DropdownMenuItem(
-                        value: m, child: Text(_minuteLabel(m))))
-                    .toList(),
-                onChanged: (v) {
-                  if (v != null) onMinuteChanged(v);
-                },
+            DropdownButtonFormField<int>(
+              key: ValueKey(
+                  'solar-minute-${_nearestMinute(dateTime.minute, minutes)}'),
+              isExpanded: true,
+              initialValue: _nearestMinute(dateTime.minute, minutes),
+              decoration: const InputDecoration(
+                labelText: '分',
+                isDense: true,
               ),
+              items: minutes
+                  .map((m) => DropdownMenuItem(
+                      value: m, child: Text(_minuteLabel(m))))
+                  .toList(),
+              onChanged: (v) {
+                if (v != null) onMinuteChanged(v);
+              },
             ),
-            const SizedBox(width: 12),
-            const Expanded(child: SizedBox()),
           ],
         ),
         _ZiHourSectPicker(
@@ -476,96 +552,98 @@ class _LunarPanel extends StatelessWidget {
 
     return Column(
       children: [
-        Row(
+        _ResponsivePickerRow(
+          flexes: const [2, 2],
           children: [
-            Expanded(
-              child: DropdownButtonFormField<int>(
-                key: ValueKey('lunar-year-$lunarYear'),
-                initialValue: lunarYear,
-                decoration: const InputDecoration(labelText: '农历年'),
-                items: years
-                    .map((year) =>
-                        DropdownMenuItem(value: year, child: Text('$year')))
-                    .toList(),
-                onChanged: (value) {
-                  if (value != null) onYearChanged(value);
-                },
+            DropdownButtonFormField<int>(
+              key: ValueKey('lunar-year-$lunarYear'),
+              isExpanded: true,
+              initialValue: lunarYear,
+              decoration: const InputDecoration(
+                labelText: '农历年',
+                isDense: true,
               ),
+              items: years
+                  .map((year) =>
+                      DropdownMenuItem(value: year, child: Text('$year')))
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) onYearChanged(value);
+              },
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: DropdownButtonFormField<int>(
-                key: ValueKey('lunar-month-$lunarYear-$lunarMonth'),
-                initialValue: lunarMonth,
-                decoration: const InputDecoration(labelText: '农历月'),
-                items: months
-                    .map((month) => DropdownMenuItem(
-                        value: month,
-                        child: Text(_lunarMonthNames[month - 1])))
-                    .toList(),
-                onChanged: (value) {
-                  if (value != null) onMonthChanged(value);
-                },
+            DropdownButtonFormField<int>(
+              key: ValueKey('lunar-month-$lunarYear-$lunarMonth'),
+              isExpanded: true,
+              initialValue: lunarMonth,
+              decoration: const InputDecoration(
+                labelText: '农历月',
+                isDense: true,
               ),
+              items: months
+                  .map((month) => DropdownMenuItem(
+                      value: month,
+                      child: Text(_lunarMonthNames[month - 1])))
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) onMonthChanged(value);
+              },
             ),
           ],
         ),
         const SizedBox(height: 12),
-        Row(
+        _ResponsivePickerRow(
           children: [
-            Expanded(
-              child: DropdownButtonFormField<int>(
-                key: ValueKey('lunar-day-$lunarYear-$lunarMonth-$lunarDay'),
-                initialValue: lunarDay,
-                decoration: const InputDecoration(labelText: '农历日'),
-                items: days
-                    .map((day) =>
-                        DropdownMenuItem(value: day, child: Text('$day')))
-                    .toList(),
-                onChanged: (value) {
-                  if (value != null) onDayChanged(value);
-                },
+            DropdownButtonFormField<int>(
+              key: ValueKey('lunar-day-$lunarYear-$lunarMonth-$lunarDay'),
+              isExpanded: true,
+              initialValue: lunarDay,
+              decoration: const InputDecoration(
+                labelText: '农历日',
+                isDense: true,
               ),
+              items: days
+                  .map((day) =>
+                      DropdownMenuItem(value: day, child: Text('$day')))
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) onDayChanged(value);
+              },
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: DropdownButtonFormField<int>(
-                key: ValueKey('lunar-hour-$hour'),
-                initialValue: hour,
-                decoration: const InputDecoration(labelText: '时'),
-                items: hours
-                    .map((h) => DropdownMenuItem(
-                        value: h,
-                        child: Text(
-                            '${h.toString().padLeft(2, '0')}时')))
-                    .toList(),
-                onChanged: (v) {
-                  if (v != null) onHourChanged(v);
-                },
+            DropdownButtonFormField<int>(
+              key: ValueKey('lunar-hour-$hour'),
+              isExpanded: true,
+              initialValue: hour,
+              decoration: const InputDecoration(
+                labelText: '时',
+                isDense: true,
               ),
+              items: hours
+                  .map((h) => DropdownMenuItem(
+                      value: h,
+                      child: Text('${h.toString().padLeft(2, '0')}时')))
+                  .toList(),
+              onChanged: (v) {
+                if (v != null) onHourChanged(v);
+              },
             ),
           ],
         ),
         const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: DropdownButtonFormField<int>(
-                key: ValueKey('lunar-minute-${_nearestMinute(minute, minutes)}'),
-                initialValue: _nearestMinute(minute, minutes),
-                decoration: const InputDecoration(labelText: '分'),
-                items: minutes
-                    .map((m) => DropdownMenuItem(
-                        value: m, child: Text(_minuteLabel(m))))
-                    .toList(),
-                onChanged: (v) {
-                  if (v != null) onMinuteChanged(v);
-                },
-              ),
-            ),
-            const SizedBox(width: 12),
-            const Expanded(child: SizedBox()),
-          ],
+        DropdownButtonFormField<int>(
+          key: ValueKey('lunar-minute-${_nearestMinute(minute, minutes)}'),
+          isExpanded: true,
+          initialValue: _nearestMinute(minute, minutes),
+          decoration: const InputDecoration(
+            labelText: '分',
+            isDense: true,
+          ),
+          items: minutes
+              .map((m) => DropdownMenuItem(
+                  value: m, child: Text(_minuteLabel(m))))
+              .toList(),
+          onChanged: (v) {
+            if (v != null) onMinuteChanged(v);
+          },
         ),
         _ZiHourSectPicker(
           hour: hour,

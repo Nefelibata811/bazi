@@ -13,6 +13,9 @@ import '../../infrastructure/person_identity.dart';
 import '../../application/bazi_records_list_controller.dart';
 import '../../application/collections_list_controller.dart';
 import '../../application/open_ai_for_record.dart';
+import '../../application/save_bazi_record.dart'
+    show clearLastSelectedRecordIfMatches;
+import '../../../ai_chat/application/chat_controller.dart';
 import '../../../auth/application/auth_controller.dart';
 import '../../../auth/presentation/pages/profile_page.dart';
 import '../../../input/application/bazi_input_controller.dart';
@@ -249,6 +252,57 @@ class PeopleListPage extends ConsumerWidget {
                       onDelete: (person) async {
                         final user = ref.read(authControllerProvider).user;
                         if (user == null) return;
+
+                        final removedIds = ref
+                            .read(baziRecordsListProvider)
+                            .records
+                            .where((r) {
+                              final id = PersonIdentity.fromRecord(r);
+                              return id.displayName ==
+                                      PersonIdentity.normalizeName(
+                                          person.name) &&
+                                  id.birthFingerprint ==
+                                      person.birthFingerprint;
+                            })
+                            .map((r) => r.id)
+                            .toList();
+
+                        ref
+                            .read(baziRecordsListProvider.notifier)
+                            .removeByPersonIdentity(
+                              displayName: person.name,
+                              birthFingerprint: person.birthFingerprint,
+                            );
+
+                        await clearLastSelectedRecordIfMatches(
+                          displayName: person.name,
+                          birthFingerprint: person.birthFingerprint,
+                        );
+
+                        final input = ref.read(baziInputControllerProvider);
+                        if (input.report != null) {
+                          final key = PersonIdentity.fromSave(
+                            personName: input.personName,
+                            request: input.report!.request,
+                          );
+                          final deletedKey = PersonIdentity(
+                            displayName: PersonIdentity.normalizeName(
+                                person.name),
+                            birthFingerprint: person.birthFingerprint,
+                          ).groupKey;
+                          if (key.groupKey == deletedKey) {
+                            ref
+                                .read(baziInputControllerProvider.notifier)
+                                .clearCachedChart();
+                          }
+                        }
+
+                        final chatId =
+                            ref.read(chatControllerProvider).selectedRecordId;
+                        if (chatId != null && removedIds.contains(chatId)) {
+                          ref.read(chatClearSignal.notifier).state++;
+                        }
+
                         final repo = SupabaseBaziRecordRepository(
                             Supabase.instance.client);
                         await repo.deleteByPersonIdentity(
@@ -259,7 +313,6 @@ class PeopleListPage extends ConsumerWidget {
                         await ref
                             .read(baziRecordsListProvider.notifier)
                             .refresh(silent: true);
-                        ref.read(chatClearSignal.notifier).state++;
                       },
               ),
           ],

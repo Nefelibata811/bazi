@@ -1,3 +1,5 @@
+// 排盘录入状态：日历/性别/姓名/时辰等表单，提交时调用 BuildBaziReportUseCase。
+// Riverpod 注册见文件末尾 baziInputControllerProvider。
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/entities/bazi_request.dart';
@@ -235,6 +237,12 @@ class BaziInputController extends StateNotifier<BaziInputState> {
         report: report,
       );
     }
+  }
+
+  /// 清除内存中的排盘结果（删除命盘后避免 AI Tab 自动写回云端）。
+  void clearCachedChart() {
+    if (state.report == null && state.chart == null) return;
+    state = state.copyWith(clearChart: true);
   }
 
   Future<void> loadFromSavedRequest(BaziRequest request) async {

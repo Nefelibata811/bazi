@@ -102,3 +102,32 @@ Future<void> persistLastSelectedRecord(BaziRecord record) async {
     );
   } catch (_) {}
 }
+
+/// 删除命盘后清除 AI 看盘缓存的「上次选中」，避免恢复已删记录。
+Future<void> clearLastSelectedRecordIfMatches({
+  String? recordId,
+  String? displayName,
+  String? birthFingerprint,
+}) async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_lastRecordKey);
+    if (raw == null) return;
+    final map = jsonDecode(raw) as Map<String, dynamic>;
+    final savedId = map['id'] as String?;
+    if (recordId != null && savedId == recordId) {
+      await prefs.remove(_lastRecordKey);
+      return;
+    }
+    if (displayName == null || birthFingerprint == null) return;
+    final name =
+        PersonIdentity.normalizeName(map['personName'] as String? ?? '');
+    final fp = PersonIdentity.birthFingerprintFromRequestJson(
+      map['requestJson'] as String? ?? '',
+    );
+    final targetName = PersonIdentity.normalizeName(displayName);
+    if (name == targetName && fp == birthFingerprint) {
+      await prefs.remove(_lastRecordKey);
+    }
+  } catch (_) {}
+}

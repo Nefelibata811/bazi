@@ -1,3 +1,6 @@
+// 根路由与主界面：登录态切换首页、命名路由、底部 Tab（命主列表 / AI 看盘）。
+// _MainShell 使用 IndexedStack 保持 Tab 状态；navigateToHomeTab 用于回到主页。
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

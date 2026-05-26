@@ -1,3 +1,5 @@
+// 用例：根据 BaziRequest 生成完整 BaziReport（历法 → 四柱 → 大运 → 格局/神煞/用神）。
+// 排盘主流程入口，由 BaziInputController 调用。
 import '../entities/bazi_report.dart';
 import '../entities/bazi_request.dart';
 import '../services/bazi_calculator.dart';
