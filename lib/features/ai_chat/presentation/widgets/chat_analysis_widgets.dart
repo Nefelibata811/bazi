@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/app_strings.dart';
 import '../../../../domain/entities/bazi_record.dart';
+import '../../../history/presentation/widgets/birth_label_text.dart';
 
 class EmptyAnalysisPrompt extends StatelessWidget {
   const EmptyAnalysisPrompt({super.key, required this.onStart});
@@ -100,14 +101,20 @@ class SelectedRecordBar extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
-                Text(
-                  hasSavedHistory ? '已有历史对话' : record.birthLabel,
-                  style: textTheme.bodySmall?.copyWith(
-                    color: hasSavedHistory ? AppColors.gold : null,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                hasSavedHistory
+                    ? Text(
+                        '已有历史对话',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: AppColors.gold,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      )
+                    : BirthLabelText.fromRequestJson(
+                        record.requestJson,
+                        style: textTheme.bodySmall,
+                        maxLines: 2,
+                      ),
               ],
             ),
           ),

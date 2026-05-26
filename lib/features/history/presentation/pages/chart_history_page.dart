@@ -7,6 +7,7 @@ import '../../../../core/app_strings.dart';
 import '../../../../domain/entities/bazi_record.dart';
 import '../../../../domain/entities/bazi_request.dart';
 import '../../application/bazi_records_list_controller.dart';
+import '../widgets/birth_label_text.dart';
 import '../../infrastructure/bazi_request_codec.dart';
 import '../../infrastructure/person_identity.dart';
 import '../../application/save_bazi_record.dart'
@@ -130,10 +131,18 @@ class ChartHistoryPage extends ConsumerWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  '$savedDate $savedTime  ·  ${record.birthLabel}',
-                                  style: textTheme.bodySmall,
+                                  '保存 $savedDate $savedTime',
+                                  style: textTheme.bodySmall?.copyWith(
+                                    fontSize: 11,
+                                    color: AppColors.deepGray,
+                                  ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 2),
+                                BirthLabelText.fromRequestJson(
+                                  record.requestJson,
+                                  style: textTheme.bodySmall,
                                 ),
                               ],
                             ),

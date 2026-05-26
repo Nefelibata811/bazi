@@ -6,6 +6,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../core/app_strings.dart';
 import '../../../../domain/entities/bazi_record.dart';
 import '../../../history/application/bazi_records_list_controller.dart';
+import '../../../history/presentation/widgets/birth_label_text.dart';
 import '../../../history/application/save_bazi_record.dart'
     show findSavedRecord, saveBaziReport;
 import '../../../input/application/bazi_input_controller.dart';
@@ -169,7 +170,6 @@ class _RecordList extends StatelessWidget {
       itemBuilder: (_, i) {
         final r = records[i];
         final isSelected = r.id == selectedId;
-        final birth = r.birthLabel;
         final saved =
             '${r.savedAt.year}.${r.savedAt.month.toString().padLeft(2, '0')}'
             '.${r.savedAt.day.toString().padLeft(2, '0')}';
@@ -222,11 +222,9 @@ class _RecordList extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 3),
-                        Text(
-                          birth,
+                        BirthLabelText.fromRequestJson(
+                          r.requestJson,
                           style: textTheme.bodySmall,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 2),
                         Text(

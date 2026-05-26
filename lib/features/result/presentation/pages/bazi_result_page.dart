@@ -89,8 +89,11 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
     final chartTime = snapshot.solarDateTime;
     final clockTime = snapshot.clockDateTime ?? chartTime;
     final tst = snapshot.trueSolarTime;
-    final dateText =
-        '${clockTime.year}年${clockTime.month}月${clockTime.day}日';
+    final lunar = snapshot.lunarDate;
+    final dateText = report.request.calendarType == CalendarType.lunar
+        ? '农历${lunar.year}年${lunar.month}月${lunar.day}日'
+            '（公历${clockTime.year}年${clockTime.month}月${clockTime.day}日）'
+        : '${clockTime.year}年${clockTime.month}月${clockTime.day}日';
     final clockTimeText =
         '${clockTime.hour.toString().padLeft(2, '0')}:${clockTime.minute.toString().padLeft(2, '0')}';
     final chartTimeText =

@@ -19,6 +19,7 @@ import '../../../domain/usecases/build_bazi_report_usecase.dart';
 import '../../../domain/value_objects/bazi_sect.dart';
 import '../../../domain/value_objects/calendar_type.dart';
 import '../../../domain/value_objects/gender.dart';
+import '../../../infrastructure/calendar/chart_datetime_resolver.dart';
 import '../../../domain/entities/bazi_reverse_candidate.dart';
 import '../../../infrastructure/calendar/astro_ren_yuan_si_ling_calculator.dart';
 import '../../../infrastructure/calendar/astro_solar_term_provider.dart';
@@ -113,6 +114,9 @@ class BaziInputController extends StateNotifier<BaziInputState> {
 
   void setCalendarType(CalendarType type) {
     state = state.copyWith(calendarType: type, clearChart: true);
+    if (type == CalendarType.lunar) {
+      _syncSolarFromLunar();
+    }
   }
 
   void setGender(Gender gender) {
@@ -157,6 +161,9 @@ class BaziInputController extends StateNotifier<BaziInputState> {
       solarDateTime: DateTime(dt.year, dt.month, dt.day, hour, dt.minute),
       clearChart: true,
     );
+    if (state.calendarType == CalendarType.lunar) {
+      _syncSolarFromLunar();
+    }
   }
 
   void setSolarMinute(int minute) {
@@ -165,24 +172,50 @@ class BaziInputController extends StateNotifier<BaziInputState> {
       solarDateTime: DateTime(dt.year, dt.month, dt.day, dt.hour, minute),
       clearChart: true,
     );
+    if (state.calendarType == CalendarType.lunar) {
+      _syncSolarFromLunar();
+    }
   }
 
   int _lastDayOf(int year, int month) => DateTime(year, month + 1, 0).day;
 
   void setLunarYear(int year) {
     state = state.copyWith(lunarYear: year, clearChart: true);
+    _syncSolarFromLunar();
   }
 
   void setLunarMonth(int month) {
     state = state.copyWith(lunarMonth: month, clearChart: true);
+    _syncSolarFromLunar();
   }
 
   void setLunarDay(int day) {
     state = state.copyWith(lunarDay: day, clearChart: true);
+    _syncSolarFromLunar();
   }
 
   void setLeapMonth(bool value) {
     state = state.copyWith(isLeapMonth: value, clearChart: true);
+    _syncSolarFromLunar();
+  }
+
+  void _syncSolarFromLunar() {
+    if (state.calendarType != CalendarType.lunar) return;
+    final request = BaziRequest(
+      calendarType: state.calendarType,
+      gender: state.gender,
+      solarDateTime: state.solarDateTime,
+      lunarYear: state.lunarYear,
+      lunarMonth: state.lunarMonth,
+      lunarDay: state.lunarDay,
+      isLeapMonth: state.isLeapMonth,
+      baziSect: state.baziSect,
+      useTrueSolarTime: state.useTrueSolarTime,
+      longitude: state.longitude,
+      standardMeridian: state.standardMeridian,
+    );
+    final clock = ChartDateTimeResolver.clockLocal(request);
+    state = state.copyWith(solarDateTime: clock, clearChart: true);
   }
 
   void setBaziSect(BaziSect sect) {
@@ -212,6 +245,9 @@ class BaziInputController extends StateNotifier<BaziInputState> {
   }
 
   Future<void> submit() async {
+    if (state.calendarType == CalendarType.lunar) {
+      _syncSolarFromLunar();
+    }
     state = state.copyWith(loading: true);
 
     final request = BaziRequest(
@@ -274,24 +310,44 @@ class BaziInputController extends StateNotifier<BaziInputState> {
   }
 
   Future<void> loadFromSavedRequest(BaziRequest request) async {
+    var resolved = request;
+    if (request.calendarType == CalendarType.lunar) {
+      final clock = ChartDateTimeResolver.clockLocal(request);
+      resolved = BaziRequest(
+        calendarType: request.calendarType,
+        gender: request.gender,
+        solarDateTime: clock,
+        lunarYear: request.lunarYear,
+        lunarMonth: request.lunarMonth,
+        lunarDay: request.lunarDay,
+        isLeapMonth: request.isLeapMonth,
+        baziSect: request.baziSect,
+        personName: request.personName,
+        useTrueSolarTime: request.useTrueSolarTime,
+        longitude: request.longitude,
+        latitude: request.latitude,
+        birthPlaceName: request.birthPlaceName,
+        standardMeridian: request.standardMeridian,
+      );
+    }
     state = state.copyWith(
-      calendarType: request.calendarType,
-      gender: request.gender,
-      solarDateTime: request.solarDateTime,
-      lunarYear: request.lunarYear,
-      lunarMonth: request.lunarMonth,
-      lunarDay: request.lunarDay,
-      isLeapMonth: request.isLeapMonth,
-      baziSect: request.baziSect,
-      personName: request.personName ?? state.personName,
-      useTrueSolarTime: request.useTrueSolarTime,
-      longitude: request.longitude,
-      latitude: request.latitude,
-      birthPlaceName: request.birthPlaceName,
-      standardMeridian: request.standardMeridian,
+      calendarType: resolved.calendarType,
+      gender: resolved.gender,
+      solarDateTime: resolved.solarDateTime,
+      lunarYear: resolved.lunarYear,
+      lunarMonth: resolved.lunarMonth,
+      lunarDay: resolved.lunarDay,
+      isLeapMonth: resolved.isLeapMonth,
+      baziSect: resolved.baziSect,
+      personName: resolved.personName ?? state.personName,
+      useTrueSolarTime: resolved.useTrueSolarTime,
+      longitude: resolved.longitude,
+      latitude: resolved.latitude,
+      birthPlaceName: resolved.birthPlaceName,
+      standardMeridian: resolved.standardMeridian,
       loading: true,
     );
-    final report = await _buildBaziReportUseCase(request);
+    final report = await _buildBaziReportUseCase(resolved);
     if (mounted) {
       state = state.copyWith(
           loading: false, chart: report.chart, report: report);

@@ -67,14 +67,10 @@ class _ChatMessageListState extends State<ChatMessageList> {
     }
 
     if (newLen > oldLen) {
-      _pinnedToBottom = true;
-      _scrollToBottom(animate: true);
+      if (_pinnedToBottom) {
+        _scrollToBottom(animate: true);
+      }
       return;
-    }
-
-    if (widget.state.streamingContent != oldWidget.state.streamingContent &&
-        _pinnedToBottom) {
-      _scrollToBottom(animate: false);
     }
   }
 

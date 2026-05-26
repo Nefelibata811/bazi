@@ -14,6 +14,7 @@ import '../../../domain/services/bazi_calculator.dart';
 import '../../../domain/services/chat_repository.dart';
 import '../../../features/auth/application/auth_controller.dart';
 import '../../../features/history/infrastructure/bazi_request_codec.dart';
+import '../../../features/history/infrastructure/birth_display_label.dart';
 import '../../../features/history/infrastructure/report_json_extra_pillars.dart';
 import '../../../features/input/application/bazi_input_controller.dart';
 import '../../../infrastructure/calendar/chart_datetime_resolver.dart';
@@ -593,13 +594,16 @@ class ChatController extends StateNotifier<ChatState> {
 
       final isMale = reqMap['gender'] != 'female';
       final gender = isMale ? '男' : '女';
-      final cal = reqMap['calendarType'] == 'lunar' ? '农历' : '公历';
-      final solar = DateTime.parse(reqMap['solarDateTime'] as String);
-      final minute = solar.minute.toString().padLeft(2, '0');
-      final time = minute == '00' ? '${solar.hour}时' : '${solar.hour}:$minute';
-      buf.writeln(
-          '性别：$gender，历法：$cal，出生日期：${solar.year}年${solar.month}月${solar.day}日 $time');
-      _appendTrueSolarTimeLines(buf, requestJson: requestJson, clockTimeLabel: time);
+      final request = BaziRequestCodec.fromJson(requestJson);
+      final birthText = request != null
+          ? formatBirthLabel(request)
+          : reqMap['solarDateTime']?.toString() ?? '';
+      buf.writeln('性别：$gender，出生：$birthText');
+      _appendTrueSolarTimeLines(
+        buf,
+        requestJson: requestJson,
+        clockTimeLabel: birthText,
+      );
 
       final dayMaster = repMap['dayMaster'] as String? ?? '';
       if (dayMaster.isNotEmpty) buf.writeln('日主：$dayMaster');

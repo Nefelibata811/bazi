@@ -11,6 +11,8 @@ import '../../../../infrastructure/database/supabase_bazi_record_repository.dart
 import '../../infrastructure/bazi_request_codec.dart';
 import '../../infrastructure/person_identity.dart';
 import '../../application/bazi_records_list_controller.dart';
+import '../../infrastructure/birth_display_label.dart';
+import '../widgets/birth_label_text.dart';
 import '../../application/collections_list_controller.dart';
 import '../../application/open_ai_for_record.dart';
 import '../../application/save_bazi_record.dart'
@@ -28,7 +30,6 @@ final peopleListProvider = Provider<List<PersonSummary>>((ref) {
     final identity = PersonIdentity.fromRecord(r);
     grouped.putIfAbsent(identity.groupKey, () => []).add(_RawRecord(
           id: r.id,
-          birthLabel: r.birthLabel,
           savedAt: r.savedAt,
           requestJson: r.requestJson,
           reportJson: r.reportJson,
@@ -45,20 +46,20 @@ final peopleListProvider = Provider<List<PersonSummary>>((ref) {
       name: latest.displayName,
       birthFingerprint: latest.birthFingerprint,
       recordCount: e.value.length,
-      latestRecord: latest.birthLabel,
       latestRequestJson: latest.requestJson,
     );
   }).toList()
     ..sort((a, b) {
       final byName = a.name.compareTo(b.name);
       if (byName != 0) return byName;
-      return a.latestRecord.compareTo(b.latestRecord);
+      final aBirth = formatBirthLabelFromRequestJson(a.latestRequestJson) ?? '';
+      final bBirth = formatBirthLabelFromRequestJson(b.latestRequestJson) ?? '';
+      return aBirth.compareTo(bBirth);
     });
 });
 
 class _RawRecord {
   final String id;
-  final String birthLabel;
   final DateTime savedAt;
   final String requestJson;
   final String reportJson;
@@ -66,7 +67,6 @@ class _RawRecord {
   final String birthFingerprint;
   _RawRecord({
     required this.id,
-    required this.birthLabel,
     required this.savedAt,
     required this.requestJson,
     required this.reportJson,
@@ -80,24 +80,14 @@ class PersonSummary {
   final String name;
   final String birthFingerprint;
   final int recordCount;
-  final String latestRecord;
   final String latestRequestJson;
   const PersonSummary({
     required this.recordId,
     required this.name,
     required this.birthFingerprint,
     required this.recordCount,
-    required this.latestRecord,
     required this.latestRequestJson,
   });
-
-  /// 同名不同出生时辰时，副标题需带出出生信息以便区分。
-  String get subtitle {
-    if (recordCount > 1) {
-      return '$latestRecord · 已保存 $recordCount 次（同一人）';
-    }
-    return latestRecord;
-  }
 }
 
 class PeopleListPage extends ConsumerWidget {
@@ -713,12 +703,30 @@ class _PeopleList extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(person.name, style: textTheme.titleMedium),
-                        const SizedBox(height: 3),
                         Text(
-                          person.subtitle,
-                          style: textTheme.bodySmall,
+                          person.name,
+                          style: textTheme.titleMedium,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
+                        const SizedBox(height: 3),
+                        BirthLabelText.fromRequestJson(
+                          person.latestRequestJson,
+                          style: textTheme.bodySmall,
+                          color: AppColors.deepGray,
+                        ),
+                        if (person.recordCount > 1) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            '已保存 ${person.recordCount} 次（同一人）',
+                            style: textTheme.bodySmall?.copyWith(
+                              fontSize: 11,
+                              color: AppColors.gold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -735,7 +743,8 @@ class _PeopleList extends StatelessWidget {
                       builder: (ctx) => AlertDialog(
                         title: const Text('确认删除'),
                         content: Text(
-                          '确定要删除「${person.name}」的这条命盘吗？\n${person.latestRecord}',
+                          '确定要删除「${person.name}」的这条命盘吗？\n'
+                          '${formatBirthLabelFromRequestJson(person.latestRequestJson) ?? ''}',
                         ),
                         actions: [
                           TextButton(
