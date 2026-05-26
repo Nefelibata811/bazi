@@ -124,6 +124,8 @@ class HomeInputPage extends ConsumerStatefulWidget {
 }
 
 class _HomeInputPageState extends ConsumerState<HomeInputPage> {
+  bool _isSubmitting = false;
+
   @override
   void initState() {
     super.initState();
@@ -143,6 +145,7 @@ class _HomeInputPageState extends ConsumerState<HomeInputPage> {
     final state = ref.watch(baziInputControllerProvider);
     final controller = ref.read(baziInputControllerProvider.notifier);
     final textTheme = Theme.of(context).textTheme;
+    final isBusy = state.loading || _isSubmitting;
 
     return Scaffold(
       appBar: AppBar(
@@ -150,10 +153,12 @@ class _HomeInputPageState extends ConsumerState<HomeInputPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           tooltip: '返回主页',
-          onPressed: () => navigateToHomeTab(context, ref),
+          onPressed: isBusy ? null : () => navigateToHomeTab(context, ref),
         ),
       ),
-      body: SafeArea(
+      body: Stack(
+        children: [
+          SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
           children: [
@@ -253,7 +258,7 @@ class _HomeInputPageState extends ConsumerState<HomeInputPage> {
                       ),
                     const SizedBox(height: 12),
                     OutlinedButton.icon(
-                      onPressed: state.loading
+                      onPressed: isBusy
                           ? null
                           : () {
                               Navigator.of(context).push(
@@ -270,72 +275,79 @@ class _HomeInputPageState extends ConsumerState<HomeInputPage> {
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
-                      onPressed: state.loading
+                      onPressed: isBusy
                           ? null
                           : () async {
-                              await controller.submit();
-                              if (!context.mounted) return;
-
-                              final inputState =
-                                  ref.read(baziInputControllerProvider);
-                              if (inputState.report != null) {
-                                final outcome = await saveBaziReport(
-                                  ref,
-                                  report: inputState.report!,
-                                  personName: inputState.personName,
-                                );
+                              setState(() => _isSubmitting = true);
+                              try {
+                                await controller.submit();
                                 if (!context.mounted) return;
-                                if (outcome == null &&
-                                    ref
-                                        .read(authControllerProvider)
-                                        .user !=
-                                        null) {
+
+                                final inputState =
+                                    ref.read(baziInputControllerProvider);
+                                if (inputState.report != null) {
+                                  final outcome = await saveBaziReport(
+                                    ref,
+                                    report: inputState.report!,
+                                    personName: inputState.personName,
+                                  );
+                                  if (!context.mounted) return;
+                                  if (outcome == null &&
+                                      ref
+                                          .read(authControllerProvider)
+                                          .isLoggedIn) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          AppStrings.chartSaveCloudFailed,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                }
+
+                                if (context.mounted) {
+                                  final loggedIn = ref
+                                      .read(authControllerProvider)
+                                      .isLoggedIn;
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        AppStrings.chartSaveCloudFailed,
+                                    SnackBar(
+                                      content: Row(
+                                        children: [
+                                          const Icon(Icons.check_circle,
+                                              color: Colors.white, size: 18),
+                                          const SizedBox(width: 8),
+                                          Text(loggedIn
+                                              ? AppStrings
+                                                  .chartCreatedLoggedIn
+                                              : AppStrings.chartCreatedGuest),
+                                        ],
+                                      ),
+                                      backgroundColor: AppColors.gold,
+                                      duration: const Duration(seconds: 2),
+                                      behavior: SnackBarBehavior.floating,
+                                      margin: const EdgeInsets.fromLTRB(
+                                          20, 0, 20, 16),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  );
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => const BaziResultPage(
+                                        isAutoSaved: true,
                                       ),
                                     ),
                                   );
                                 }
-                              }
-
-                              if (context.mounted) {
-                                final loggedIn = ref
-                                    .read(authControllerProvider)
-                                    .isLoggedIn;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Row(
-                                      children: [
-                                        const Icon(Icons.check_circle,
-                                            color: Colors.white, size: 18),
-                                        const SizedBox(width: 8),
-                                        Text(loggedIn
-                                            ? AppStrings.chartCreatedLoggedIn
-                                            : AppStrings.chartCreatedGuest),
-                                      ],
-                                    ),
-                                    backgroundColor: AppColors.gold,
-                                    duration: const Duration(seconds: 2),
-                                    behavior: SnackBarBehavior.floating,
-                                    margin: const EdgeInsets.fromLTRB(
-                                        20, 0, 20, 16),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                );
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => const BaziResultPage(
-                                      isAutoSaved: true,
-                                    ),
-                                  ),
-                                );
+                              } finally {
+                                if (mounted) {
+                                  setState(() => _isSubmitting = false);
+                                }
                               }
                             },
-                      child: Text(state.loading ? '排盘中...' : '开始排盘'),
+                      child: Text(isBusy ? '排盘中...' : '开始排盘'),
                     ),
                   ],
                 ),
@@ -343,6 +355,41 @@ class _HomeInputPageState extends ConsumerState<HomeInputPage> {
             ),
           ],
         ),
+      ),
+          if (isBusy)
+            Positioned.fill(
+              child: ColoredBox(
+                color: Colors.black.withValues(alpha: 0.12),
+                child: Center(
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 28,
+                        vertical: 24,
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(
+                            width: 32,
+                            height: 32,
+                            child: CircularProgressIndicator(strokeWidth: 2.5),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            state.loading ? '正在排盘…' : '正在保存命盘…',
+                            style: textTheme.titleSmall?.copyWith(
+                              color: AppColors.deepGray,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

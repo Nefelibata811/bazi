@@ -53,14 +53,17 @@ Future<SaveBaziOutcome?> saveBaziReport(
   required BaziReport report,
   required String personName,
 }) async {
-  final user = ref.read(authControllerProvider).user;
-  if (user == null) return null;
+  final auth = ref.read(authControllerProvider);
+  if (!auth.isLoggedIn) return null;
+
+  final user = auth.user;
+  if (user == null || !isSupabaseSessionActive()) return null;
 
   final name = PersonIdentity.normalizeName(personName);
   final requestJson = BaziRecordEncoder.encodeRequest(report, name);
   final reportJson = BaziRecordEncoder.encodeReport(report);
 
-  try {
+  Future<SaveBaziOutcome?> attempt() async {
     final repo = ref.read(baziRecordRepositoryProvider);
     final existing = await repo.findByIdentity(
       userId: user.id,
@@ -82,9 +85,19 @@ Future<SaveBaziOutcome?> saveBaziReport(
     ref.read(baziRecordsListProvider.notifier).upsertRecord(record);
     await persistLastSelectedRecord(record);
     return SaveBaziOutcome(record: record, isNew: true);
+  }
+
+  try {
+    return await attempt();
   } catch (e, st) {
-    debugPrint('saveBaziReport failed: $e\n$st');
-    return null;
+    debugPrint('saveBaziReport failed (will retry once): $e\n$st');
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+    try {
+      return await attempt();
+    } catch (e2, st2) {
+      debugPrint('saveBaziReport failed after retry: $e2\n$st2');
+      return null;
+    }
   }
 }
 

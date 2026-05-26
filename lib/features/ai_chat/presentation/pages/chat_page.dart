@@ -318,6 +318,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     });
 
     ref.listen(chatClearSignal, (_, __) {
+      _isRestoringSession = false;
+      _bootstrapInFlight = false;
       _clearChat();
     });
 

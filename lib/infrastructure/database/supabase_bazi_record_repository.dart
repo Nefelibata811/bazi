@@ -51,22 +51,39 @@ class SupabaseBaziRecordRepository implements BaziRecordRepository {
       return _mapRow(response);
     }
 
-    final response = await _client.from('bazi_records').insert({
-      'user_id': userId,
-      'person_name': normalizedName,
-      'request_json': requestJson,
-      'report_json': reportJson,
-      'idempotency_key': idempotencyKey,
-      'saved_at': now,
-    }).select().single();
+    late final Map<String, dynamic> row;
+    try {
+      row = await _client.from('bazi_records').insert({
+        'user_id': userId,
+        'person_name': normalizedName,
+        'request_json': requestJson,
+        'report_json': reportJson,
+        'idempotency_key': idempotencyKey,
+        'saved_at': now,
+      }).select().single();
+    } on PostgrestException catch (e) {
+      // 并发保存同一命盘时可能触发幂等唯一约束，回读已有行即可。
+      if (e.code == '23505') {
+        final existing = await _client
+            .from('bazi_records')
+            .select()
+            .eq('user_id', userId)
+            .eq('idempotency_key', idempotencyKey)
+            .maybeSingle();
+        if (existing != null) {
+          return _mapRow(existing);
+        }
+      }
+      rethrow;
+    }
 
     await _deleteDuplicateSiblings(
       userId: userId,
       normalizedName: normalizedName,
       birth: birth,
-      keepId: response['id'] as String,
+      keepId: row['id'] as String,
     );
-    return _mapRow(response);
+    return _mapRow(row);
   }
 
   @override

@@ -10,6 +10,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 import '../../../core/app_urls.dart';
 import '../../../core/auth_messages.dart';
 import '../../../core/phone_utils.dart';
+import '../../../core/user_session_cleanup.dart';
 import '../../../domain/entities/user.dart';
 import '../../../domain/services/auth_repository.dart';
 import '../../../app/bootstrap_app.dart';
@@ -92,6 +93,15 @@ class AuthController extends StateNotifier<AuthState> {
   Timer? _loadingFailsafe;
   StreamSubscription? _authSubscription;
   bool _supabaseAttached = false;
+  String? _sessionUserId;
+
+  Future<void> _onAuthUserChanged(String? newUserId) async {
+    final previous = _sessionUserId;
+    if (previous != null && previous != newUserId) {
+      await clearUserScopedSession(_ref);
+    }
+    _sessionUserId = newUserId;
+  }
 
   /// Supabase 在后台初始化完成后由 [BootstrapApp] 调用。
   void onSupabaseReady() {
@@ -120,6 +130,8 @@ class AuthController extends StateNotifier<AuthState> {
       if (data.event == AuthChangeEvent.signedIn) {
         final user = await _authRepository.currentUser();
         if (mounted && user != null && !state.needsPasswordReset) {
+          await _onAuthUserChanged(user.id);
+          if (!mounted) return;
           final session = Supabase.instance.client.auth.currentSession;
           if (session != null) {
             state = AuthState.authenticated(user);
@@ -134,6 +146,8 @@ class AuthController extends StateNotifier<AuthState> {
       if (data.event == AuthChangeEvent.signedOut) {
         if (mounted) {
           _loadingFailsafe?.cancel();
+          await _onAuthUserChanged(null);
+          if (!mounted) return;
           state = AuthState.unauthenticated();
         }
       }
@@ -176,6 +190,8 @@ class AuthController extends StateNotifier<AuthState> {
 
     _loadingFailsafe?.cancel();
     if (mounted) {
+      await _onAuthUserChanged(sessionUser.id);
+      if (!mounted) return;
       state = state.copyWith(
         user: sessionUser,
         loading: false,
@@ -260,7 +276,10 @@ class AuthController extends StateNotifier<AuthState> {
         );
         return false;
       }
-      state = AuthState.authenticated(user);
+      await _onAuthUserChanged(user.id);
+      if (mounted) {
+        state = AuthState.authenticated(user);
+      }
       return true;
     } catch (e) {
       state = AuthState.unauthenticated(
@@ -346,6 +365,7 @@ class AuthController extends StateNotifier<AuthState> {
         return false;
       }
 
+      await _onAuthUserChanged(user.id);
       if (mounted) {
         state = AuthState.authenticated(user);
       }
@@ -410,14 +430,20 @@ class AuthController extends StateNotifier<AuthState> {
 
       final session = Supabase.instance.client.auth.currentSession;
       if (session == null) {
-        state = AuthState.authenticated(
-          user,
-          needsEmailConfirmation: true,
-        );
+        await _onAuthUserChanged(user.id);
+        if (mounted) {
+          state = AuthState.authenticated(
+            user,
+            needsEmailConfirmation: true,
+          );
+        }
         return false;
       }
 
-      state = AuthState.authenticated(user);
+      await _onAuthUserChanged(user.id);
+      if (mounted) {
+        state = AuthState.authenticated(user);
+      }
       return true;
     } on AuthException catch (e) {
       state = AuthState.unauthenticated(error: registerErrorMessage(e));
@@ -471,6 +497,7 @@ class AuthController extends StateNotifier<AuthState> {
 
   Future<void> logout() async {
     _loadingFailsafe?.cancel();
+    await _onAuthUserChanged(null);
     state = AuthState.unauthenticated();
     try {
       await _authRepository.logout();
