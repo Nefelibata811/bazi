@@ -3,7 +3,7 @@ import 'dart:async';
 /// Reveals streamed text one character at a fixed pace (never batch-jumps).
 class StreamingTypingReveal {
   StreamingTypingReveal({
-    this.charInterval = const Duration(milliseconds: 42),
+    this.charInterval = const Duration(milliseconds: 20),
   });
 
   final Duration charInterval;

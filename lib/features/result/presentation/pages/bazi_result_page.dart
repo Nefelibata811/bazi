@@ -27,9 +27,16 @@ import '../widgets/useful_god_card.dart';
 const _chartRuleEngine = BaziRuleEngine();
 
 class BaziResultPage extends ConsumerStatefulWidget {
-  const BaziResultPage({super.key, this.isFromHistory = false});
+  const BaziResultPage({
+    super.key,
+    this.isFromHistory = false,
+    this.isAutoSaved = false,
+  });
 
   final bool isFromHistory;
+
+  /// 排盘提交后已自动保存（主页「开始排盘」流程）。
+  final bool isAutoSaved;
 
   @override
   ConsumerState<BaziResultPage> createState() => _BaziResultPageState();
@@ -56,7 +63,7 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
   @override
   void initState() {
     super.initState();
-    if (widget.isFromHistory) {
+    if (widget.isFromHistory || widget.isAutoSaved) {
       _hasSaved = true;
     }
   }
@@ -109,23 +116,10 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
         title: const Text('排盘结果'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          tooltip: '返回主页',
-          onPressed: _isGoingToAi ? null : () => _returnToMain(),
+          tooltip: '返回主界面',
+          onPressed: () => _returnToMain(),
         ),
-        actions: [
-          IconButton(
-            icon: _isGoingToAi
-                ? const SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.auto_awesome_outlined),
-            tooltip: 'AI 看盘',
-            onPressed: _isGoingToAi ? null : () => _goToAiChat(),
-          ),
-          ..._buildAppBarActions(),
-        ],
+        actions: _buildAppBarActions(),
       ),
       body: SafeArea(
         child: ListView(
@@ -136,24 +130,54 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
               children: [
                 Text('命主信息', style: textTheme.titleLarge),
                 const SizedBox(height: 12),
-                Row(children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.cinnabar.withValues(alpha: 0.10),
-                      borderRadius: BorderRadius.circular(999),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.cinnabar.withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        genderLabel,
+                        style: textTheme.labelMedium?.copyWith(
+                          color: AppColors.cinnabar,
+                        ),
+                      ),
                     ),
-                    child: Text(genderLabel, style: textTheme.labelMedium?.copyWith(color: AppColors.cinnabar)),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(color: AppColors.deepGray.withValues(alpha: 0.06), borderRadius: BorderRadius.circular(999)),
-                    child: Text('$dateText $timeText', style: textTheme.labelMedium?.copyWith(color: AppColors.ink)),
-                  ),
-                  const SizedBox(width: 8),
-                  Text('· $calendarLabel · $precisionLabel', style: textTheme.bodySmall),
-                ]),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.deepGray.withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        dateText,
+                        style: textTheme.labelMedium?.copyWith(
+                          color: AppColors.ink,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      '· $calendarLabel · $precisionLabel',
+                      style: textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  timeText,
+                  style: textTheme.bodyMedium?.copyWith(color: AppColors.ink),
+                ),
                 if (placeText != null && placeText.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Text(
@@ -210,7 +234,9 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
               ElevatedButton.icon(
                 onPressed: () => _returnToMain(),
                 icon: const Icon(Icons.home),
-                label: const Text('返回命主列表'),
+                label: Text(
+                  widget.isAutoSaved ? '返回主界面' : '返回命主列表',
+                ),
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 54),
                   backgroundColor: AppColors.gold,
@@ -225,30 +251,53 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
   }
 
   List<Widget> _buildAppBarActions() {
-    if (_hasSaved) {
-      return [
-        TextButton.icon(
-          onPressed: () => _returnToMain(),
-          icon: const Icon(Icons.arrow_back, size: 18),
-          label: const Text('返回主页'),
-          style: TextButton.styleFrom(foregroundColor: AppColors.gold),
+    final actions = <Widget>[];
+
+    if (!widget.isAutoSaved) {
+      actions.add(
+        IconButton(
+          icon: _isGoingToAi
+              ? const SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.auto_awesome_outlined),
+          tooltip: 'AI 看盘',
+          onPressed: _isGoingToAi ? null : () => _goToAiChat(),
         ),
-      ];
+      );
     }
 
-    return [
-      IconButton(
-        icon: _isSaving
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : const Icon(Icons.save_outlined),
-        tooltip: '保存排盘',
-        onPressed: _isSaving ? null : _onSaveTap,
-      ),
-    ];
+    if (widget.isAutoSaved || _hasSaved) {
+      actions.add(
+        TextButton.icon(
+          onPressed: () => _returnToMain(),
+          icon: Icon(
+            widget.isAutoSaved ? Icons.home_outlined : Icons.arrow_back,
+            size: 18,
+          ),
+          label: Text(widget.isAutoSaved ? '返回主界面' : '返回主页'),
+          style: TextButton.styleFrom(foregroundColor: AppColors.gold),
+        ),
+      );
+    } else {
+      actions.add(
+        IconButton(
+          icon: _isSaving
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.save_outlined),
+          tooltip: '保存排盘',
+          onPressed: _isSaving ? null : _onSaveTap,
+        ),
+      );
+    }
+
+    return actions;
   }
 
   Future<void> _goToAiChat() async {
@@ -277,17 +326,7 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
         report: report,
         personName: personName,
       );
-      if (existing != null || widget.isFromHistory || _hasSaved) {
-        if (existing == null) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('请先在结果页保存命盘，或从命主列表进入'),
-              ),
-            );
-          }
-          return;
-        }
+      if (existing != null) {
         await openAiForRecord(context, ref, record: existing);
         return;
       }

@@ -235,4 +235,22 @@ void main() {
       expect(mockRepo.callCount, equals(countBefore + 1));
     });
   });
+
+  group('clearSelection', () {
+    test('清除选盘时复位全部会话状态（含 isRestoringChart）', () {
+      controller.state = controller.state.copyWith(
+        selectedRecordId: recordId,
+        selectedPersonName: personName,
+        isRestoringChart: true,
+        isLoading: true,
+        messages: const [
+          ChatMessage(role: 'user', content: 'test'),
+        ],
+      );
+
+      controller.clearSelection();
+
+      expect(controller.state, const ChatState());
+    });
+  });
 }

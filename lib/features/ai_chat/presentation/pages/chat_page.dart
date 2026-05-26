@@ -10,7 +10,7 @@ import '../../../../domain/entities/bazi_record.dart';
 import '../../../auth/application/auth_controller.dart';
 import '../../../history/application/bazi_records_list_controller.dart';
 import '../../../history/application/save_bazi_record.dart'
-    show clearLastSelectedRecordIfMatches, persistLastSelectedRecord,
+    show persistLastSelectedRecord,
         saveBaziReport;
 import '../../../input/application/bazi_input_controller.dart';
 import '../../application/chat_controller.dart';
@@ -33,6 +33,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   BaziRecord? _selectedRecord;
   bool _isRestoringSession = false;
   bool _isSyncingChart = false;
+  bool _bootstrapInFlight = false;
 
   @override
   void initState() {
@@ -47,12 +48,18 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 
   Future<void> _bootstrapAiTab() async {
-    await Future.wait([
-      ref.read(baziRecordsListProvider.notifier).ensureLoaded(),
-      _syncPendingChart(),
-    ]);
-    if (!mounted) return;
-    await _tryRestoreSession();
+    if (_bootstrapInFlight) return;
+    _bootstrapInFlight = true;
+    try {
+      await Future.wait([
+        ref.read(baziRecordsListProvider.notifier).ensureLoaded(),
+        _syncPendingChart(),
+      ]);
+      if (!mounted) return;
+      await _tryRestoreSession();
+    } finally {
+      _bootstrapInFlight = false;
+    }
   }
 
   static const _pendingAutoStartKey = 'pending_ai_auto_start';
@@ -121,19 +128,19 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final requestJson = saved['requestJson'] as String? ?? '';
     final reportJson = saved['reportJson'] as String? ?? '';
 
-    BaziRecord? fromList;
-    for (final r in ref.read(baziRecordsListProvider).records) {
-      if (r.id == recordId) {
-        fromList = r;
-        break;
-      }
-    }
+    final userId = ref.read(authControllerProvider).user?.id ?? '';
+    BaziRecord? fromList = _findRecordInList(recordId);
+    fromList ??= BaziRecord(
+      id: recordId,
+      userId: userId,
+      personName: personName,
+      requestJson: requestJson,
+      reportJson: reportJson,
+      savedAt: DateTime.now(),
+    );
+    ref.read(baziRecordsListProvider.notifier).upsertRecord(fromList);
 
-    if (fromList == null) {
-      await clearLastSelectedRecordIfMatches(recordId: recordId);
-      return;
-    }
-
+    if (!mounted) return;
     setState(() {
       _selectedRecord = fromList;
     });
@@ -146,6 +153,13 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       reportJson: reportJson,
       beginAnalysis: beginAnalysis,
     );
+  }
+
+  BaziRecord? _findRecordInList(String recordId) {
+    for (final r in ref.read(baziRecordsListProvider).records) {
+      if (r.id == recordId) return r;
+    }
+    return null;
   }
 
   Future<void> _selectChartOnController(

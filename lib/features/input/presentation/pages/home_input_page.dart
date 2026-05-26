@@ -328,7 +328,9 @@ class _HomeInputPageState extends ConsumerState<HomeInputPage> {
                                 );
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
-                                    builder: (_) => const BaziResultPage(),
+                                    builder: (_) => const BaziResultPage(
+                                      isAutoSaved: true,
+                                    ),
                                   ),
                                 );
                               }

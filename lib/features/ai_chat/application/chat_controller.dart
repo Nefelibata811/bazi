@@ -181,25 +181,39 @@ class ChatController extends StateNotifier<ChatState> {
       );
     }
 
-    final history = await _historyStore.load(recordId);
-    final hasHistory = history.any(
-      (m) => m.role == 'assistant' && m.content.trim().isNotEmpty,
-    );
+    try {
+      final history = await _historyStore.load(recordId);
+      final hasHistory = history.any(
+        (m) => m.role == 'assistant' && m.content.trim().isNotEmpty,
+      );
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    state = state.copyWith(
-      selectedRecordId: recordId,
-      selectedPersonName: personName,
-      reportSummary: summary,
-      messages: history,
-      hasSavedHistory: hasHistory,
-      isRestoringChart: false,
-      clearError: true,
-      clearStreamingContent: true,
-    );
+      state = state.copyWith(
+        selectedRecordId: recordId,
+        selectedPersonName: personName,
+        reportSummary: summary,
+        messages: history,
+        hasSavedHistory: hasHistory,
+        isRestoringChart: false,
+        clearError: true,
+        clearStreamingContent: true,
+      );
 
-    _saveLastSelectedRecord(recordId, personName, requestJson, reportJson);
+      _saveLastSelectedRecord(recordId, personName, requestJson, reportJson);
+    } catch (_) {
+      if (mounted) {
+        state = state.copyWith(
+          isRestoringChart: false,
+          error: '加载命盘对话失败，请重试',
+        );
+      }
+      rethrow;
+    } finally {
+      if (mounted && state.isRestoringChart) {
+        state = state.copyWith(isRestoringChart: false);
+      }
+    }
   }
 
   /// Selects a chart and runs the first analysis (used after picker confirm).
@@ -233,15 +247,7 @@ class ChatController extends StateNotifier<ChatState> {
     _disposeTyping();
     _analyzingRecordId = null;
     _clearLastSelection();
-    state = state.copyWith(
-      selectedRecordId: null,
-      selectedPersonName: null,
-      reportSummary: null,
-      messages: [],
-      hasSavedHistory: false,
-      clearError: true,
-      clearStreamingContent: true,
-    );
+    state = const ChatState();
   }
 
   void _clearLastSelection() {

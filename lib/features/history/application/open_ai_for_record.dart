@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../app/app.dart';
 import '../../../domain/entities/bazi_record.dart';
+import 'bazi_records_list_controller.dart';
 import 'save_bazi_record.dart';
 
 /// 用已保存的命盘打开 AI 看盘（不再写入云端）。
@@ -12,6 +13,7 @@ Future<void> openAiForRecord(
   WidgetRef ref, {
   required BaziRecord record,
 }) async {
+  ref.read(baziRecordsListProvider.notifier).upsertRecord(record);
   await persistLastSelectedRecord(record);
 
   final prefs = await SharedPreferences.getInstance();
