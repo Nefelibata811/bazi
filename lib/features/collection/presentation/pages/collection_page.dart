@@ -10,6 +10,7 @@ import '../../../history/infrastructure/bazi_request_codec.dart';
 import '../../../history/presentation/widgets/birth_label_text.dart';
 import '../../../../infrastructure/database/supabase_collection_repository.dart';
 import '../../../auth/application/auth_controller.dart';
+import '../../../history/application/collection_records_provider.dart';
 import '../../../history/application/collections_list_controller.dart';
 import '../../../input/application/bazi_input_controller.dart';
 import '../../../result/presentation/pages/bazi_result_page.dart';
@@ -460,7 +461,7 @@ class CollectionDetailPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final records = ref.watch(_collectionRecordsProvider(collectionId));
+    final records = ref.watch(collectionRecordsProvider(collectionId));
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
@@ -577,7 +578,7 @@ class CollectionDetailPage extends ConsumerWidget {
                               await repo.removeRecord(
                                   collectionId, record.id);
                               ref.invalidate(
-                                  _collectionRecordsProvider(collectionId));
+                                  collectionRecordsProvider(collectionId));
                             },
                             color: AppColors.deepGray,
                             tooltip: '从合集中移除',
@@ -618,24 +619,6 @@ class CollectionDetailPage extends ConsumerWidget {
 
   BaziRequest? _parseRequest(String json) => BaziRequestCodec.fromJson(json);
 }
-
-final _collectionRecordsProvider =
-    FutureProvider.autoDispose.family<List<BaziRecord>, String>(
-        (ref, collectionId) async {
-  final user = ref.watch(authControllerProvider).user;
-  if (user == null) return [];
-
-  final colRepo = SupabaseCollectionRepository(Supabase.instance.client);
-  final recordIds = await colRepo.getRecordIds(collectionId);
-
-  if (recordIds.isEmpty) return [];
-
-  final recordRepo =
-      SupabaseBaziRecordRepository(Supabase.instance.client);
-  final allRecords = await recordRepo.listByUser(user.id);
-
-  return allRecords.where((r) => recordIds.contains(r.id)).toList();
-});
 
 final _allRecordsProvider =
     FutureProvider.autoDispose<List<BaziRecord>>((ref) async {
@@ -735,7 +718,7 @@ class _AddRecordSheet extends ConsumerWidget {
                                 Supabase.instance.client);
                             await repo.addRecord(collectionId, record.id);
                             ref.invalidate(
-                                _collectionRecordsProvider(collectionId));
+                                collectionRecordsProvider(collectionId));
                             ref.invalidate(
                                 _addedRecordIdsProvider(collectionId));
                             if (context.mounted) {

@@ -35,7 +35,7 @@ class CollectionsListNotifier extends Notifier<CollectionsListState> {
   static const _networkTimeout = Duration(seconds: 3);
 
   String? _activeUserId;
-  bool _bootstrapInFlight = false;
+  Future<void>? _ongoingBootstrap;
 
   @override
   CollectionsListState build() {
@@ -135,9 +135,22 @@ class CollectionsListNotifier extends Notifier<CollectionsListState> {
   }
 
   Future<void> _bootstrap(String userId) async {
-    if (_bootstrapInFlight && _activeUserId == userId) return;
-    _bootstrapInFlight = true;
+    if (_ongoingBootstrap != null && _activeUserId == userId) {
+      return _ongoingBootstrap!;
+    }
 
+    final future = _runBootstrap(userId);
+    _ongoingBootstrap = future;
+    try {
+      await future;
+    } finally {
+      if (identical(_ongoingBootstrap, future)) {
+        _ongoingBootstrap = null;
+      }
+    }
+  }
+
+  Future<void> _runBootstrap(String userId) async {
     try {
       if (!state.hasCollections) {
         state = const CollectionsListState(isLoading: true);
@@ -160,8 +173,10 @@ class CollectionsListNotifier extends Notifier<CollectionsListState> {
           state = CollectionsListState(collections: state.collections);
         }
       }
-    } finally {
-      _bootstrapInFlight = false;
+    } catch (e) {
+      if (_activeUserId == userId && !state.hasCollections) {
+        state = CollectionsListState(error: e);
+      }
     }
   }
 
