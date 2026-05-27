@@ -12,6 +12,7 @@ import '../features/auth/presentation/pages/login_page.dart';
 import '../features/auth/presentation/pages/profile_page.dart';
 import '../features/auth/presentation/pages/register_page.dart';
 import '../features/auth/presentation/pages/reset_password_page.dart';
+import '../features/ai_chat/application/chat_controller.dart';
 import '../features/ai_chat/presentation/pages/chat_page.dart';
 import '../features/collection/presentation/pages/collection_page.dart';
 import '../features/history/presentation/pages/chart_history_page.dart';
@@ -231,39 +232,51 @@ class _MainShellState extends ConsumerState<_MainShell> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: const [
-          PeopleListPage(),
-          ChatPage(),
-        ],
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: AppColors.line)),
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: _onTabChanged,
-          backgroundColor: AppColors.paper,
-          selectedItemColor: AppColors.gold,
-          unselectedItemColor: AppColors.deepGray,
-          type: BottomNavigationBarType.fixed,
-          selectedFontSize: 12,
-          unselectedFontSize: 12,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home_rounded),
-              label: '主页',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.auto_awesome_outlined),
-              activeIcon: Icon(Icons.auto_awesome),
-              label: 'AI 看盘',
-            ),
+    return PopScope(
+      canPop: _currentIndex == 0,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (ref.read(mainTabIndexProvider) != 1) return;
+        if (ref.read(chatControllerProvider).selectedRecordId != null) {
+          ref.read(chatClearSignal.notifier).state++;
+          return;
+        }
+        _onTabChanged(0);
+      },
+      child: Scaffold(
+        body: IndexedStack(
+          index: _currentIndex,
+          children: const [
+            PeopleListPage(),
+            ChatPage(),
           ],
+        ),
+        bottomNavigationBar: Container(
+          decoration: BoxDecoration(
+            border: Border(top: BorderSide(color: AppColors.line)),
+          ),
+          child: BottomNavigationBar(
+            currentIndex: _currentIndex,
+            onTap: _onTabChanged,
+            backgroundColor: AppColors.paper,
+            selectedItemColor: AppColors.gold,
+            unselectedItemColor: AppColors.deepGray,
+            type: BottomNavigationBarType.fixed,
+            selectedFontSize: 12,
+            unselectedFontSize: 12,
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.home_outlined),
+                activeIcon: Icon(Icons.home_rounded),
+                label: '主页',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.auto_awesome_outlined),
+                activeIcon: Icon(Icons.auto_awesome),
+                label: 'AI 看盘',
+              ),
+            ],
+          ),
         ),
       ),
     );

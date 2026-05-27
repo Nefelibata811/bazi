@@ -7,6 +7,7 @@ import '../../../../domain/entities/bazi_record.dart';
 import '../../../../domain/entities/bazi_request.dart';
 import '../../../../infrastructure/database/supabase_bazi_record_repository.dart';
 import '../../../history/infrastructure/bazi_request_codec.dart';
+import '../../../history/presentation/widgets/birth_label_text.dart';
 import '../../../../infrastructure/database/supabase_collection_repository.dart';
 import '../../../auth/application/auth_controller.dart';
 import '../../../history/application/collections_list_controller.dart';
@@ -560,8 +561,10 @@ class CollectionDetailPage extends ConsumerWidget {
                                 Text(record.personName,
                                     style: textTheme.titleMedium),
                                 const SizedBox(height: 4),
-                                Text(record.dateLabel,
-                                    style: textTheme.bodySmall),
+                                BirthLabelText.fromRequestJson(
+                                  record.requestJson,
+                                  style: textTheme.bodySmall,
+                                ),
                               ],
                             ),
                           ),
@@ -707,7 +710,10 @@ class _AddRecordSheet extends ConsumerWidget {
                       ),
                     ),
                     title: Text(record.personName),
-                    subtitle: Text(record.dateLabel),
+                    subtitle: BirthLabelText.fromRequestJson(
+                      record.requestJson,
+                      style: textTheme.bodySmall,
+                    ),
                     trailing: alreadyAdded
                         ? Row(
                             mainAxisSize: MainAxisSize.min,
