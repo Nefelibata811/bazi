@@ -1,3 +1,8 @@
+// 文件：司lingtables
+//
+// 历法算法：八字排盘核心计算。
+// 路径：`lib/infrastructure/calendar/si_ling_tables.dart`。
+//
 import '../../domain/value_objects/si_ling_version.dart';
 
 /// 人元司令分野天数表（月支 → 司令段列表）。
@@ -9,6 +14,7 @@ class SiLingSegment {
   final String origin;
 }
 
+/// 类 `SiLingTables`：实现 Si Ling Tables 相关逻辑。
 class SiLingTables {
   const SiLingTables._();
 

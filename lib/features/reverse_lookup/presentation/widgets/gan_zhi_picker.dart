@@ -1,8 +1,14 @@
+// 文件：干支选择器
+//
+// UI 组件：可复用的界面片段。
+// 路径：`lib/features/reverse_lookup/presentation/widgets/gan_zhi_picker.dart`。
+//
 import 'package:flutter/material.dart';
 
 const ganList = '甲乙丙丁戊己庚辛壬癸';
 const zhiList = '子丑寅卯辰巳午未申酉戌亥';
 
+/// 类 `GanZhiPicker`：实现 Gan Zhi Picker 相关逻辑。
 class GanZhiPicker extends StatelessWidget {
   const GanZhiPicker({
     super.key,
@@ -16,6 +22,8 @@ class GanZhiPicker extends StatelessWidget {
   final String? ganZhi;
   final ValueChanged<String?> onChanged;
   final bool enabled;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

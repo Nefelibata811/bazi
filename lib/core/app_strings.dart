@@ -1,4 +1,7 @@
-/// 全应用统一文案，避免同一场景多种说法。
+// 文件：应用文案
+//
+// 路径：`lib/core/app_strings.dart`。
+//
 abstract final class AppStrings {
   // —— 登录 ——
   static const loginRequired = '请先登录';

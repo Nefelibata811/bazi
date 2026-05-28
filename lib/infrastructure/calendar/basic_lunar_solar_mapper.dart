@@ -1,3 +1,8 @@
+// 文件：basic农历公历映射
+//
+// 历法算法：八字排盘核心计算。
+// 路径：`lib/infrastructure/calendar/basic_lunar_solar_mapper.dart`。
+//
 import 'package:lunar/lunar.dart';
 
 import '../../domain/entities/lunar_date.dart';

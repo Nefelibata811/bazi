@@ -1,3 +1,8 @@
+// 文件：农历八字反查lookup
+//
+// 历法算法：八字排盘核心计算。
+// 路径：`lib/infrastructure/calendar/lunar_bazi_reverse_lookup.dart`。
+//
 import 'package:lunar/lunar.dart';
 
 import '../../domain/entities/bazi_reverse_candidate.dart';

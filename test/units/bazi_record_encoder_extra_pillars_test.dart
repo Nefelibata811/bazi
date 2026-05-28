@@ -1,3 +1,8 @@
+// 文件：单元测试 — 八字记录编解码辅柱
+//
+// 验证 八字记录编解码辅柱 的正确性与边界情况。
+// 修改实现时请同步维护本测试。
+//
 import 'dart:convert';
 
 import 'package:bazi_app/domain/entities/bazi_chart.dart';

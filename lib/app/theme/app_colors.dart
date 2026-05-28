@@ -1,7 +1,12 @@
+// 文件：应用colors
+//
+// 路径：`lib/app/theme/app_colors.dart`。
+//
 import 'package:flutter/material.dart';
 
 import 'five_element_colors.dart';
 
+/// 类 `AppColors`：实现 App Colors 相关逻辑。
 class AppColors {
   static const paper = Color(0xFFF7F3EC);
   static const rice = Color(0xFFF1ECE3);

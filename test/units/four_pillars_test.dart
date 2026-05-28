@@ -1,3 +1,8 @@
+// 文件：单元测试 — 四柱
+//
+// 验证 四柱 的正确性与边界情况。
+// 修改实现时请同步维护本测试。
+//
 import 'package:bazi_app/domain/services/bazi_rule_engine.dart';
 import 'package:bazi_app/domain/services/julian_day.dart';
 import 'package:flutter_test/flutter_test.dart';

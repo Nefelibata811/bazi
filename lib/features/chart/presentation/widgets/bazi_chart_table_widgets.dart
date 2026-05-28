@@ -1,3 +1,8 @@
+// 文件：八字命盘table组件
+//
+// UI 组件：可复用的界面片段。
+// 路径：`lib/features/chart/presentation/widgets/bazi_chart_table_widgets.dart`。
+//
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
@@ -10,10 +15,13 @@ import '../../../../app/theme/five_element_colors.dart';
 
 const baziChartRuleEngine = BaziRuleEngine();
 
+/// 类 `BaziChartTableHeader`：实现 Bazi Chart Table Header 相关逻辑。
 class BaziChartTableHeader extends StatelessWidget {
   const BaziChartTableHeader({super.key, required this.pillars});
 
   final List<Pillar> pillars;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +56,7 @@ class BaziChartTableHeader extends StatelessWidget {
   }
 }
 
+/// 类 `BaziChartTableRow`：实现 Bazi Chart Table Row 相关逻辑。
 class BaziChartTableRow extends StatelessWidget {
   const BaziChartTableRow({
     super.key,
@@ -63,6 +72,8 @@ class BaziChartTableRow extends StatelessWidget {
   final List<Widget> cells;
   final bool stripe;
   final double minHeight;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -87,6 +98,7 @@ class BaziChartTableRow extends StatelessWidget {
   }
 }
 
+/// 类 `BaziChartTableText`：实现 Bazi Chart Table Text 相关逻辑。
 class BaziChartTableText extends StatelessWidget {
   const BaziChartTableText(
     this.text, {
@@ -100,6 +112,8 @@ class BaziChartTableText extends StatelessWidget {
   final bool bold;
   final bool muted;
   final Color? color;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -118,10 +132,13 @@ class BaziChartTableText extends StatelessWidget {
   }
 }
 
+/// 类 `BaziChartHiddenStemCell`：实现 Bazi Chart Hidden Stem Cell 相关逻辑。
 class BaziChartHiddenStemCell extends StatelessWidget {
   const BaziChartHiddenStemCell({super.key, required this.pillar});
 
   final Pillar pillar;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -146,11 +163,14 @@ class BaziChartHiddenStemCell extends StatelessWidget {
   }
 }
 
+/// 类 `BaziChartStackedLines`：实现 Bazi Chart Stacked Lines 相关逻辑。
 class BaziChartStackedLines extends StatelessWidget {
   const BaziChartStackedLines(this.lines, {super.key, this.muted = false});
 
   final List<String> lines;
   final bool muted;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -180,10 +200,13 @@ String seatGrowthPhaseFor(Pillar pillar) {
   );
 }
 
+/// 类 `BaziChartShenshaCell`：实现 Bazi Chart Shensha Cell 相关逻辑。
 class BaziChartShenshaCell extends StatelessWidget {
   const BaziChartShenshaCell({super.key, required this.items});
 
   final List<ShenshaItem> items;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

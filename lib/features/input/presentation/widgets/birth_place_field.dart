@@ -1,3 +1,8 @@
+// 文件：出生地点field
+//
+// UI 组件：可复用的界面片段。
+// 路径：`lib/features/input/presentation/widgets/birth_place_field.dart`。
+//
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -30,8 +35,11 @@ class BirthPlaceField extends StatefulWidget {
   State<BirthPlaceField> createState() => _BirthPlaceFieldState();
 }
 
+/// 私有类 `_BirthPlaceFieldState`：Birth Place Field State。
 class _BirthPlaceFieldState extends State<BirthPlaceField> {
   late final TextEditingController _lonController;
+
+  // 初始化：注册首帧回调、预加载列表数据。
 
   @override
   void initState() {
@@ -50,6 +58,8 @@ class _BirthPlaceFieldState extends State<BirthPlaceField> {
     }
   }
 
+  // 释放监听器与控制器资源。
+
   @override
   void dispose() {
     _lonController.dispose();
@@ -58,6 +68,8 @@ class _BirthPlaceFieldState extends State<BirthPlaceField> {
 
   String _lonText(double? lon) =>
       lon == null ? '' : lon.toStringAsFixed(2);
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

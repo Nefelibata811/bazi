@@ -1,3 +1,8 @@
+// 文件：单元测试 — 认证文案
+//
+// 验证 认证文案 的正确性与边界情况。
+// 修改实现时请同步维护本测试。
+//
 import 'package:bazi_app/core/auth_messages.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;

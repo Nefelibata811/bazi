@@ -1,3 +1,8 @@
+// 文件：神煞item
+//
+// 领域实体：承载业务数据字段。
+// 路径：`lib/domain/entities/shensha_item.dart`。
+//
 class ShenshaItem {
   const ShenshaItem({
     required this.name,

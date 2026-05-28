@@ -1,3 +1,8 @@
+// 文件：单元测试 — 公历节气
+//
+// 验证 公历节气 的正确性与边界情况。
+// 修改实现时请同步维护本测试。
+//
 import 'package:bazi_app/domain/constants/solar_term_constants.dart';
 import 'package:flutter_test/flutter_test.dart';
 

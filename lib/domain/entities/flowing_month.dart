@@ -1,4 +1,8 @@
-/// 流年下的流月干支（五虎遁月）。
+// 文件：flowingmonth
+//
+// 领域实体：承载业务数据字段。
+// 路径：`lib/domain/entities/flowing_month.dart`。
+//
 class FlowingMonth {
   const FlowingMonth({
     required this.index,

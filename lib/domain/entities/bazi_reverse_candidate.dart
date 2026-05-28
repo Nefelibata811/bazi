@@ -1,3 +1,8 @@
+// 文件：八字反查candidate
+//
+// 领域实体：承载业务数据字段。
+// 路径：`lib/domain/entities/bazi_reverse_candidate.dart`。
+//
 import '../value_objects/bazi_sect.dart';
 import '../value_objects/gender.dart';
 

@@ -1,9 +1,15 @@
+// 文件：注册页面
+//
+// 页面：负责 UI 展示与用户操作。
+// 路径：`lib/features/auth/presentation/pages/register_page.dart`。
+//
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../application/auth_controller.dart';
 
+/// 类 `RegisterPage`：实现 Register Page 相关逻辑。
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
 
@@ -11,11 +17,14 @@ class RegisterPage extends ConsumerStatefulWidget {
   ConsumerState<RegisterPage> createState() => _RegisterPageState();
 }
 
+/// 私有类 `_RegisterPageState`：Register Page State。
 class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _nicknameController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+
+  // 初始化：注册首帧回调、预加载列表数据。
 
   @override
   void initState() {
@@ -27,6 +36,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       }
     });
   }
+
+  // 释放监听器与控制器资源。
 
   @override
   void dispose() {
@@ -49,6 +60,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               : _nicknameController.text.trim(),
         );
   }
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

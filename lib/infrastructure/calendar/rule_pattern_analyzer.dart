@@ -1,9 +1,15 @@
+// 文件：规则格局analyzer
+//
+// 历法算法：八字排盘核心计算。
+// 路径：`lib/infrastructure/calendar/rule_pattern_analyzer.dart`。
+//
 import '../../domain/entities/bazi_chart.dart';
 import '../../domain/entities/pattern_result.dart';
 import '../../domain/services/bazi_rule_engine.dart';
 import '../../domain/services/pattern_analyzer.dart';
 import '../../domain/value_objects/five_element.dart';
 
+/// 类 `RulePatternAnalyzer`：实现 Rule Pattern Analyzer 相关逻辑。
 class RulePatternAnalyzer implements PatternAnalyzer {
   const RulePatternAnalyzer({
     required BaziRuleEngine ruleEngine,

@@ -1,3 +1,7 @@
+// 文件：命盘合集 — 列表与详情页
+//
+// 创建/重命名/删除合集；向合集添加或移除已保存命盘。
+//
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -15,8 +19,11 @@ import '../../../history/application/collections_list_controller.dart';
 import '../../../input/application/bazi_input_controller.dart';
 import '../../../result/presentation/pages/bazi_result_page.dart';
 
+/// 类 `CollectionPage`：实现 Collection Page 相关逻辑。
 class CollectionPage extends ConsumerWidget {
   const CollectionPage({super.key});
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -449,6 +456,7 @@ class CollectionPage extends ConsumerWidget {
   }
 }
 
+/// 类 `CollectionDetailPage`：实现 Collection Detail Page 相关逻辑。
 class CollectionDetailPage extends ConsumerWidget {
   const CollectionDetailPage({
     super.key,
@@ -458,6 +466,8 @@ class CollectionDetailPage extends ConsumerWidget {
 
   final String collectionId;
   final String collectionName;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -522,7 +532,10 @@ class CollectionDetailPage extends ConsumerWidget {
                         if (context.mounted) {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (_) => const BaziResultPage(),
+                              builder: (_) => const BaziResultPage(
+                                isFromHistory: true,
+                                isAutoSaved: false,
+                              ),
                             ),
                           );
                         }
@@ -636,10 +649,13 @@ final _addedRecordIdsProvider =
   return ids.toSet();
 });
 
+/// 私有类 `_AddRecordSheet`：Add Record Sheet。
 class _AddRecordSheet extends ConsumerWidget {
   const _AddRecordSheet({required this.collectionId});
 
   final String collectionId;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

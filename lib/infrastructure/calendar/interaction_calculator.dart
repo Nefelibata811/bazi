@@ -1,7 +1,13 @@
+// 文件：刑冲合害计算器
+//
+// 基于四柱干支计算合、冲、刑、害等关系。
+// 仅使用主四柱（chart.pillars），辅宫不参与计算。
+//
 import '../../domain/entities/bazi_chart.dart';
 import '../../domain/entities/interaction_result.dart';
 import '../../domain/entities/pillar.dart';
 
+/// 类 `BaziInteractionCalculator`：实现 Bazi Interaction Calculator 相关逻辑。
 class BaziInteractionCalculator {
   const BaziInteractionCalculator();
 

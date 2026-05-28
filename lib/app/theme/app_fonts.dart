@@ -1,3 +1,7 @@
+// 文件：应用fonts
+//
+// 路径：`lib/app/theme/app_fonts.dart`。
+//
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 

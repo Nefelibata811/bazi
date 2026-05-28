@@ -1,3 +1,8 @@
+// 文件：命盘历史页面
+//
+// 页面：负责 UI 展示与用户操作。
+// 路径：`lib/features/history/presentation/pages/chart_history_page.dart`。
+//
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -20,8 +25,11 @@ final chartHistoryProvider = Provider<List<BaziRecord>>((ref) {
   return ref.watch(deduplicatedRecordsProvider);
 });
 
+/// 类 `ChartHistoryPage`：实现 Chart History Page 相关逻辑。
 class ChartHistoryPage extends ConsumerWidget {
   const ChartHistoryPage({super.key});
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -93,7 +101,10 @@ class ChartHistoryPage extends ConsumerWidget {
                       if (context.mounted) {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) => const BaziResultPage(),
+                            builder: (_) => const BaziResultPage(
+                              isFromHistory: true,
+                              isAutoSaved: false,
+                            ),
                           ),
                         );
                       }

@@ -1,3 +1,8 @@
+// 文件：collectionslist控制器
+//
+// 控制器：管理状态并协调数据层。
+// 路径：`lib/features/history/application/collections_list_controller.dart`。
+//
 // 命盘合集列表：keepAlive 缓存，主页预加载，避免每次进入重复请求。
 
 import 'dart:async';
@@ -15,6 +20,7 @@ final collectionRepositoryProvider = Provider<SupabaseCollectionRepository>((ref
 });
 
 @immutable
+/// 类 `CollectionsListState`：实现 Collections List State 相关逻辑。
 class CollectionsListState {
   const CollectionsListState({
     this.collections = const [],
@@ -31,6 +37,7 @@ class CollectionsListState {
   bool get hasCollections => collections.isNotEmpty;
 }
 
+/// 类 `CollectionsListNotifier`：实现 Collections List Notifier 相关逻辑。
 class CollectionsListNotifier extends Notifier<CollectionsListState> {
   static const _networkTimeout = Duration(seconds: 3);
 
@@ -38,6 +45,7 @@ class CollectionsListNotifier extends Notifier<CollectionsListState> {
   Future<void>? _ongoingBootstrap;
 
   @override
+  // 构建界面布局。
   CollectionsListState build() {
     ref.keepAlive();
 
@@ -56,6 +64,7 @@ class CollectionsListNotifier extends Notifier<CollectionsListState> {
     return state;
   }
 
+  // 确保列表已加载；有缓存时可静默刷新。
   Future<void> ensureLoaded() async {
     final userId = ref.read(authControllerProvider).user?.id;
     if (userId == null) return;
@@ -63,9 +72,11 @@ class CollectionsListNotifier extends Notifier<CollectionsListState> {
       unawaited(refresh(silent: true));
       return;
     }
+    // 首次加载：优先读本地缓存，再请求网络。
     await _bootstrap(userId);
   }
 
+  // 重新从网络拉取并更新状态。
   Future<void> refresh({bool silent = false}) async {
     final userId = ref.read(authControllerProvider).user?.id;
     if (userId == null) return;
@@ -134,6 +145,7 @@ class CollectionsListNotifier extends Notifier<CollectionsListState> {
     );
   }
 
+  // 首次加载：优先读本地缓存，再请求网络。
   Future<void> _bootstrap(String userId) async {
     if (_ongoingBootstrap != null && _activeUserId == userId) {
       return _ongoingBootstrap!;

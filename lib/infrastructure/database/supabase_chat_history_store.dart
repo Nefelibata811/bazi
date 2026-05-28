@@ -1,9 +1,14 @@
+// 文件：Supabase对话历史store
+//
+// 路径：`lib/infrastructure/database/supabase_chat_history_store.dart`。
+//
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/services/chat_repository.dart';
 import '../../features/ai_chat/infrastructure/chat_history_store.dart';
 
+/// 类 `SupabaseChatHistoryStore`：实现 Supabase Chat History Store 相关逻辑。
 class SupabaseChatHistoryStore implements ChatHistoryStore {
   SupabaseChatHistoryStore(this._client);
 

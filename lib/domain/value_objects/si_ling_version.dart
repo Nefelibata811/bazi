@@ -1,4 +1,7 @@
-/// 人元司令分野表版本。
+// 文件：司lingversion
+//
+// 路径：`lib/domain/value_objects/si_ling_version.dart`。
+//
 enum SiLingVersion {
   /// 《三命通会》原文（5-5-20 等）
   sanMingTongHui('三命通会'),

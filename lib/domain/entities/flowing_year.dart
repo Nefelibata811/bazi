@@ -1,5 +1,11 @@
+// 文件：flowingyear
+//
+// 领域实体：承载业务数据字段。
+// 路径：`lib/domain/entities/flowing_year.dart`。
+//
 import 'flowing_month.dart';
 
+/// 类 `FlowingYear`：实现 Flowing Year 相关逻辑。
 class FlowingYear {
   const FlowingYear({
     required this.year,

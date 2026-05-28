@@ -1,3 +1,7 @@
+// 文件：出生展示标签
+//
+// 路径：`lib/features/history/infrastructure/birth_display_label.dart`。
+//
 import '../../../domain/entities/bazi_request.dart';
 import '../../../domain/value_objects/calendar_type.dart';
 import '../../../infrastructure/calendar/chart_datetime_resolver.dart';

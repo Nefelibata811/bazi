@@ -1,3 +1,8 @@
+// 文件：规则用神godanalyzer
+//
+// 历法算法：八字排盘核心计算。
+// 路径：`lib/infrastructure/calendar/rule_useful_god_analyzer.dart`。
+//
 import '../../domain/entities/bazi_chart.dart';
 import '../../domain/entities/pattern_result.dart';
 import '../../domain/entities/useful_god_result.dart';
@@ -5,6 +10,7 @@ import '../../domain/services/bazi_rule_engine.dart';
 import '../../domain/services/useful_god_analyzer.dart';
 import '../../domain/value_objects/five_element.dart';
 
+/// 类 `RuleUsefulGodAnalyzer`：实现 Rule Useful God Analyzer 相关逻辑。
 class RuleUsefulGodAnalyzer implements UsefulGodAnalyzer {
   const RuleUsefulGodAnalyzer({
     required BaziRuleEngine ruleEngine,

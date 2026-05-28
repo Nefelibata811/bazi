@@ -1,3 +1,7 @@
+// 文件：儒略day
+//
+// 路径：`lib/domain/services/julian_day.dart`。
+//
 class JulianDay {
   const JulianDay._();
 

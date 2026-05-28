@@ -1,3 +1,7 @@
+// 文件：报告json辅柱
+//
+// 路径：`lib/features/history/infrastructure/report_json_extra_pillars.dart`。
+//
 import 'dart:convert';
 
 import '../../../domain/entities/bazi_chart.dart';

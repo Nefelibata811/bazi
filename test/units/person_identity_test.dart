@@ -1,3 +1,8 @@
+// 文件：单元测试 — personidentity
+//
+// 验证 personidentity 的正确性与边界情况。
+// 修改实现时请同步维护本测试。
+//
 import 'package:bazi_app/domain/entities/bazi_request.dart';
 import 'package:bazi_app/domain/value_objects/bazi_sect.dart';
 import 'package:bazi_app/domain/value_objects/calendar_type.dart';

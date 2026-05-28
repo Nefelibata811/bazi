@@ -1,8 +1,14 @@
+// 文件：格局card
+//
+// UI 组件：可复用的界面片段。
+// 路径：`lib/features/result/presentation/widgets/pattern_card.dart`。
+//
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../domain/entities/pattern_result.dart';
 
+/// 类 `PatternCard`：实现 Pattern Card 相关逻辑。
 class PatternCard extends StatelessWidget {
   const PatternCard({
     super.key,
@@ -10,6 +16,8 @@ class PatternCard extends StatelessWidget {
   });
 
   final List<PatternResult> patterns;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

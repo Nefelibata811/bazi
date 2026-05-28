@@ -1,3 +1,7 @@
+// 文件：主页 — 命主列表
+//
+// 展示已保存命主；支持搜索、删除、进入排盘与 AI 看盘。
+//
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -58,6 +62,7 @@ final peopleListProvider = Provider<List<PersonSummary>>((ref) {
     });
 });
 
+/// 私有类 `_RawRecord`：Raw Record。
 class _RawRecord {
   final String id;
   final DateTime savedAt;
@@ -75,6 +80,7 @@ class _RawRecord {
   });
 }
 
+/// 类 `PersonSummary`：实现 Person Summary 相关逻辑。
 class PersonSummary {
   final String recordId;
   final String name;
@@ -90,8 +96,11 @@ class PersonSummary {
   });
 }
 
+/// 类 `PeopleListPage`：实现 People List Page 相关逻辑。
 class PeopleListPage extends ConsumerWidget {
   const PeopleListPage({super.key});
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -226,7 +235,9 @@ class PeopleListPage extends ConsumerWidget {
                             Navigator.of(context).push(
                               MaterialPageRoute(
                                 builder: (_) => const BaziResultPage(
-                                    isFromHistory: true),
+                                  isFromHistory: true,
+                                  isAutoSaved: false,
+                                ),
                               ),
                             );
                           }
@@ -519,6 +530,7 @@ class PeopleListPage extends ConsumerWidget {
   }
 }
 
+/// 私有类 `_SectionHeader`：Section Header。
 class _SectionHeader extends StatelessWidget {
   const _SectionHeader({
     required this.icon,
@@ -529,6 +541,8 @@ class _SectionHeader extends StatelessWidget {
   final IconData icon;
   final String title;
   final VoidCallback onAdd;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -550,6 +564,7 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
+/// 私有类 `_HintCard`：Hint Card。
 class _HintCard extends StatelessWidget {
   const _HintCard({
     required this.icon,
@@ -562,6 +577,8 @@ class _HintCard extends StatelessWidget {
   final String text;
   final String actionLabel;
   final VoidCallback onAction;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -588,6 +605,7 @@ class _HintCard extends StatelessWidget {
   }
 }
 
+/// 私有类 `_CollectionsList`：Collections List。
 class _CollectionsList extends StatelessWidget {
   const _CollectionsList({
     required this.collections,
@@ -600,6 +618,8 @@ class _CollectionsList extends StatelessWidget {
   final ValueChanged<CollectionModel> onTap;
   final ValueChanged<CollectionModel> onRename;
   final ValueChanged<CollectionModel> onDelete;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -655,6 +675,7 @@ class _CollectionsList extends StatelessWidget {
   }
 }
 
+/// 私有类 `_PeopleList`：People List。
 class _PeopleList extends StatelessWidget {
   const _PeopleList({
     required this.people,
@@ -667,6 +688,8 @@ class _PeopleList extends StatelessWidget {
   final ValueChanged<PersonSummary> onTap;
   final ValueChanged<PersonSummary> onAiTap;
   final ValueChanged<PersonSummary> onDelete;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -774,6 +797,7 @@ class _PeopleList extends StatelessWidget {
   }
 }
 
+/// 私有类 `_UserAvatarButton`：User Avatar Button。
 class _UserAvatarButton extends StatelessWidget {
   const _UserAvatarButton({
     required this.displayName,
@@ -782,6 +806,8 @@ class _UserAvatarButton extends StatelessWidget {
 
   final String displayName;
   final String? avatarUrl;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

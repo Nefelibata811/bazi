@@ -1,3 +1,8 @@
+// 文件：precise四柱calculator
+//
+// 历法算法：八字排盘核心计算。
+// 路径：`lib/infrastructure/calendar/precise_four_pillars_calculator.dart`。
+//
 // 自研四柱推算，仅单测/算法基准；生产排盘见 LunarBaziCalculator。
 import '../../domain/entities/calendar_snapshot.dart';
 import '../../domain/entities/four_pillars.dart';
@@ -8,6 +13,7 @@ import '../../domain/services/four_pillars_calculator.dart';
 import '../../domain/services/julian_day.dart';
 import '../../domain/services/solar_term_provider.dart';
 
+/// 类 `PreciseFourPillarsCalculator`：实现 Precise Four Pillars Calculator 相关逻辑。
 class PreciseFourPillarsCalculator implements FourPillarsCalculator {
   PreciseFourPillarsCalculator({
     required SolarTermProvider solarTermProvider,

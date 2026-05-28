@@ -1,3 +1,8 @@
+// 文件：应用启动页
+//
+// UI 组件：可复用的界面片段。
+// 路径：`lib/app/widgets/app_splash.dart`。
+//
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
@@ -5,6 +10,8 @@ import '../theme/app_colors.dart';
 /// Shared splash / loading screen for app bootstrap and login prefs load.
 class AppSplash extends StatelessWidget {
   const AppSplash({super.key});
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

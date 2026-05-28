@@ -1,3 +1,8 @@
+// 文件：个人资料页面
+//
+// 页面：负责 UI 展示与用户操作。
+// 路径：`lib/features/auth/presentation/pages/profile_page.dart`。
+//
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -6,6 +11,7 @@ import '../../../../core/phone_utils.dart';
 import '../../application/auth_controller.dart';
 import '../widgets/otp_countdown_controller.dart';
 
+/// 类 `ProfilePage`：实现 Profile Page 相关逻辑。
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
 
@@ -13,6 +19,7 @@ class ProfilePage extends ConsumerStatefulWidget {
   ConsumerState<ProfilePage> createState() => _ProfilePageState();
 }
 
+/// 私有类 `_ProfilePageState`：Profile Page State。
 class _ProfilePageState extends ConsumerState<ProfilePage> {
   final _nicknameController = TextEditingController();
   final _avatarUrlController = TextEditingController();
@@ -26,6 +33,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   bool _sendingBindOtp = false;
   final _bindOtpCountdown = OtpCountdownController();
 
+  // 初始化：注册首帧回调、预加载列表数据。
+
   @override
   void initState() {
     super.initState();
@@ -33,6 +42,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     _nicknameController.text = user?.nickname ?? '';
     _avatarUrlController.text = user?.avatarUrl ?? '';
   }
+
+  // 释放监听器与控制器资源。
 
   @override
   void dispose() {
@@ -180,6 +191,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       Navigator.of(context).pushNamedAndRemoveUntil('/main', (_) => false);
     }
   }
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

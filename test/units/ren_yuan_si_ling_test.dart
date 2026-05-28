@@ -1,3 +1,8 @@
+// 文件：单元测试 — 人元元司ling
+//
+// 验证 人元元司ling 的正确性与边界情况。
+// 修改实现时请同步维护本测试。
+//
 import 'package:bazi_app/domain/value_objects/si_ling_version.dart';
 import 'package:bazi_app/infrastructure/calendar/astro_ren_yuan_si_ling_calculator.dart';
 import 'package:bazi_app/infrastructure/calendar/astro_solar_term_provider.dart';

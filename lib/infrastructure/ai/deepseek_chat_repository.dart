@@ -1,3 +1,7 @@
+// 文件：DeepSeek对话仓库
+//
+// 路径：`lib/infrastructure/ai/deepseek_chat_repository.dart`。
+//
 import 'dart:async';
 import 'dart:convert';
 
@@ -7,6 +11,7 @@ import 'package:http/http.dart' as http;
 import '../../../core/api_config.dart';
 import '../../../domain/services/chat_repository.dart';
 
+/// 类 `DeepSeekChatRepository`：实现 Deep Seek Chat Repository 相关逻辑。
 class DeepSeekChatRepository implements ChatRepository {
   DeepSeekChatRepository({
     required this.apiKey,

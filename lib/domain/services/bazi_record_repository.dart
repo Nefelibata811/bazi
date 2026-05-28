@@ -1,3 +1,7 @@
+// 文件：八字记录仓库
+//
+// 路径：`lib/domain/services/bazi_record_repository.dart`。
+//
 import '../entities/bazi_record.dart';
 
 abstract class BaziRecordRepository {
@@ -51,6 +55,7 @@ abstract class CollectionRepository {
   Future<void> deleteCollection(String collectionId);
 }
 
+/// 类 `CollectionModel`：实现 Collection Model 相关逻辑。
 class CollectionModel {
   const CollectionModel({
     required this.id,

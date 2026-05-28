@@ -1,3 +1,8 @@
+// 文件：对话控制器
+//
+// 控制器：管理状态并协调数据层。
+// 路径：`lib/features/ai_chat/application/chat_controller.dart`。
+//
 import 'dart:async';
 import 'dart:convert';
 
@@ -46,6 +51,7 @@ final chatControllerProvider =
   );
 });
 
+/// 对话页状态：消息列表、选盘、流式内容与加载/恢复标记。
 @immutable
 class ChatState {
   const ChatState({
@@ -100,6 +106,7 @@ class ChatState {
   }
 }
 
+/// 类 `ChatController`：实现 Chat Controller 相关逻辑。
 class ChatController extends StateNotifier<ChatState> {
   ChatController({
     required this.repository,
@@ -108,6 +115,17 @@ class ChatController extends StateNotifier<ChatState> {
     String? deepseekApiKey,
   })  : _historyStore = historyStore,
         _deepseekApiKey = deepseekApiKey ?? ApiConfig.deepseekApiKey,
+        super(const ChatState());
+
+  /// 单元测试用：注入 mock 仓库，并保证 API Key 非空以走通分析流程。
+  @visibleForTesting
+  ChatController.forTest({
+    required this.repository,
+    required ChatHistoryStore historyStore,
+    this.chartCalculator,
+    String deepseekApiKey = 'test-key',
+  })  : _historyStore = historyStore,
+        _deepseekApiKey = deepseekApiKey,
         super(const ChatState());
 
   final ChatRepository repository;
@@ -872,6 +890,8 @@ class ChatController extends StateNotifier<ChatState> {
         return type;
     }
   }
+
+  // 释放监听器与控制器资源。
 
   @override
   void dispose() {

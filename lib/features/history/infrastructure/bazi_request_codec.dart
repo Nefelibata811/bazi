@@ -1,3 +1,7 @@
+// 文件：八字请求codec
+//
+// 路径：`lib/features/history/infrastructure/bazi_request_codec.dart`。
+//
 import 'dart:convert';
 
 import '../../../domain/entities/bazi_request.dart';
@@ -5,6 +9,7 @@ import '../../../domain/value_objects/bazi_sect.dart';
 import '../../../domain/value_objects/calendar_type.dart';
 import '../../../domain/value_objects/gender.dart';
 
+/// 类 `BaziRequestCodec`：实现 Bazi Request Codec 相关逻辑。
 class BaziRequestCodec {
   const BaziRequestCodec._();
 

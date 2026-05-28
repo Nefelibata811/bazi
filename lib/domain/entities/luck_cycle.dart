@@ -1,5 +1,11 @@
+// 文件：大运运程
+//
+// 领域实体：承载业务数据字段。
+// 路径：`lib/domain/entities/luck_cycle.dart`。
+//
 import 'flowing_year.dart';
 
+/// 类 `LuckCycle`：实现 Luck Cycle 相关逻辑。
 class LuckCycle {
   const LuckCycle({
     required this.index,

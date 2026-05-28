@@ -1,3 +1,8 @@
+// 文件：对话analysis组件
+//
+// UI 组件：可复用的界面片段。
+// 路径：`lib/features/ai_chat/presentation/widgets/chat_analysis_widgets.dart`。
+//
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
@@ -5,10 +10,13 @@ import '../../../../core/app_strings.dart';
 import '../../../../domain/entities/bazi_record.dart';
 import '../../../history/presentation/widgets/birth_label_text.dart';
 
+/// 类 `EmptyAnalysisPrompt`：实现 Empty Analysis Prompt 相关逻辑。
 class EmptyAnalysisPrompt extends StatelessWidget {
   const EmptyAnalysisPrompt({super.key, required this.onStart});
 
   final VoidCallback onStart;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +57,7 @@ class EmptyAnalysisPrompt extends StatelessWidget {
   }
 }
 
+/// 类 `SelectedRecordBar`：实现 Selected Record Bar 相关逻辑。
 class SelectedRecordBar extends StatelessWidget {
   const SelectedRecordBar({
     super.key,
@@ -60,6 +69,8 @@ class SelectedRecordBar extends StatelessWidget {
   final BaziRecord record;
   final bool hasSavedHistory;
   final VoidCallback onClear;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -137,10 +148,13 @@ class SelectedRecordBar extends StatelessWidget {
   }
 }
 
+/// 类 `StandaloneAddButton`：实现 Standalone Add Button 相关逻辑。
 class StandaloneAddButton extends StatelessWidget {
   const StandaloneAddButton({super.key, required this.onTap});
 
   final VoidCallback onTap;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

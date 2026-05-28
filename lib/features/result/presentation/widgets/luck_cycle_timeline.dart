@@ -1,3 +1,8 @@
+// 文件：大运运程时间轴
+//
+// UI 组件：可复用的界面片段。
+// 路径：`lib/features/result/presentation/widgets/luck_cycle_timeline.dart`。
+//
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
@@ -5,6 +10,7 @@ import '../../../../domain/entities/flowing_year.dart';
 import '../../../../domain/entities/luck_cycle.dart';
 import '../../../chart/presentation/widgets/five_element_char.dart';
 
+/// 类 `LuckCycleTimeline`：实现 Luck Cycle Timeline 相关逻辑。
 class LuckCycleTimeline extends StatefulWidget {
   const LuckCycleTimeline({
     super.key,
@@ -19,9 +25,12 @@ class LuckCycleTimeline extends StatefulWidget {
   State<LuckCycleTimeline> createState() => _LuckCycleTimelineState();
 }
 
+/// 私有类 `_LuckCycleTimelineState`：Luck Cycle Timeline State。
 class _LuckCycleTimelineState extends State<LuckCycleTimeline> {
   int? _expandedIndex;
   int? _expandedYearIndex;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -272,6 +281,7 @@ class _LuckCycleTimelineState extends State<LuckCycleTimeline> {
   }
 }
 
+/// 私有类 `_FlowingYearChip`：Flowing Year Chip。
 class _FlowingYearChip extends StatelessWidget {
   const _FlowingYearChip({
     required this.fy,
@@ -282,6 +292,8 @@ class _FlowingYearChip extends StatelessWidget {
   final FlowingYear fy;
   final bool isSelected;
   final VoidCallback onTap;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

@@ -1,5 +1,11 @@
+// 文件：八字命盘
+//
+// 领域实体：承载业务数据字段。
+// 路径：`lib/domain/entities/bazi_chart.dart`。
+//
 import 'pillar.dart';
 
+/// 类 `BaziChart`：实现 Bazi Chart 相关逻辑。
 class BaziChart {
   const BaziChart({
     required this.dayMaster,

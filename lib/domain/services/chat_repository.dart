@@ -1,3 +1,7 @@
+// 文件：对话仓库
+//
+// 路径：`lib/domain/services/chat_repository.dart`。
+//
 class ChatMessage {
   const ChatMessage({required this.role, required this.content});
 

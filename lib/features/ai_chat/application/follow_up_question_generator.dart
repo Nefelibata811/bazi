@@ -1,3 +1,7 @@
+// 文件：追问upquestion生成器
+//
+// 路径：`lib/features/ai_chat/application/follow_up_question_generator.dart`。
+//
 import 'dart:math';
 
 import '../../../domain/services/chat_repository.dart';

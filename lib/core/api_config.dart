@@ -1,7 +1,12 @@
+// 文件：APIconfig
+//
+// 路径：`lib/core/api_config.dart`。
+//
 // 编译期 API 配置：DeepSeek 等，密钥来自 --dart-define（见 scripts/sync_dart_defines.ps1）。
 
 import 'app_secrets.dart';
 
+/// 类 `ApiConfig`：实现 Api Config 相关逻辑。
 class ApiConfig {
   ApiConfig._();
 

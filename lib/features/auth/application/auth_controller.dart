@@ -1,3 +1,8 @@
+// 文件：认证控制器
+//
+// 控制器：管理状态并协调数据层。
+// 路径：`lib/features/auth/application/auth_controller.dart`。
+//
 // 认证状态机：登录/注册/登出、Session 恢复、手机绑定（Supabase）。
 // Supabase 就绪后由 BootstrapApp 调用 onSupabaseReady。
 
@@ -32,6 +37,7 @@ bool isSupabaseSessionActive() {
 }
 
 @immutable
+/// 类 `AuthState`：实现 Auth State 相关逻辑。
 class AuthState {
   const AuthState({
     this.user,
@@ -84,6 +90,7 @@ class AuthState {
   }
 }
 
+/// 类 `AuthController`：实现 Auth Controller 相关逻辑。
 class AuthController extends StateNotifier<AuthState> {
   AuthController(this._ref) : super(const AuthState(loading: false));
 
@@ -212,6 +219,8 @@ class AuthController extends StateNotifier<AuthState> {
     if (state.user?.id != user.id) return;
     state = state.copyWith(user: user);
   }
+
+  // 释放监听器与控制器资源。
 
   @override
   void dispose() {
@@ -558,6 +567,7 @@ class AuthController extends StateNotifier<AuthState> {
   }
 }
 
+/// 扩展 `AuthStateCopy`：为类型增加 Auth State Copy 方法。
 extension AuthStateCopy on AuthState {
   AuthState copyWith({
     User? user,

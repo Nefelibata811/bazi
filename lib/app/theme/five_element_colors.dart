@@ -1,3 +1,7 @@
+// 文件：五五行colors
+//
+// 路径：`lib/app/theme/five_element_colors.dart`。
+//
 import 'package:flutter/material.dart';
 
 /// 排盘用五行高对比色：木绿、火红、土褐、金亮黄、水蓝。

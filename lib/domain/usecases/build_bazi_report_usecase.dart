@@ -1,3 +1,7 @@
+// 文件：build八字报告用例
+//
+// 路径：`lib/domain/usecases/build_bazi_report_usecase.dart`。
+//
 // 用例：根据 BaziRequest 生成完整 BaziReport（历法 → 四柱 → 大运 → 格局/神煞/用神）。
 // 排盘主流程入口，由 BaziInputController 调用。
 import '../entities/bazi_report.dart';
@@ -12,6 +16,7 @@ import '../../infrastructure/calendar/lunar_bazi_calculator.dart';
 import 'analyze_bazi_usecase.dart';
 import 'build_bazi_chart_usecase.dart';
 
+/// 类 `BuildBaziReportUseCase`：实现 Build Bazi Report Use Case 相关逻辑。
 class BuildBaziReportUseCase {
   const BuildBaziReportUseCase({
     required CalendarConverter calendarConverter,

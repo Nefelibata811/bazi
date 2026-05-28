@@ -1,3 +1,8 @@
+// 文件：单元测试 — 记录dedupe
+//
+// 验证 记录dedupe 的正确性与边界情况。
+// 修改实现时请同步维护本测试。
+//
 import 'package:bazi_app/domain/entities/bazi_record.dart';
 import 'package:bazi_app/features/history/infrastructure/person_identity.dart';
 import 'package:flutter_test/flutter_test.dart';

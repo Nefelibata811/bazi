@@ -1,8 +1,14 @@
+// 文件：神煞card
+//
+// UI 组件：可复用的界面片段。
+// 路径：`lib/features/result/presentation/widgets/shensha_card.dart`。
+//
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../domain/entities/shensha_item.dart';
 
+/// 类 `ShenshaCard`：实现 Shensha Card 相关逻辑。
 class ShenshaCard extends StatelessWidget {
   const ShenshaCard({
     super.key,
@@ -33,6 +39,8 @@ class ShenshaCard extends StatelessWidget {
     '大耗', '小耗', '五鬼', '元辰', '勾煞', '绞煞',
     '退神', '挂剑煞',
   };
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -180,11 +188,14 @@ class ShenshaCard extends StatelessWidget {
   }
 }
 
+/// 私有类 `_CategoryChip`：Category Chip。
 class _CategoryChip extends StatelessWidget {
   const _CategoryChip({required this.label, required this.color});
 
   final String label;
   final Color color;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

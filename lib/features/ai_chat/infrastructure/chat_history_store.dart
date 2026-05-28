@@ -1,3 +1,7 @@
+// 文件：对话历史store
+//
+// 路径：`lib/features/ai_chat/infrastructure/chat_history_store.dart`。
+//
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -17,6 +21,7 @@ abstract class ChatHistoryStore {
   Future<bool> hasHistory(String recordId);
 }
 
+/// 类 `SharedPreferencesChatHistoryStore`：实现 Shared Preferences Chat History Store 相关逻辑。
 class SharedPreferencesChatHistoryStore implements ChatHistoryStore {
   SharedPreferencesChatHistoryStore({
     Future<SharedPreferences> Function()? getPreferences,

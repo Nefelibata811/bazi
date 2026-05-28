@@ -1,3 +1,8 @@
+// 文件：重置password页面
+//
+// 页面：负责 UI 展示与用户操作。
+// 路径：`lib/features/auth/presentation/pages/reset_password_page.dart`。
+//
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
@@ -5,6 +10,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 import '../../../../app/theme/app_colors.dart';
 import '../../application/auth_controller.dart';
 
+/// 类 `ResetPasswordPage`：实现 Reset Password Page 相关逻辑。
 class ResetPasswordPage extends ConsumerStatefulWidget {
   const ResetPasswordPage({super.key});
 
@@ -12,6 +18,7 @@ class ResetPasswordPage extends ConsumerStatefulWidget {
   ConsumerState<ResetPasswordPage> createState() => _ResetPasswordPageState();
 }
 
+/// 私有类 `_ResetPasswordPageState`：Reset Password Page State。
 class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -21,6 +28,8 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
 
   bool get _hasRecoverySession =>
       Supabase.instance.client.auth.currentSession != null;
+
+  // 释放监听器与控制器资源。
 
   @override
   void dispose() {
@@ -64,6 +73,8 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
       }
     }
   }
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

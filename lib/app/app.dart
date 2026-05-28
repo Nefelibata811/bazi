@@ -1,3 +1,8 @@
+// 文件：应用根路由与主壳
+//
+// 登录态路由、底部 Tab（主页 / AI 看盘）、全局返回键分级处理。
+// 预加载命盘列表与合集；IndexedStack 保持 Tab 状态。
+//
 // 根路由与主界面：登录态切换首页、命名路由、底部 Tab（命主列表 / AI 看盘）。
 // _MainShell 使用 IndexedStack 保持 Tab 状态；navigateToHomeTab 用于回到主页。
 
@@ -47,8 +52,11 @@ Future<void> navigateToHomeTab(
   }
 }
 
+/// 类 `BaziApp`：实现 Bazi App 相关逻辑。
 class BaziApp extends StatelessWidget {
   const BaziApp({super.key});
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +64,7 @@ class BaziApp extends StatelessWidget {
   }
 }
 
+/// 私有类 `_BaziAppView`：Bazi App View。
 class _BaziAppView extends ConsumerStatefulWidget {
   const _BaziAppView();
 
@@ -63,7 +72,9 @@ class _BaziAppView extends ConsumerStatefulWidget {
   ConsumerState<_BaziAppView> createState() => _BaziAppViewState();
 }
 
+/// 私有类 `_BaziAppViewState`：Bazi App View State。
 class _BaziAppViewState extends ConsumerState<_BaziAppView> {
+  // 构建界面布局。
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
@@ -183,6 +194,7 @@ class _BaziAppViewState extends ConsumerState<_BaziAppView> {
   }
 }
 
+/// 私有类 `_MainShell`：Main Shell。
 class _MainShell extends ConsumerStatefulWidget {
   const _MainShell();
 
@@ -190,8 +202,11 @@ class _MainShell extends ConsumerStatefulWidget {
   ConsumerState<_MainShell> createState() => _MainShellState();
 }
 
+/// 私有类 `_MainShellState`：Main Shell State。
 class _MainShellState extends ConsumerState<_MainShell> {
   static const _tabKey = 'app_tab_index';
+
+  // 初始化：注册首帧回调、预加载列表数据。
 
   @override
   void initState() {
@@ -229,6 +244,8 @@ class _MainShellState extends ConsumerState<_MainShell> {
       prefs.setInt(_tabKey, index);
     });
   }
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

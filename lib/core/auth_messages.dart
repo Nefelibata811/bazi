@@ -1,3 +1,7 @@
+// 文件：认证文案
+//
+// 路径：`lib/core/auth_messages.dart`。
+//
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 /// Maps Supabase [AuthException] to user-facing Chinese messages.

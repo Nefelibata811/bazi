@@ -1,3 +1,8 @@
+// 文件：生辰录入 — 状态控制器
+//
+// 管理公历/农历、出生时刻、出生地、真太阳时与排盘 sect。
+// 农历变更时同步公历；触发排盘并缓存 BaziReport。
+//
 // 排盘录入状态：日历/性别/姓名/时辰等表单，提交时调用 BuildBaziReportUseCase。
 // Riverpod 注册见文件末尾 baziInputControllerProvider。
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -106,6 +111,7 @@ final baziInputControllerProvider =
   return BaziInputController(ref.watch(buildBaziReportUseCaseProvider));
 });
 
+/// 类 `BaziInputController`：实现 Bazi Input Controller 相关逻辑。
 class BaziInputController extends StateNotifier<BaziInputState> {
   BaziInputController(this._buildBaziReportUseCase)
       : super(BaziInputState.initial());

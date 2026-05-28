@@ -1,3 +1,7 @@
+// 文件：Supabase认证仓库
+//
+// 路径：`lib/infrastructure/database/supabase_auth_repository.dart`。
+//
 import 'dart:typed_data';
 
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
@@ -5,6 +9,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 import '../../domain/entities/user.dart';
 import '../../domain/services/auth_repository.dart';
 
+/// 类 `SupabaseAuthRepository`：实现 Supabase Auth Repository 相关逻辑。
 class SupabaseAuthRepository implements AuthRepository {
   SupabaseAuthRepository(this._client);
 

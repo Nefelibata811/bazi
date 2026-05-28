@@ -1,3 +1,7 @@
+// 文件：启动引导应用
+//
+// 路径：`lib/app/bootstrap_app.dart`。
+//
 // 启动壳：先渲染 BaziApp，后台异步初始化 Supabase，避免首屏长时间白屏。
 // supabaseReadyProvider 表示云后端是否可用；成功后调用 AuthController.onSupabaseReady。
 
@@ -29,7 +33,9 @@ class BootstrapApp extends ConsumerStatefulWidget {
   ConsumerState<BootstrapApp> createState() => _BootstrapAppState();
 }
 
+/// 私有类 `_BootstrapAppState`：Bootstrap App State。
 class _BootstrapAppState extends ConsumerState<BootstrapApp> {
+  // 初始化：注册首帧回调、预加载列表数据。
   @override
   void initState() {
     super.initState();
@@ -81,6 +87,8 @@ class _BootstrapAppState extends ConsumerState<BootstrapApp> {
     }
   }
 
+  // 构建界面布局。
+
   @override
   Widget build(BuildContext context) {
     final initError = ref.watch(supabaseInitErrorProvider);
@@ -96,10 +104,13 @@ class _BootstrapAppState extends ConsumerState<BootstrapApp> {
   }
 }
 
+/// 私有类 `_InitErrorPage`：Init Error Page。
 class _InitErrorPage extends StatelessWidget {
   const _InitErrorPage({required this.message});
 
   final String message;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

@@ -1,3 +1,8 @@
+// 文件：农历八字calculator
+//
+// 历法算法：八字排盘核心计算。
+// 路径：`lib/infrastructure/calendar/lunar_bazi_calculator.dart`。
+//
 // 四柱排盘实现：基于 lunar 包的 EightChar，组装 BaziChart 与称骨等。
 // 规则补充见 BaziRuleEngine；请求入口 LunarEightCharFactory。
 import 'package:lunar/lunar.dart';
@@ -10,6 +15,7 @@ import '../../../domain/services/bazi_calculator.dart';
 import '../../../domain/services/bazi_rule_engine.dart';
 import 'lunar_eight_char_factory.dart';
 
+/// 类 `LunarBaziCalculator`：实现 Lunar Bazi Calculator 相关逻辑。
 class LunarBaziCalculator implements BaziCalculator {
   const LunarBaziCalculator({
     required BaziRuleEngine ruleEngine,

@@ -1,3 +1,8 @@
+// 文件：单元测试 — 农历大运运程calculator
+//
+// 验证 农历大运运程calculator 的正确性与边界情况。
+// 修改实现时请同步维护本测试。
+//
 import 'package:bazi_app/domain/entities/bazi_chart.dart';
 import 'package:bazi_app/domain/entities/bazi_request.dart';
 import 'package:bazi_app/domain/entities/calendar_snapshot.dart';

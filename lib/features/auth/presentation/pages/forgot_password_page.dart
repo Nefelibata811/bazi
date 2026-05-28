@@ -1,3 +1,8 @@
+// 文件：forgotpassword页面
+//
+// 页面：负责 UI 展示与用户操作。
+// 路径：`lib/features/auth/presentation/pages/forgot_password_page.dart`。
+//
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -10,6 +15,7 @@ import '../../../../core/app_urls.dart';
 import '../../application/auth_controller.dart';
 import '../widgets/otp_countdown_controller.dart';
 
+/// 类 `ForgotPasswordPage`：实现 Forgot Password Page 相关逻辑。
 class ForgotPasswordPage extends ConsumerStatefulWidget {
   const ForgotPasswordPage({super.key});
 
@@ -17,6 +23,7 @@ class ForgotPasswordPage extends ConsumerStatefulWidget {
   ConsumerState<ForgotPasswordPage> createState() => _ForgotPasswordPageState();
 }
 
+/// 私有类 `_ForgotPasswordPageState`：Forgot Password Page State。
 class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   final _emailController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -25,11 +32,15 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   String? _errorMsg;
   final _cooldown = OtpCountdownController();
 
+  // 初始化：注册首帧回调、预加载列表数据。
+
   @override
   void initState() {
     super.initState();
     _loadCooldown();
   }
+
+  // 释放监听器与控制器资源。
 
   @override
   void dispose() {
@@ -101,6 +112,8 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
       prefs.remove('pwd_reset_cooldown_until');
     });
   }
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -247,6 +260,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   }
 }
 
+/// 私有类 `_SuccessCard`：Success Card。
 class _SuccessCard extends StatelessWidget {
   const _SuccessCard({
     required this.email,
@@ -255,6 +269,8 @@ class _SuccessCard extends StatelessWidget {
 
   final String email;
   final String redirectUrl;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

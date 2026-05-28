@@ -1,3 +1,7 @@
+// 文件：Supabase认证callbackweb
+//
+// 路径：`lib/features/auth/infrastructure/supabase_auth_callback_web.dart`。
+//
 import 'package:web/web.dart';
 
 const _recoveryStorageKey = 'bazi_auth_recovery';

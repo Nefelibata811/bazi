@@ -1,3 +1,7 @@
+// 文件：八字规则引擎
+//
+// 路径：`lib/domain/services/bazi_rule_engine.dart`。
+//
 // 八字规则引擎：十神、藏干、纳音、十二长生等查表与推算（无 UI、无网络）。
 // 排盘主数据来自 lunar 库，本类补充规则层；详见 docs/ALGORITHMS.md。
 import '../entities/hidden_stem.dart';

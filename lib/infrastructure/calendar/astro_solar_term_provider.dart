@@ -1,3 +1,8 @@
+// 文件：astro公历节气提供者
+//
+// 历法算法：八字排盘核心计算。
+// 路径：`lib/infrastructure/calendar/astro_solar_term_provider.dart`。
+//
 import 'dart:math';
 
 import '../../domain/constants/solar_term_constants.dart';
@@ -5,6 +10,7 @@ import '../../domain/entities/solar_term_info.dart';
 import '../../domain/services/julian_day.dart';
 import '../../domain/services/solar_term_provider.dart';
 
+/// 类 `AstroSolarTermProvider`：实现 Astro Solar Term Provider 相关逻辑。
 class AstroSolarTermProvider implements SolarTermProvider {
   const AstroSolarTermProvider();
 

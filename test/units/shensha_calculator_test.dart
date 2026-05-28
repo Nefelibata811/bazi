@@ -1,3 +1,8 @@
+// 文件：单元测试 — 神煞calculator
+//
+// 验证 神煞calculator 的正确性与边界情况。
+// 修改实现时请同步维护本测试。
+//
 import 'package:bazi_app/domain/entities/bazi_chart.dart';
 import 'package:bazi_app/domain/entities/pillar.dart';
 import 'package:bazi_app/infrastructure/calendar/rule_shensha_calculator.dart';

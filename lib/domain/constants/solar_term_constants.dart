@@ -1,3 +1,7 @@
+// 文件：公历节气constants
+//
+// 路径：`lib/domain/constants/solar_term_constants.dart`。
+//
 class SolarTermConstants {
   static const names = [
     '小寒',

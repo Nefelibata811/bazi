@@ -1,3 +1,8 @@
+// 文件：astro真公历timecalculator
+//
+// 历法算法：八字排盘核心计算。
+// 路径：`lib/infrastructure/calendar/astro_true_solar_time_calculator.dart`。
+//
 import 'dart:math' as math;
 
 import '../../domain/entities/true_solar_time_info.dart';

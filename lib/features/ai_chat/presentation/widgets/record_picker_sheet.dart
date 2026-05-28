@@ -1,3 +1,9 @@
+// 文件：AI 看盘 — 选盘底部弹窗
+//
+// 供用户在对话前选择已保存的命盘。
+// 支持「全部命盘 / 命盘合集」；合集内二级浏览命盘列表。
+// 弹窗高度固定；系统返回在合集内先退回合集列表。
+//
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,8 +21,10 @@ import '../../../history/application/save_bazi_record.dart'
 import '../../../input/application/bazi_input_controller.dart';
 import 'chart_loading_widgets.dart';
 
+/// 选盘列表来源：全部命盘，或按命盘合集浏览。
 enum _RecordPickerSource { all, collection }
 
+/// AI 看盘选盘底部弹窗：选择已保存命盘作为对话上下文。
 class RecordPickerSheet extends ConsumerStatefulWidget {
   const RecordPickerSheet({
     super.key,
@@ -31,10 +39,13 @@ class RecordPickerSheet extends ConsumerStatefulWidget {
   ConsumerState<RecordPickerSheet> createState() => _RecordPickerSheetState();
 }
 
+/// 选盘弹窗状态：Tab 切换、合集二级导航与数据预加载。
 class _RecordPickerSheetState extends ConsumerState<RecordPickerSheet> {
   bool _pendingSave = false;
   _RecordPickerSource _source = _RecordPickerSource.all;
   CollectionModel? _openedCollection;
+
+  // 初始化：注册首帧回调、预加载列表数据。
 
   @override
   void initState() {
@@ -48,6 +59,7 @@ class _RecordPickerSheetState extends ConsumerState<RecordPickerSheet> {
 
   static const _pendingAutoStartKey = 'pending_ai_auto_start';
 
+  // 若从排盘页跳转而来，自动保存当前命盘供 AI 选用。
   Future<void> _maybeSavePendingChart() async {
     if (_pendingSave) return;
     final prefs = await SharedPreferences.getInstance();
@@ -75,6 +87,7 @@ class _RecordPickerSheetState extends ConsumerState<RecordPickerSheet> {
     }
   }
 
+  // 用户点击重试时重新加载当前视图数据。
   Future<void> _retryLoad() async {
     if (_source == _RecordPickerSource.collection &&
         _openedCollection != null) {
@@ -88,13 +101,17 @@ class _RecordPickerSheetState extends ConsumerState<RecordPickerSheet> {
     }
   }
 
+  // 进入某个合集内的命盘列表。
   void _openCollection(CollectionModel collection) {
     setState(() => _openedCollection = collection);
   }
 
+  // 从合集内返回到合集列表。
   void _backToCollections() {
     setState(() => _openedCollection = null);
   }
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -201,6 +218,7 @@ class _RecordPickerSheetState extends ConsumerState<RecordPickerSheet> {
     );
   }
 
+  // 根据当前 Tab/合集层级渲染列表主体。
   Widget _buildBody(
     BaziRecordsListState listState,
     CollectionsListState collectionsState,
@@ -233,6 +251,7 @@ class _RecordPickerSheetState extends ConsumerState<RecordPickerSheet> {
   }
 }
 
+/// 私有类 `_AllRecordsPane`：All Records Pane。
 class _AllRecordsPane extends StatelessWidget {
   const _AllRecordsPane({
     required this.listState,
@@ -247,6 +266,8 @@ class _AllRecordsPane extends StatelessWidget {
   final String? selectedId;
   final ValueChanged<BaziRecord> onSelect;
   final VoidCallback onRetry;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -302,6 +323,7 @@ class _AllRecordsPane extends StatelessWidget {
   }
 }
 
+/// 私有类 `_CollectionListPane`：Collection List Pane。
 class _CollectionListPane extends ConsumerWidget {
   const _CollectionListPane({
     required this.state,
@@ -312,6 +334,8 @@ class _CollectionListPane extends ConsumerWidget {
   final CollectionsListState state;
   final ValueChanged<CollectionModel> onOpen;
   final VoidCallback onRetry;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -421,6 +445,7 @@ class _CollectionListPane extends ConsumerWidget {
   }
 }
 
+/// 私有类 `_CollectionRecordsPane`：Collection Records Pane。
 class _CollectionRecordsPane extends ConsumerWidget {
   const _CollectionRecordsPane({
     required this.collection,
@@ -433,6 +458,8 @@ class _CollectionRecordsPane extends ConsumerWidget {
   final String? selectedId;
   final ValueChanged<BaziRecord> onSelect;
   final VoidCallback onRetry;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -485,6 +512,7 @@ class _CollectionRecordsPane extends ConsumerWidget {
   }
 }
 
+/// 私有类 `_RecordList`：Record List。
 class _RecordList extends StatelessWidget {
   const _RecordList({
     required this.records,
@@ -495,6 +523,8 @@ class _RecordList extends StatelessWidget {
   final List<BaziRecord> records;
   final String? selectedId;
   final ValueChanged<BaziRecord> onSelect;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

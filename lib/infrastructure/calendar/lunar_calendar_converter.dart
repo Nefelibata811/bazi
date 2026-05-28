@@ -1,3 +1,8 @@
+// 文件：农历历法转换
+//
+// 历法算法：八字排盘核心计算。
+// 路径：`lib/infrastructure/calendar/lunar_calendar_converter.dart`。
+//
 import 'package:lunar/lunar.dart';
 
 import '../../../domain/entities/bazi_request.dart';
@@ -7,6 +12,7 @@ import '../../../domain/services/calendar_converter.dart';
 import '../../../domain/value_objects/calendar_precision.dart';
 import 'chart_datetime_resolver.dart';
 
+/// 类 `LunarCalendarConverter`：实现 Lunar Calendar Converter 相关逻辑。
 class LunarCalendarConverter implements CalendarConverter {
   const LunarCalendarConverter();
 

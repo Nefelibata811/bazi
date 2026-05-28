@@ -1,3 +1,7 @@
+// 文件：流式typingreveal
+//
+// 路径：`lib/features/ai_chat/application/streaming_typing_reveal.dart`。
+//
 import 'dart:async';
 
 /// Reveals streamed text one character at a fixed pace (never batch-jumps).
@@ -24,6 +28,7 @@ class StreamingTypingReveal {
     _shown = '';
   }
 
+  // 释放监听器与控制器资源。
   void dispose() {
     _timer?.cancel();
     _timer = null;

@@ -1,3 +1,7 @@
+// 文件：analyze八字用例
+//
+// 路径：`lib/domain/usecases/analyze_bazi_usecase.dart`。
+//
 import '../entities/analysis_result.dart';
 import '../entities/bazi_chart.dart';
 import '../value_objects/gender.dart';
@@ -6,6 +10,7 @@ import '../services/shensha_calculator.dart';
 import '../services/useful_god_analyzer.dart';
 import '../../infrastructure/calendar/interaction_calculator.dart';
 
+/// 类 `AnalyzeBaziUseCase`：实现 Analyze Bazi Use Case 相关逻辑。
 class AnalyzeBaziUseCase {
   const AnalyzeBaziUseCase({
     required PatternAnalyzer patternAnalyzer,

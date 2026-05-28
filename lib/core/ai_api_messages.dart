@@ -1,4 +1,7 @@
-/// User-facing messages for DeepSeek / AI chat API errors.
+// 文件：AIAPI文案
+//
+// 路径：`lib/core/ai_api_messages.dart`。
+//
 String formatAiApiError(Object error) {
   final raw = error.toString();
   final lower = raw.toLowerCase();

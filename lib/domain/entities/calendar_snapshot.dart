@@ -1,8 +1,14 @@
+// 文件：历法snapshot
+//
+// 领域实体：承载业务数据字段。
+// 路径：`lib/domain/entities/calendar_snapshot.dart`。
+//
 import 'bazi_request.dart';
 import 'lunar_date.dart';
 import 'true_solar_time_info.dart';
 import '../value_objects/calendar_precision.dart';
 
+/// 类 `CalendarSnapshot`：实现 Calendar Snapshot 相关逻辑。
 class CalendarSnapshot {
   const CalendarSnapshot({
     required this.request,

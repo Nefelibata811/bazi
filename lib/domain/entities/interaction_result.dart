@@ -1,3 +1,8 @@
+// 文件：刑冲合害结果
+//
+// 领域实体：承载业务数据字段。
+// 路径：`lib/domain/entities/interaction_result.dart`。
+//
 enum InteractionType {
   stemCombine, // 天干五合
   stemClash, // 天干相冲
@@ -17,6 +22,7 @@ enum InteractionType {
   fanYin, // 反吟
 }
 
+/// 类 `InteractionResult`：实现 Interaction Result 相关逻辑。
 class InteractionResult {
   const InteractionResult({
     required this.type,

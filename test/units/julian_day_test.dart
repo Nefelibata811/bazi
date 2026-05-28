@@ -1,3 +1,8 @@
+// 文件：单元测试 — 儒略day
+//
+// 验证 儒略day 的正确性与边界情况。
+// 修改实现时请同步维护本测试。
+//
 import 'package:bazi_app/domain/services/julian_day.dart';
 import 'package:flutter_test/flutter_test.dart';
 

@@ -1,3 +1,8 @@
+// 文件：astro人元元司lingcalculator
+//
+// 历法算法：八字排盘核心计算。
+// 路径：`lib/infrastructure/calendar/astro_ren_yuan_si_ling_calculator.dart`。
+//
 import '../../domain/entities/ren_yuan_si_ling.dart';
 import '../../domain/entities/solar_term_info.dart';
 import '../../domain/services/ren_yuan_si_ling_calculator.dart';

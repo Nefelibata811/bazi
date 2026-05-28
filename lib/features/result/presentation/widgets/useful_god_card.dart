@@ -1,8 +1,14 @@
+// 文件：用神godcard
+//
+// UI 组件：可复用的界面片段。
+// 路径：`lib/features/result/presentation/widgets/useful_god_card.dart`。
+//
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../domain/entities/useful_god_result.dart';
 
+/// 类 `UsefulGodCard`：实现 Useful God Card 相关逻辑。
 class UsefulGodCard extends StatelessWidget {
   const UsefulGodCard({
     super.key,
@@ -10,6 +16,8 @@ class UsefulGodCard extends StatelessWidget {
   });
 
   final UsefulGodResult usefulGod;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -81,6 +89,7 @@ class UsefulGodCard extends StatelessWidget {
   }
 }
 
+/// 私有类 `_StatusBlock`：Status Block。
 class _StatusBlock extends StatelessWidget {
   const _StatusBlock({
     required this.label,
@@ -91,6 +100,8 @@ class _StatusBlock extends StatelessWidget {
   final String label;
   final String value;
   final Color color;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

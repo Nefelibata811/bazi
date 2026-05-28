@@ -1,3 +1,7 @@
+// 文件：Supabase八字记录仓库
+//
+// 路径：`lib/infrastructure/database/supabase_bazi_record_repository.dart`。
+//
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -6,6 +10,7 @@ import '../../domain/entities/bazi_record.dart';
 import '../../domain/services/bazi_record_repository.dart';
 import '../../features/history/infrastructure/person_identity.dart';
 
+/// 类 `SupabaseBaziRecordRepository`：实现 Supabase Bazi Record Repository 相关逻辑。
 class SupabaseBaziRecordRepository implements BaziRecordRepository {
   final SupabaseClient _client;
 

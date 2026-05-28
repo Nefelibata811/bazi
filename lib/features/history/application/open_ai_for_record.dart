@@ -1,3 +1,7 @@
+// 文件：openAIfor记录
+//
+// 路径：`lib/features/history/application/open_ai_for_record.dart`。
+//
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';

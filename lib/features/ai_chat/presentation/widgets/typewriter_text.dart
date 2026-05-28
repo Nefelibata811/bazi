@@ -1,3 +1,8 @@
+// 文件：打字机text
+//
+// UI 组件：可复用的界面片段。
+// 路径：`lib/features/ai_chat/presentation/widgets/typewriter_text.dart`。
+//
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -25,9 +30,12 @@ class TypewriterText extends StatefulWidget {
   State<TypewriterText> createState() => _TypewriterTextState();
 }
 
+/// 私有类 `_TypewriterTextState`：Typewriter Text State。
 class _TypewriterTextState extends State<TypewriterText> {
   int _visibleLength = 0;
   Timer? _timer;
+
+  // 初始化：注册首帧回调、预加载列表数据。
 
   @override
   void initState() {
@@ -76,11 +84,15 @@ class _TypewriterTextState extends State<TypewriterText> {
     });
   }
 
+  // 释放监听器与控制器资源。
+
   @override
   void dispose() {
     _timer?.cancel();
     super.dispose();
   }
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

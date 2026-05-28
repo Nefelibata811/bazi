@@ -1,3 +1,7 @@
+// 文件：personidentity
+//
+// 路径：`lib/features/history/infrastructure/person_identity.dart`。
+//
 import '../../../domain/entities/bazi_record.dart';
 import '../../../domain/entities/bazi_request.dart';
 import '../../../domain/value_objects/calendar_type.dart';

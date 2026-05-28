@@ -1,5 +1,11 @@
+// 文件：八字记录
+//
+// 领域实体：承载业务数据字段。
+// 路径：`lib/domain/entities/bazi_record.dart`。
+//
 import 'dart:convert';
 
+/// 类 `BaziRecord`：实现 Bazi Record 相关逻辑。
 class BaziRecord {
   const BaziRecord({
     required this.id,

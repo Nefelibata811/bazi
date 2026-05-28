@@ -1,3 +1,7 @@
+// 文件：Supabase认证callback
+//
+// 路径：`lib/features/auth/infrastructure/supabase_auth_callback.dart`。
+//
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 

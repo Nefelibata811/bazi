@@ -1,3 +1,8 @@
+// 文件：otpcountdown控制器
+//
+// 控制器：管理状态并协调数据层。
+// 路径：`lib/features/auth/presentation/widgets/otp_countdown_controller.dart`。
+//
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -11,6 +16,7 @@ class OtpCountdownController {
 
   bool get isActive => remaining > 0;
 
+  // 释放监听器与控制器资源。
   void dispose() {
     _timer?.cancel();
     _timer = null;

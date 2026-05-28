@@ -1,3 +1,8 @@
+// 文件：农历eightcharfactory
+//
+// 历法算法：八字排盘核心计算。
+// 路径：`lib/infrastructure/calendar/lunar_eight_char_factory.dart`。
+//
 import 'package:lunar/lunar.dart';
 
 import '../../domain/entities/bazi_request.dart';

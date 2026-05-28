@@ -1,3 +1,7 @@
+// 文件：认证仓库
+//
+// 路径：`lib/domain/services/auth_repository.dart`。
+//
 import 'dart:typed_data';
 
 import '../entities/user.dart';

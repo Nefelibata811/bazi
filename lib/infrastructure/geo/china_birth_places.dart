@@ -1,3 +1,7 @@
+// 文件：中国出生地点
+//
+// 路径：`lib/infrastructure/geo/china_birth_places.dart`。
+//
 import '../../domain/entities/birth_place.dart';
 import 'china_birth_places_data.dart';
 

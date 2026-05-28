@@ -1,3 +1,7 @@
+// 文件：用户会话cleanup
+//
+// 路径：`lib/core/user_session_cleanup.dart`。
+//
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

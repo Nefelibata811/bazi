@@ -1,3 +1,8 @@
+// 文件：八字核心命盘card
+//
+// UI 组件：可复用的界面片段。
+// 路径：`lib/features/chart/presentation/widgets/bazi_core_chart_card.dart`。
+//
 // 表格式四柱排盘 UI：左侧行标签 + 年/月/日/时四列（主星、干支、藏干、副星、星运、自坐、神煞）。
 
 import 'package:flutter/material.dart';
@@ -22,6 +27,8 @@ class BaziCoreChartCard extends StatelessWidget {
   final BaziChart chart;
   final List<ShenshaItem> shenshaItems;
   final RenYuanSiLing? renYuanSiLing;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

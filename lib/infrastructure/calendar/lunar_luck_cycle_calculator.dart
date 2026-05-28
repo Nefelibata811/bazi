@@ -1,3 +1,8 @@
+// 文件：农历大运运程calculator
+//
+// 历法算法：八字排盘核心计算。
+// 路径：`lib/infrastructure/calendar/lunar_luck_cycle_calculator.dart`。
+//
 import 'package:lunar/lunar.dart';
 
 
@@ -25,6 +30,7 @@ import 'lunar_eight_char_factory.dart';
 
 
 
+/// 类 `LunarLuckCycleCalculator`：实现 Lunar Luck Cycle Calculator 相关逻辑。
 class LunarLuckCycleCalculator implements LuckCycleCalculator {
 
   const LunarLuckCycleCalculator({
@@ -92,8 +98,6 @@ class LunarLuckCycleCalculator implements LuckCycleCalculator {
     for (var i = 0; i < liuNian.length; i++) {
 
       final ln = liuNian[i];
-
-      final lnGanZhi = ln.getGanZhi();
 
       final xiaoYunGanZhi =
 

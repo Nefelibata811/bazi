@@ -1,3 +1,8 @@
+// 文件：AI 看盘 — 对话主页面
+//
+// 展示选中的命盘上下文与 AI 分析对话。
+// 处理选盘、流式回复、清空对话与返回键逻辑。
+//
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -20,6 +25,7 @@ import '../widgets/chat_input_bar.dart';
 import '../widgets/chat_message_list.dart';
 import '../widgets/record_picker_sheet.dart';
 
+/// 类 `ChatPage`：实现 Chat Page 相关逻辑。
 class ChatPage extends ConsumerStatefulWidget {
   const ChatPage({super.key});
 
@@ -27,6 +33,7 @@ class ChatPage extends ConsumerStatefulWidget {
   ConsumerState<ChatPage> createState() => _ChatPageState();
 }
 
+/// 私有类 `_ChatPageState`：Chat Page State。
 class _ChatPageState extends ConsumerState<ChatPage> {
   final _messageController = TextEditingController();
   final _scrollController = ScrollController();
@@ -34,6 +41,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   bool _isRestoringSession = false;
   bool _isSyncingChart = false;
   bool _bootstrapInFlight = false;
+
+  // 初始化：注册首帧回调、预加载列表数据。
 
   @override
   void initState() {
@@ -187,6 +196,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     }
   }
 
+  // 释放监听器与控制器资源。
+
   @override
   void dispose() {
     _messageController.dispose();
@@ -194,6 +205,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     super.dispose();
   }
 
+  // 选中命盘后更新状态并可选开始分析。
   Future<void> _onSelectRecord(
     BaziRecord record, {
     bool beginAnalysis = false,
@@ -304,6 +316,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     }
     ref.read(chatControllerProvider.notifier).clearSelection();
   }
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -500,6 +514,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     );
   }
 
+  // 打开选盘底部弹窗。
   Future<void> _showRecordPicker({bool beginAnalysis = false}) async {
     final user = ref.read(authControllerProvider).user;
     if (user == null) {

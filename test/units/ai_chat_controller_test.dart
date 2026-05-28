@@ -1,3 +1,8 @@
+// 文件：单元测试 — AI对话控制器
+//
+// 验证 AI对话控制器 的正确性与边界情况。
+// 修改实现时请同步维护本测试。
+//
 import 'dart:async';
 
 import 'package:bazi_app/domain/services/chat_repository.dart';
@@ -6,6 +11,7 @@ import 'package:bazi_app/features/ai_chat/infrastructure/chat_history_store.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// 私有类 `_MockChatRepository`：Mock Chat Repository。
 class _MockChatRepository implements ChatRepository {
   _MockChatRepository();
 
@@ -96,10 +102,9 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     mockRepo = _MockChatRepository();
     historyStore = InMemoryChatHistoryStore();
-    controller = ChatController(
+    controller = ChatController.forTest(
       repository: mockRepo,
       historyStore: historyStore,
-      deepseekApiKey: 'test-key',
     );
   });
 
@@ -250,7 +255,7 @@ void main() {
 
   group('clearSelection', () {
     test('清除选盘时复位全部会话状态（含 isRestoringChart）', () async {
-      controller.state = controller.state.copyWith(
+      controller.state = ChatState(
         selectedRecordId: recordId,
         selectedPersonName: personName,
         isRestoringChart: true,

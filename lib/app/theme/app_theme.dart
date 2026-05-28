@@ -1,8 +1,13 @@
+// 文件：应用主题
+//
+// 路径：`lib/app/theme/app_theme.dart`。
+//
 import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
 import 'app_fonts.dart';
 
+/// 类 `AppTheme`：实现 App Theme 相关逻辑。
 class AppTheme {
   static ThemeData light() {
     final scheme = ColorScheme.fromSeed(

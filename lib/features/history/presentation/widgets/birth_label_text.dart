@@ -1,3 +1,8 @@
+// 文件：出生标签text
+//
+// UI 组件：可复用的界面片段。
+// 路径：`lib/features/history/presentation/widgets/birth_label_text.dart`。
+//
 import 'package:flutter/material.dart';
 
 import '../../infrastructure/birth_display_label.dart';
@@ -30,6 +35,8 @@ class BirthLabelText extends StatelessWidget {
       color: color,
     );
   }
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

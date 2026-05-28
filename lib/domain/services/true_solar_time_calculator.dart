@@ -1,3 +1,7 @@
+// 文件：真公历timecalculator
+//
+// 路径：`lib/domain/services/true_solar_time_calculator.dart`。
+//
 import '../entities/true_solar_time_info.dart';
 
 /// 将出生地钟表时间换算为真太阳时（用于排盘时辰）。

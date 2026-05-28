@@ -1,3 +1,8 @@
+// 文件：登录页面
+//
+// 页面：负责 UI 展示与用户操作。
+// 路径：`lib/features/auth/presentation/pages/login_page.dart`。
+//
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,8 +13,10 @@ import '../../application/auth_controller.dart';
 import '../widgets/otp_countdown_controller.dart';
 import 'forgot_password_page.dart';
 
+/// 枚举 `_LoginMode`：Login Mode 的取值集合。
 enum _LoginMode { email, phone }
 
+/// 类 `LoginPage`：实现 Login Page 相关逻辑。
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
@@ -17,6 +24,7 @@ class LoginPage extends ConsumerStatefulWidget {
   ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
+/// 私有类 `_LoginPageState`：Login Page State。
 class _LoginPageState extends ConsumerState<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -28,6 +36,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   bool _otpSent = false;
   bool _sendingOtp = false;
   final _otpCountdown = OtpCountdownController();
+
+  // 初始化：注册首帧回调、预加载列表数据。
 
   @override
   void initState() {
@@ -46,6 +56,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     });
     await prefs.remove('saved_password');
   }
+
+  // 释放监听器与控制器资源。
 
   @override
   void dispose() {
@@ -408,6 +420,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       Navigator.of(context).pushNamedAndRemoveUntil('/main', (_) => false);
     });
   }
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

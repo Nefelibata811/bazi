@@ -1,3 +1,8 @@
+// 文件：八字结果页面
+//
+// 页面：负责 UI 展示与用户操作。
+// 路径：`lib/features/result/presentation/pages/bazi_result_page.dart`。
+//
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,6 +31,7 @@ import '../widgets/useful_god_card.dart';
 
 const _chartRuleEngine = BaziRuleEngine();
 
+/// 类 `BaziResultPage`：实现 Bazi Result Page 相关逻辑。
 class BaziResultPage extends ConsumerStatefulWidget {
   const BaziResultPage({
     super.key,
@@ -42,6 +48,7 @@ class BaziResultPage extends ConsumerStatefulWidget {
   ConsumerState<BaziResultPage> createState() => _BaziResultPageState();
 }
 
+/// 私有类 `_BaziResultPageState`：Bazi Result Page State。
 class _BaziResultPageState extends ConsumerState<BaziResultPage> {
   Future<void> _returnToMain({int tabIndex = 0}) async {
     if (tabIndex == 0) {
@@ -60,6 +67,8 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
   bool _isGoingToAi = false;
   DateTime _lastTap = DateTime(2000);
 
+  // 初始化：注册首帧回调、预加载列表数据。
+
   @override
   void initState() {
     super.initState();
@@ -67,6 +76,8 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
       _hasSaved = true;
     }
   }
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -445,10 +456,13 @@ class _BaziResultPageState extends ConsumerState<BaziResultPage> {
   }
 }
 
+/// 私有类 `_StemBranchHintCard`：Stem Branch Hint Card。
 class _StemBranchHintCard extends StatelessWidget {
   const _StemBranchHintCard({required this.chart});
 
   final BaziChart chart;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -551,6 +565,7 @@ class _StemBranchHintCard extends StatelessWidget {
   }
 }
 
+/// 私有类 `_HintRow`：Hint Row。
 class _HintRow extends StatelessWidget {
   const _HintRow({
     required this.icon,
@@ -561,6 +576,8 @@ class _HintRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -585,6 +602,7 @@ class _HintRow extends StatelessWidget {
   }
 }
 
+/// 私有类 `_BoneWeightCard`：Bone Weight Card。
 class _BoneWeightCard extends StatelessWidget {
   const _BoneWeightCard({
     required this.boneWeight,
@@ -593,6 +611,8 @@ class _BoneWeightCard extends StatelessWidget {
 
   final BoneWeight boneWeight;
   final bool isMale;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

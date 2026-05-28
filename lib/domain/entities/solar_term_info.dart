@@ -1,3 +1,8 @@
+// 文件：公历节气info
+//
+// 领域实体：承载业务数据字段。
+// 路径：`lib/domain/entities/solar_term_info.dart`。
+//
 class SolarTermInfo {
   const SolarTermInfo({
     required this.name,

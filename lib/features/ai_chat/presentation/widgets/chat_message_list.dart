@@ -1,3 +1,8 @@
+// 文件：对话messagelist
+//
+// UI 组件：可复用的界面片段。
+// 路径：`lib/features/ai_chat/presentation/widgets/chat_message_list.dart`。
+//
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -7,6 +12,7 @@ import '../../../../core/app_strings.dart';
 import '../../application/chat_controller.dart';
 import 'formatted_ai_text.dart';
 
+/// 类 `ChatMessageList`：实现 Chat Message List 相关逻辑。
 class ChatMessageList extends StatefulWidget {
   const ChatMessageList({
     super.key,
@@ -29,6 +35,7 @@ class ChatMessageList extends StatefulWidget {
   State<ChatMessageList> createState() => _ChatMessageListState();
 }
 
+/// 私有类 `_ChatMessageListState`：Chat Message List State。
 class _ChatMessageListState extends State<ChatMessageList> {
   static const _initialTailCount = 4;
   static const _loadMoreBatch = 8;
@@ -37,12 +44,16 @@ class _ChatMessageListState extends State<ChatMessageList> {
   bool _pinnedToBottom = true;
   bool _isPrependingEarlier = false;
 
+  // 初始化：注册首帧回调、预加载列表数据。
+
   @override
   void initState() {
     super.initState();
     widget.scrollController.addListener(_onScroll);
     _applyTailWindow(jumpToBottom: true);
   }
+
+  // 释放监听器与控制器资源。
 
   @override
   void dispose() {
@@ -166,6 +177,8 @@ class _ChatMessageListState extends State<ChatMessageList> {
 
     return _visibleFromIndex + local;
   }
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -318,6 +331,7 @@ class _ChatMessageListState extends State<ChatMessageList> {
   }
 }
 
+/// 私有类 `_EarlierHistoryBanner`：Earlier History Banner。
 class _EarlierHistoryBanner extends StatelessWidget {
   const _EarlierHistoryBanner({
     required this.hiddenCount,
@@ -326,6 +340,8 @@ class _EarlierHistoryBanner extends StatelessWidget {
 
   final int hiddenCount;
   final VoidCallback onTap;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -370,6 +386,7 @@ class _EarlierHistoryBanner extends StatelessWidget {
   }
 }
 
+/// 类 `AssistantMessageBody`：实现 Assistant Message Body 相关逻辑。
 class AssistantMessageBody extends StatelessWidget {
   const AssistantMessageBody({
     super.key,
@@ -383,6 +400,8 @@ class AssistantMessageBody extends StatelessWidget {
   final bool showSuggestions;
   final ValueChanged<String> onSuggestionTap;
   final TextTheme textTheme;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

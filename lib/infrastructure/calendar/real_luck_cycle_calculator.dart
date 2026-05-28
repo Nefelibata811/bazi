@@ -1,3 +1,8 @@
+// 文件：real大运运程calculator
+//
+// 历法算法：八字排盘核心计算。
+// 路径：`lib/infrastructure/calendar/real_luck_cycle_calculator.dart`。
+//
 // 自研大运推算，仅单测/算法基准；生产见 LunarLuckCycleCalculator。
 import '../../domain/entities/bazi_chart.dart';
 import '../../domain/entities/bazi_request.dart';
@@ -10,6 +15,7 @@ import '../../domain/services/luck_cycle_calculator.dart';
 import '../../domain/value_objects/gender.dart';
 import '../../domain/value_objects/yin_yang.dart';
 
+/// 类 `RealLuckCycleCalculator`：实现 Real Luck Cycle Calculator 相关逻辑。
 class RealLuckCycleCalculator implements LuckCycleCalculator {
   const RealLuckCycleCalculator({
     required BaziRuleEngine ruleEngine,

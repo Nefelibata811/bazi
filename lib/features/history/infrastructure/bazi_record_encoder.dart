@@ -1,3 +1,7 @@
+// 文件：八字记录编解码
+//
+// 路径：`lib/features/history/infrastructure/bazi_record_encoder.dart`。
+//
 import 'dart:convert';
 
 import '../../../domain/entities/bazi_chart.dart';

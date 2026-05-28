@@ -1,3 +1,8 @@
+// 文件：格式化AItext
+//
+// UI 组件：可复用的界面片段。
+// 路径：`lib/features/ai_chat/presentation/widgets/formatted_ai_text.dart`。
+//
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
@@ -12,6 +17,8 @@ class FormattedAiText extends StatelessWidget {
 
   final String text;
   final TextStyle? style;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

@@ -1,3 +1,7 @@
+// 文件：八字记录本地cache
+//
+// 路径：`lib/features/history/infrastructure/bazi_records_local_cache.dart`。
+//
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';

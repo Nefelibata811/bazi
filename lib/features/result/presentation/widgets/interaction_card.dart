@@ -1,3 +1,8 @@
+// 文件：刑冲合害card
+//
+// UI 组件：可复用的界面片段。
+// 路径：`lib/features/result/presentation/widgets/interaction_card.dart`。
+//
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
@@ -12,6 +17,7 @@ import '../../../../domain/entities/interaction_result.dart';
   return (summary: description, proof: null);
 }
 
+/// 类 `InteractionCard`：实现 Interaction Card 相关逻辑。
 class InteractionCard extends StatelessWidget {
   const InteractionCard({
     super.key,
@@ -62,6 +68,8 @@ class InteractionCard extends StatelessWidget {
     InteractionType.branchSelfPunish,
     InteractionType.fuYin,
   ];
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -119,6 +127,7 @@ class InteractionCard extends StatelessWidget {
   }
 }
 
+/// 私有类 `_InteractionLine`：Interaction Line。
 class _InteractionLine extends StatelessWidget {
   const _InteractionLine({
     required this.result,
@@ -129,6 +138,8 @@ class _InteractionLine extends StatelessWidget {
   final InteractionResult result;
   final Color color;
   final VoidCallback onTap;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

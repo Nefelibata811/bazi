@@ -1,7 +1,12 @@
+// 文件：Supabase合集仓库
+//
+// 路径：`lib/infrastructure/database/supabase_collection_repository.dart`。
+//
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/services/bazi_record_repository.dart';
 
+/// 类 `SupabaseCollectionRepository`：实现 Supabase Collection Repository 相关逻辑。
 class SupabaseCollectionRepository implements CollectionRepository {
   final SupabaseClient _client;
 

@@ -1,3 +1,7 @@
+// 文件：合集记录提供者
+//
+// 路径：`lib/features/history/application/collection_records_provider.dart`。
+//
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/entities/bazi_record.dart';

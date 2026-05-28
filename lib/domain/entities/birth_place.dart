@@ -1,4 +1,8 @@
-/// 命主出生地点（用于真太阳时经度订正）。
+// 文件：出生地点
+//
+// 领域实体：承载业务数据字段。
+// 路径：`lib/domain/entities/birth_place.dart`。
+//
 class BirthPlace {
   const BirthPlace({
     required this.name,

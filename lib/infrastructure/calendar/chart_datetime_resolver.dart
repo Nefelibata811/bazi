@@ -1,3 +1,8 @@
+// 文件：命盘datetimeresolver
+//
+// 历法算法：八字排盘核心计算。
+// 路径：`lib/infrastructure/calendar/chart_datetime_resolver.dart`。
+//
 import 'package:lunar/lunar.dart';
 
 import '../../domain/entities/bazi_request.dart';

@@ -1,3 +1,8 @@
+// 文件：单元测试 — 真公历time
+//
+// 验证 真公历time 的正确性与边界情况。
+// 修改实现时请同步维护本测试。
+//
 import 'package:bazi_app/infrastructure/calendar/astro_true_solar_time_calculator.dart';
 import 'package:bazi_app/infrastructure/calendar/chart_datetime_resolver.dart';
 import 'package:bazi_app/domain/entities/bazi_request.dart';

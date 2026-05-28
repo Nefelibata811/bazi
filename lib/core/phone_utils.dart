@@ -1,4 +1,7 @@
-/// China mobile number helpers (E.164 for Supabase Auth).
+// 文件：phoneutils
+//
+// 路径：`lib/core/phone_utils.dart`。
+//
 abstract final class PhoneUtils {
   /// Normalizes input to E.164, e.g. `+8613812345678`.
   static String? toE164(String input) {

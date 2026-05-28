@@ -1,3 +1,7 @@
+// 文件：inactive认证仓库
+//
+// 路径：`lib/infrastructure/database/inactive_auth_repository.dart`。
+//
 import 'dart:typed_data';
 
 import '../../domain/entities/user.dart';

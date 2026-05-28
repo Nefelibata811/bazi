@@ -1,9 +1,15 @@
+// 文件：规则神煞calculator
+//
+// 历法算法：八字排盘核心计算。
+// 路径：`lib/infrastructure/calendar/rule_shensha_calculator.dart`。
+//
 import '../../domain/entities/bazi_chart.dart';
 import '../../domain/entities/pillar.dart';
 import '../../domain/entities/shensha_item.dart';
 import '../../domain/services/shensha_calculator.dart';
 import '../../domain/value_objects/gender.dart';
 
+/// 类 `RuleShenshaCalculator`：实现 Rule Shensha Calculator 相关逻辑。
 class RuleShenshaCalculator implements ShenshaCalculator {
   const RuleShenshaCalculator();
 

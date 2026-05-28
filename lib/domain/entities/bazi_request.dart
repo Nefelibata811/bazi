@@ -1,7 +1,13 @@
+// 文件：八字请求
+//
+// 领域实体：承载业务数据字段。
+// 路径：`lib/domain/entities/bazi_request.dart`。
+//
 import '../value_objects/bazi_sect.dart';
 import '../value_objects/calendar_type.dart';
 import '../value_objects/gender.dart';
 
+/// 类 `BaziRequest`：实现 Bazi Request 相关逻辑。
 class BaziRequest {
   const BaziRequest({
     required this.calendarType,

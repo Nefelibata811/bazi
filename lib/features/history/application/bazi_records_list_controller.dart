@@ -1,3 +1,8 @@
+// 文件：八字记录list控制器
+//
+// 控制器：管理状态并协调数据层。
+// 路径：`lib/features/history/application/bazi_records_list_controller.dart`。
+//
 // 命主/排盘记录列表：keepAlive 缓存，与合集列表同样在主页预加载。
 
 import 'dart:async';
@@ -15,6 +20,7 @@ import 'save_bazi_record.dart' show baziRecordRepositoryProvider;
 final baziRecordsVersionProvider = StateProvider<int>((ref) => 0);
 
 @immutable
+/// 类 `BaziRecordsListState`：实现 Bazi Records List State 相关逻辑。
 class BaziRecordsListState {
   const BaziRecordsListState({
     this.records = const [],
@@ -31,6 +37,7 @@ class BaziRecordsListState {
   bool get hasRecords => records.isNotEmpty;
 }
 
+/// 类 `BaziRecordsListNotifier`：实现 Bazi Records List Notifier 相关逻辑。
 class BaziRecordsListNotifier extends Notifier<BaziRecordsListState> {
   static const _networkTimeout = Duration(seconds: 3);
   static const _maxAttempts = 2;
@@ -39,6 +46,7 @@ class BaziRecordsListNotifier extends Notifier<BaziRecordsListState> {
   bool _bootstrapInFlight = false;
 
   @override
+  // 构建界面布局。
   BaziRecordsListState build() {
     ref.keepAlive();
     ref.listen<int>(baziRecordsVersionProvider, (previous, next) {
@@ -70,9 +78,11 @@ class BaziRecordsListNotifier extends Notifier<BaziRecordsListState> {
       unawaited(refresh(silent: true));
       return;
     }
+    // 首次加载：优先读本地缓存，再请求网络。
     await _bootstrap(userId);
   }
 
+  // 重新从网络拉取并更新状态。
   Future<void> refresh({bool silent = false}) async {
     final userId = ref.read(authControllerProvider).user?.id;
     if (userId == null) return;
@@ -148,6 +158,7 @@ class BaziRecordsListNotifier extends Notifier<BaziRecordsListState> {
     }
   }
 
+  // 首次加载：优先读本地缓存，再请求网络。
   Future<void> _bootstrap(String userId) async {
     if (_bootstrapInFlight && _activeUserId == userId) return;
     _bootstrapInFlight = true;

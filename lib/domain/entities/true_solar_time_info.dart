@@ -1,4 +1,8 @@
-/// 真太阳时换算结果（用于结果页展示）。
+// 文件：真公历timeinfo
+//
+// 领域实体：承载业务数据字段。
+// 路径：`lib/domain/entities/true_solar_time_info.dart`。
+//
 class TrueSolarTimeInfo {
   const TrueSolarTimeInfo({
     required this.birthPlaceName,

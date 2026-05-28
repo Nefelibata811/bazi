@@ -1,8 +1,14 @@
+// 文件：对话录入bar
+//
+// UI 组件：可复用的界面片段。
+// 路径：`lib/features/ai_chat/presentation/widgets/chat_input_bar.dart`。
+//
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/app_strings.dart';
 
+/// 类 `ChatInputBar`：实现 Chat Input Bar 相关逻辑。
 class ChatInputBar extends StatelessWidget {
   const ChatInputBar({
     super.key,
@@ -18,6 +24,8 @@ class ChatInputBar extends StatelessWidget {
   final VoidCallback onSend;
   final VoidCallback onAddRecord;
   final VoidCallback onCancel;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

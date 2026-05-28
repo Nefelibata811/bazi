@@ -1,3 +1,8 @@
+// 文件：单元测试 — 追问upquestion生成器
+//
+// 验证 追问upquestion生成器 的正确性与边界情况。
+// 修改实现时请同步维护本测试。
+//
 import 'package:bazi_app/domain/services/chat_repository.dart';
 import 'package:bazi_app/features/ai_chat/application/assistant_reply_formatter.dart';
 import 'package:bazi_app/features/ai_chat/application/follow_up_question_generator.dart';

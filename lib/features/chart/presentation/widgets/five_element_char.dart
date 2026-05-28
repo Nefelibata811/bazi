@@ -1,3 +1,8 @@
+// 文件：五五行char
+//
+// UI 组件：可复用的界面片段。
+// 路径：`lib/features/chart/presentation/widgets/five_element_char.dart`。
+//
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_fonts.dart';
@@ -15,6 +20,8 @@ class FiveElementChar extends StatelessWidget {
   final String text;
   final Color color;
   final bool large;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +63,8 @@ class FiveElementGanZhi extends StatelessWidget {
   final String ganZhi;
   final TextStyle? style;
   final TextAlign textAlign;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -107,6 +116,8 @@ class FiveElementGanZhi extends StatelessWidget {
 class FiveElementLegend extends StatelessWidget {
   const FiveElementLegend({super.key});
 
+  // 构建界面布局。
+
   @override
   Widget build(BuildContext context) {
     return Wrap(
@@ -120,10 +131,13 @@ class FiveElementLegend extends StatelessWidget {
   }
 }
 
+/// 私有类 `_LegendChip`：Legend Chip。
 class _LegendChip extends StatelessWidget {
   const _LegendChip({required this.label});
 
   final String label;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

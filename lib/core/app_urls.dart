@@ -1,3 +1,7 @@
+// 文件：应用urls
+//
+// 路径：`lib/core/app_urls.dart`。
+//
 import 'package:flutter/foundation.dart';
 
 /// Web / auth redirect URL helpers.

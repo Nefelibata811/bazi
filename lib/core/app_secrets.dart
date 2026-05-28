@@ -1,3 +1,7 @@
+// 文件：应用密钥
+//
+// 路径：`lib/core/app_secrets.dart`。
+//
 import 'package:flutter/foundation.dart';
 
 /// Runtime secrets via --dart-define (see scripts/sync_dart_defines.ps1).

@@ -1,3 +1,8 @@
+// 文件：首页录入页面
+//
+// 页面：负责 UI 展示与用户操作。
+// 路径：`lib/features/input/presentation/pages/home_input_page.dart`。
+//
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -59,6 +64,8 @@ class _ResponsivePickerRow extends StatelessWidget {
   final List<Widget> children;
   final List<int>? flexes;
 
+  // 构建界面布局。
+
   @override
   Widget build(BuildContext context) {
     assert(children.isNotEmpty);
@@ -114,6 +121,7 @@ class _ResponsivePickerRow extends StatelessWidget {
   }
 }
 
+/// 类 `HomeInputPage`：实现 Home Input Page 相关逻辑。
 class HomeInputPage extends ConsumerStatefulWidget {
   const HomeInputPage({super.key, this.initialPersonName});
 
@@ -123,8 +131,11 @@ class HomeInputPage extends ConsumerStatefulWidget {
   ConsumerState<HomeInputPage> createState() => _HomeInputPageState();
 }
 
+/// 私有类 `_HomeInputPageState`：Home Input Page State。
 class _HomeInputPageState extends ConsumerState<HomeInputPage> {
   bool _isSubmitting = false;
+
+  // 初始化：注册首帧回调、预加载列表数据。
 
   @override
   void initState() {
@@ -139,6 +150,8 @@ class _HomeInputPageState extends ConsumerState<HomeInputPage> {
       }
     });
   }
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -395,6 +408,7 @@ class _HomeInputPageState extends ConsumerState<HomeInputPage> {
   }
 }
 
+/// 私有类 `_ZiHourSectPicker`：Zi Hour Sect Picker。
 class _ZiHourSectPicker extends StatelessWidget {
   const _ZiHourSectPicker({
     required this.hour,
@@ -405,6 +419,8 @@ class _ZiHourSectPicker extends StatelessWidget {
   final int hour;
   final BaziSect baziSect;
   final ValueChanged<BaziSect> onBaziSectChanged;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -433,6 +449,7 @@ class _ZiHourSectPicker extends StatelessWidget {
   }
 }
 
+/// 私有类 `_SolarDropdownPanel`：Solar Dropdown Panel。
 class _SolarDropdownPanel extends StatelessWidget {
   const _SolarDropdownPanel({
     required this.dateTime,
@@ -453,6 +470,8 @@ class _SolarDropdownPanel extends StatelessWidget {
   final ValueChanged<int> onMinuteChanged;
   final BaziSect baziSect;
   final ValueChanged<BaziSect> onBaziSectChanged;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -569,6 +588,7 @@ class _SolarDropdownPanel extends StatelessWidget {
   }
 }
 
+/// 私有类 `_LunarPanel`：Lunar Panel。
 class _LunarPanel extends StatelessWidget {
   const _LunarPanel({
     required this.lunarYear,
@@ -601,6 +621,8 @@ class _LunarPanel extends StatelessWidget {
   final ValueChanged<int> onMinuteChanged;
   final BaziSect baziSect;
   final ValueChanged<BaziSect> onBaziSectChanged;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

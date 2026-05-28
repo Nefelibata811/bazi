@@ -1,3 +1,7 @@
+// 文件：应用入口
+//
+// 初始化 Flutter、全局错误捕获，挂载 Riverpod 与 BootstrapApp。
+//
 // 应用入口：初始化 Flutter、全局错误捕获，挂载 Riverpod 与 BootstrapApp。
 // 业务界面与路由见 app/bootstrap_app.dart → app/app.dart。
 // 项目结构说明见 docs/PROJECT_STRUCTURE.md。

@@ -1,3 +1,7 @@
+// 文件：保存八字记录
+//
+// 路径：`lib/features/history/application/save_bazi_record.dart`。
+//
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -19,6 +23,7 @@ final baziRecordRepositoryProvider = Provider<SupabaseBaziRecordRepository>((ref
 
 const lastSelectedRecordPrefsKey = 'last_selected_record';
 
+/// 类 `SaveBaziOutcome`：实现 Save Bazi Outcome 相关逻辑。
 class SaveBaziOutcome {
   const SaveBaziOutcome({
     required this.record,

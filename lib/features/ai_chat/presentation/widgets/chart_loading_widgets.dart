@@ -1,3 +1,8 @@
+// 文件：命盘loading组件
+//
+// UI 组件：可复用的界面片段。
+// 路径：`lib/features/ai_chat/presentation/widgets/chart_loading_widgets.dart`。
+//
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
@@ -10,6 +15,8 @@ class ChartSessionLoading extends StatelessWidget {
   });
 
   final String message;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +54,8 @@ class ChartListRefreshBar extends StatelessWidget {
   const ChartListRefreshBar({super.key, required this.message});
 
   final String message;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

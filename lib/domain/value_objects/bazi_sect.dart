@@ -1,4 +1,7 @@
-/// 八字晚子时流派，对应 `package:lunar` [EightChar.setSect]。
+// 文件：八字sect
+//
+// 路径：`lib/domain/value_objects/bazi_sect.dart`。
+//
 enum BaziSect {
   /// sect=2：23:00–24:00 晚子时日柱仍按当天（lunar 默认）
   sameDay(2, '晚子按当天'),

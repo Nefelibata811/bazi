@@ -1,3 +1,8 @@
+// 文件：辅柱card
+//
+// UI 组件：可复用的界面片段。
+// 路径：`lib/features/chart/presentation/widgets/extra_pillars_card.dart`。
+//
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
@@ -19,6 +24,8 @@ class ExtraPillarsCard extends StatelessWidget {
 
   final BaziChart chart;
   final List<ShenshaItem> shenshaItems;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {
@@ -76,6 +83,7 @@ class ExtraPillarsCard extends StatelessWidget {
   }
 }
 
+/// 私有类 `_AuxPillarTile`：Aux Pillar Tile。
 class _AuxPillarTile extends StatelessWidget {
   const _AuxPillarTile({
     required this.pillar,
@@ -84,6 +92,8 @@ class _AuxPillarTile extends StatelessWidget {
 
   final Pillar pillar;
   final List<ShenshaItem> shensha;
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

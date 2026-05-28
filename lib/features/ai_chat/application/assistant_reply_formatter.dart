@@ -1,3 +1,7 @@
+// 文件：assistantreplyformatter
+//
+// 路径：`lib/features/ai_chat/application/assistant_reply_formatter.dart`。
+//
 import '../../../domain/services/chat_repository.dart';
 import 'follow_up_question_generator.dart';
 

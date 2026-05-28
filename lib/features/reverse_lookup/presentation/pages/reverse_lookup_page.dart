@@ -1,3 +1,8 @@
+// 文件：反查lookup页面
+//
+// 页面：负责 UI 展示与用户操作。
+// 路径：`lib/features/reverse_lookup/presentation/pages/reverse_lookup_page.dart`。
+//
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -16,6 +21,7 @@ final baziReverseLookupProvider = Provider<BaziReverseLookup>(
   (ref) => const LunarBaziReverseLookup(),
 );
 
+/// 类 `ReverseLookupPage`：实现 Reverse Lookup Page 相关逻辑。
 class ReverseLookupPage extends ConsumerStatefulWidget {
   const ReverseLookupPage({super.key});
 
@@ -23,6 +29,7 @@ class ReverseLookupPage extends ConsumerStatefulWidget {
   ConsumerState<ReverseLookupPage> createState() => _ReverseLookupPageState();
 }
 
+/// 私有类 `_ReverseLookupPageState`：Reverse Lookup Page State。
 class _ReverseLookupPageState extends ConsumerState<ReverseLookupPage> {
   String? _yearGz = '甲子';
   String? _monthGz;
@@ -85,10 +92,14 @@ class _ReverseLookupPageState extends ConsumerState<ReverseLookupPage> {
     if (report == null) return;
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => const BaziResultPage(),
+        builder: (_) => const BaziResultPage(
+          isAutoSaved: false,
+        ),
       ),
     );
   }
+
+  // 构建界面布局。
 
   @override
   Widget build(BuildContext context) {

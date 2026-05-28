@@ -1,9 +1,14 @@
+// 文件：八字录入state
+//
+// 路径：`lib/features/input/application/bazi_input_state.dart`。
+//
 import '../../../domain/entities/bazi_chart.dart';
 import '../../../domain/entities/bazi_report.dart';
 import '../../../domain/value_objects/bazi_sect.dart';
 import '../../../domain/value_objects/calendar_type.dart';
 import '../../../domain/value_objects/gender.dart';
 
+/// 类 `BaziInputState`：实现 Bazi Input State 相关逻辑。
 class BaziInputState {
   const BaziInputState({
     required this.calendarType,
