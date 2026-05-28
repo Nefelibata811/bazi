@@ -195,3 +195,23 @@ BEGIN
     ON CONFLICT DO NOTHING;
   END IF;
 END $$;
+
+-- ============================================================
+-- 7. Data API 显式授权（Supabase 2026-05-30 起新表默认不暴露给 API）
+-- 详见：https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically
+-- 本 App 通过 supabase-js / Flutter 客户端访问，需为 authenticated 角色授权。
+-- RLS 仍控制行级权限；GRANT 仅控制角色能否通过 Data API 访问表。
+-- 已有项目：现有表在 2026-10-30 前通常仍可访问；新建表建议立即执行本节。
+-- ============================================================
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.profiles TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.bazi_records TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.collections TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.collection_records TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.bazi_chat_histories TO authenticated;
+
+GRANT ALL ON TABLE public.profiles TO service_role;
+GRANT ALL ON TABLE public.bazi_records TO service_role;
+GRANT ALL ON TABLE public.collections TO service_role;
+GRANT ALL ON TABLE public.collection_records TO service_role;
+GRANT ALL ON TABLE public.bazi_chat_histories TO service_role;
