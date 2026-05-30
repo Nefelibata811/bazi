@@ -60,7 +60,7 @@
 ### 排盘结果
 
 <p align="center">
-  <a href="docs/screenshots/result_part.jpg"><img src="docs/screenshots/result_part.jpg" width="400" alt="排盘结果" /></a>
+  <a href="docs/screenshots/result_part.png"><img src="docs/screenshots/result_part.png" width="400" alt="排盘结果" /></a>
 </p>
 <p align="center"><sub>四柱 · 大运 · 神煞 · 刑冲合害 · 用神格局</sub></p>
 
