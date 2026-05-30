@@ -59,13 +59,8 @@
 
 ### 排盘结果
 
-点击下方分段图可查看原图；完整长图见 [`result.png`](docs/screenshots/result.png)。
-
 <p align="center">
-  <a href="docs/screenshots/result.png"><img src="docs/screenshots/result_part1.png" width="300" alt="排盘结果 1" /></a><br/>
-  <a href="docs/screenshots/result.png"><img src="docs/screenshots/result_part2.png" width="300" alt="排盘结果 2" /></a><br/>
-  <a href="docs/screenshots/result.png"><img src="docs/screenshots/result_part3.png" width="300" alt="排盘结果 3" /></a><br/>
-  <a href="docs/screenshots/result.png"><img src="docs/screenshots/result_part4.png" width="300" alt="排盘结果 4" /></a>
+  <a href="docs/screenshots/result_part.jpg"><img src="docs/screenshots/result_part.jpg" width="400" alt="排盘结果" /></a>
 </p>
 <p align="center"><sub>四柱 · 大运 · 神煞 · 刑冲合害 · 用神格局</sub></p>
 
@@ -76,11 +71,9 @@
 | <a href="docs/screenshots/ai_select.png"><img src="docs/screenshots/ai_select.png" width="280" alt="AI 选盘" /></a> | <a href="docs/screenshots/picker.png"><img src="docs/screenshots/picker.png" width="280" alt="选择排盘" /></a> |
 
 <p align="center">
-  <a href="docs/screenshots/ai_chat.png"><img src="docs/screenshots/ai_chat_part1.png" width="320" alt="AI 对话 1" /></a><br/>
-  <a href="docs/screenshots/ai_chat.png"><img src="docs/screenshots/ai_chat_part2.png" width="320" alt="AI 对话 2" /></a><br/>
-  <a href="docs/screenshots/ai_chat.png"><img src="docs/screenshots/ai_chat_part3.png" width="320" alt="AI 对话 3" /></a>
+  <a href="docs/screenshots/ai_chat.jpg"><img src="docs/screenshots/ai_chat.jpg" width="400" alt="AI 对话" /></a>
 </p>
-<p align="center"><sub>流式解读 · 追问 · 历史恢复（点击任意分段查看原图）</sub></p>
+<p align="center"><sub>流式解读 · 追问 · 历史恢复</sub></p>
 
 ---
 
