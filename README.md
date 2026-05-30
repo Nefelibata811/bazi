@@ -45,22 +45,42 @@
 
 | 登录 | 排盘录入 |
 |:---:|:---:|
-| <img src="docs/screenshots/login.png" width="220" alt="登录" /> | <img src="docs/screenshots/input.png" width="220" alt="排盘录入" /> |
+| <a href="docs/screenshots/login.png"><img src="docs/screenshots/login.png" width="280" alt="登录" /></a> | <a href="docs/screenshots/input.png"><img src="docs/screenshots/input.png" width="280" alt="排盘录入" /></a> |
 | 邮箱 / 手机验证码登录 | 公历农历 · 真太阳时 · 八字反查 |
 
-### 主页与排盘结果
+### 主页
 
-| 命主列表 | 排盘结果 |
-|:---:|:---:|
-| <img src="docs/screenshots/home.png" width="220" alt="命主列表" /> | <img src="docs/screenshots/result.png" width="220" alt="排盘结果" /> |
-| 命盘合集 · 保存记录 · 一键 AI | 四柱 · 大运 · 神煞 · 刑冲合害 |
+<p align="center">
+  <a href="docs/screenshots/home.png">
+    <img src="docs/screenshots/home.png" width="280" alt="命主列表" />
+  </a>
+</p>
+<p align="center"><sub>命盘合集 · 保存记录 · 一键进入 AI 看盘</sub></p>
+
+### 排盘结果
+
+点击下方分段图可查看原图；完整长图见 [`result.png`](docs/screenshots/result.png)。
+
+<p align="center">
+  <a href="docs/screenshots/result.png"><img src="docs/screenshots/result_part1.png" width="300" alt="排盘结果 1" /></a><br/>
+  <a href="docs/screenshots/result.png"><img src="docs/screenshots/result_part2.png" width="300" alt="排盘结果 2" /></a><br/>
+  <a href="docs/screenshots/result.png"><img src="docs/screenshots/result_part3.png" width="300" alt="排盘结果 3" /></a><br/>
+  <a href="docs/screenshots/result.png"><img src="docs/screenshots/result_part4.png" width="300" alt="排盘结果 4" /></a>
+</p>
+<p align="center"><sub>四柱 · 大运 · 神煞 · 刑冲合害 · 用神格局</sub></p>
 
 ### AI 看盘
 
-| 选盘入口 | 选择命盘 | AI 分析对话 |
-|:---:|:---:|:---:|
-| <img src="docs/screenshots/ai_select.png" width="200" alt="AI 选盘" /> | <img src="docs/screenshots/picker.png" width="200" alt="选择排盘" /> | <img src="docs/screenshots/ai_chat.png" width="200" alt="AI 对话" /> |
-| 选择已保存命盘 | 全部命盘 / 命盘合集 | 流式解读 · 追问 · 历史恢复 |
+| 选盘入口 | 选择命盘 |
+|:---:|:---:|
+| <a href="docs/screenshots/ai_select.png"><img src="docs/screenshots/ai_select.png" width="280" alt="AI 选盘" /></a> | <a href="docs/screenshots/picker.png"><img src="docs/screenshots/picker.png" width="280" alt="选择排盘" /></a> |
+
+<p align="center">
+  <a href="docs/screenshots/ai_chat.png"><img src="docs/screenshots/ai_chat_part1.png" width="320" alt="AI 对话 1" /></a><br/>
+  <a href="docs/screenshots/ai_chat.png"><img src="docs/screenshots/ai_chat_part2.png" width="320" alt="AI 对话 2" /></a><br/>
+  <a href="docs/screenshots/ai_chat.png"><img src="docs/screenshots/ai_chat_part3.png" width="320" alt="AI 对话 3" /></a>
+</p>
+<p align="center"><sub>流式解读 · 追问 · 历史恢复（点击任意分段查看原图）</sub></p>
 
 ---
 
