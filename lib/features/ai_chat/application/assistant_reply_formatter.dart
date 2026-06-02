@@ -4,6 +4,7 @@
 //
 import '../../../domain/services/chat_repository.dart';
 import 'follow_up_question_generator.dart';
+import 'ai_display_text.dart';
 
 /// Strips model-appended trailers and appends client-side follow-up questions.
 class AssistantReplyFormatter {
@@ -21,7 +22,7 @@ class AssistantReplyFormatter {
     required String personName,
     required String reportSummary,
   }) {
-    final body = stripFollowUpTrailer(raw);
+    final body = normalizeAiDisplayText(stripFollowUpTrailer(raw));
     final questions = FollowUpQuestionGenerator.generate(
       assistantReply: body,
       messages: conversation,

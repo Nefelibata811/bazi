@@ -105,7 +105,7 @@ class AuthController extends StateNotifier<AuthState> {
   Future<void> _onAuthUserChanged(String? newUserId) async {
     final previous = _sessionUserId;
     if (previous != null && previous != newUserId) {
-      await clearUserScopedSession(_ref);
+      await clearUserScopedSession(_ref, previousUserId: previous);
     }
     _sessionUserId = newUserId;
   }

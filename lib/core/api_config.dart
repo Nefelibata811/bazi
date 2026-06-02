@@ -14,6 +14,6 @@ class ApiConfig {
   static String get deepseekBaseUrl => AppSecrets.deepseekBaseUrl;
   static const deepseekModel = 'deepseek-chat';
   static const temperature = 0.7;
-  static const maxTokens = 4096;
+  static const maxTokens = 8192;
   static const timeoutSeconds = 60;
 }

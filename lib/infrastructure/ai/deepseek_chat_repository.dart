@@ -72,7 +72,7 @@ class DeepSeekChatRepository implements ChatRepository {
           .transform(utf8.decoder)
           .transform(const LineSplitter())
           .timeout(
-            const Duration(seconds: 30),
+            Duration(seconds: ApiConfig.timeoutSeconds),
             onTimeout: (sink) {
               sink.close();
               if (!controller.isClosed) {

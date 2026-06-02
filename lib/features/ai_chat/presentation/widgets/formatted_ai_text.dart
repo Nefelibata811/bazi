@@ -6,6 +6,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../application/ai_display_text.dart';
 
 /// Renders AI text with **bold** segments.
 class FormattedAiText extends StatelessWidget {
@@ -23,13 +24,14 @@ class FormattedAiText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final base = style ?? Theme.of(context).textTheme.bodyMedium;
+    final normalized = normalizeAiDisplayText(text);
     final spans = <TextSpan>[];
     final pattern = RegExp(r'\*\*(.+?)\*\*');
     var start = 0;
 
-    for (final match in pattern.allMatches(text)) {
+    for (final match in pattern.allMatches(normalized)) {
       if (match.start > start) {
-        spans.add(TextSpan(text: text.substring(start, match.start)));
+        spans.add(TextSpan(text: normalized.substring(start, match.start)));
       }
       spans.add(
         TextSpan(
@@ -43,12 +45,12 @@ class FormattedAiText extends StatelessWidget {
       start = match.end;
     }
 
-    if (start < text.length) {
-      spans.add(TextSpan(text: text.substring(start)));
+    if (start < normalized.length) {
+      spans.add(TextSpan(text: normalized.substring(start)));
     }
 
     if (spans.isEmpty) {
-      return Text(text, style: base);
+      return Text(normalized, style: base);
     }
 
     return Text.rich(

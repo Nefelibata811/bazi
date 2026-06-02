@@ -2,6 +2,7 @@
 //
 // 创建/重命名/删除合集；向合集添加或移除已保存命盘。
 //
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -9,11 +10,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../domain/entities/bazi_record.dart';
 import '../../../../domain/entities/bazi_request.dart';
-import '../../../../infrastructure/database/supabase_bazi_record_repository.dart';
 import '../../../history/infrastructure/bazi_request_codec.dart';
 import '../../../history/presentation/widgets/birth_label_text.dart';
+import '../../../history/presentation/widgets/list_load_error.dart';
 import '../../../../infrastructure/database/supabase_collection_repository.dart';
 import '../../../auth/application/auth_controller.dart';
+import '../../../history/application/bazi_records_list_controller.dart';
 import '../../../history/application/collection_records_provider.dart';
 import '../../../history/application/collections_list_controller.dart';
 import '../../../input/application/bazi_input_controller.dart';
@@ -22,8 +24,6 @@ import '../../../result/presentation/pages/bazi_result_page.dart';
 /// 类 `CollectionPage`：实现 Collection Page 相关逻辑。
 class CollectionPage extends ConsumerWidget {
   const CollectionPage({super.key});
-
-  // 构建界面布局。
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -46,7 +46,12 @@ class CollectionPage extends ConsumerWidget {
         child: collectionsState.isLoading && !collectionsState.hasCollections
             ? const Center(child: CircularProgressIndicator())
             : collectionsState.error != null && !collectionsState.hasCollections
-                ? const Center(child: Text('加载失败'))
+                ? ListLoadError(
+                    message: '加载合集失败',
+                    onRetry: () => ref
+                        .read(collectionsListProvider.notifier)
+                        .refresh(silent: false),
+                  )
                 : list.isEmpty
             ? Center(
                 child: Column(
@@ -489,7 +494,11 @@ class CollectionDetailPage extends ConsumerWidget {
       body: SafeArea(
         child: records.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (_, __) => const Center(child: Text('加载失败')),
+          error: (_, __) => ListLoadError(
+            message: '加载合集命盘失败',
+            onRetry: () =>
+                ref.invalidate(collectionRecordsProvider(collectionId)),
+          ),
           data: (list) {
             if (list.isEmpty) {
               return Center(
@@ -635,10 +644,8 @@ class CollectionDetailPage extends ConsumerWidget {
 
 final _allRecordsProvider =
     FutureProvider.autoDispose<List<BaziRecord>>((ref) async {
-  final user = ref.watch(authControllerProvider).user;
-  if (user == null) return [];
-  final repo = SupabaseBaziRecordRepository(Supabase.instance.client);
-  return repo.listByUser(user.id);
+  await ref.read(baziRecordsListProvider.notifier).ensureLoaded();
+  return ref.read(baziRecordsListProvider).records;
 });
 
 final _addedRecordIdsProvider =

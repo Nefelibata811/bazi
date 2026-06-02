@@ -3,7 +3,7 @@
 // 控制器：管理状态并协调数据层。
 // 路径：`lib/features/history/application/collections_list_controller.dart`。
 //
-// 命盘合集列表：keepAlive 缓存，主页预加载，避免每次进入重复请求。
+// 命盘合集列表：keepAlive 缓存，登录后预加载，冷启动先读本地再拉网络。
 
 import 'dart:async';
 
@@ -14,6 +14,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../domain/services/bazi_record_repository.dart';
 import '../../../infrastructure/database/supabase_collection_repository.dart';
 import '../../auth/application/auth_controller.dart';
+import '../infrastructure/collections_local_cache.dart';
 
 final collectionRepositoryProvider = Provider<SupabaseCollectionRepository>((ref) {
   return SupabaseCollectionRepository(Supabase.instance.client);
@@ -39,7 +40,9 @@ class CollectionsListState {
 
 /// 类 `CollectionsListNotifier`：实现 Collections List Notifier 相关逻辑。
 class CollectionsListNotifier extends Notifier<CollectionsListState> {
-  static const _networkTimeout = Duration(seconds: 3);
+  static const _networkTimeout = Duration(seconds: 8);
+  static const _maxAttempts = 3;
+  static const _sessionWaitStep = Duration(milliseconds: 350);
 
   String? _activeUserId;
   Future<void>? _ongoingBootstrap;
@@ -72,7 +75,6 @@ class CollectionsListNotifier extends Notifier<CollectionsListState> {
       unawaited(refresh(silent: true));
       return;
     }
-    // 首次加载：优先读本地缓存，再请求网络。
     await _bootstrap(userId);
   }
 
@@ -96,12 +98,19 @@ class CollectionsListNotifier extends Notifier<CollectionsListState> {
 
     try {
       final fresh = await _fetch(userId);
-      state = CollectionsListState(collections: fresh);
+      if (_activeUserId == userId) {
+        state = CollectionsListState(collections: fresh);
+      }
     } catch (e) {
       if (state.hasCollections) {
         state = CollectionsListState(collections: state.collections);
       } else {
-        state = CollectionsListState(error: e);
+        final cached = await CollectionsLocalCache.load(userId);
+        if (cached.isNotEmpty && _activeUserId == userId) {
+          state = CollectionsListState(collections: cached);
+        } else if (_activeUserId == userId) {
+          state = CollectionsListState(error: e);
+        }
       }
     }
   }
@@ -112,40 +121,46 @@ class CollectionsListNotifier extends Notifier<CollectionsListState> {
   }) async {
     final repo = ref.read(collectionRepositoryProvider);
     final created = await repo.create(userId: userId, name: name);
-    state = CollectionsListState(
-      collections: [created, ...state.collections],
-    );
+    final next = [created, ...state.collections];
+    state = CollectionsListState(collections: next);
+    unawaited(CollectionsLocalCache.save(userId, next));
     return created;
   }
 
   Future<void> renameCollection(String collectionId, String newName) async {
     final repo = ref.read(collectionRepositoryProvider);
     await repo.rename(collectionId, newName);
-    state = CollectionsListState(
-      collections: [
-        for (final c in state.collections)
-          if (c.id == collectionId)
-            CollectionModel(
-              id: c.id,
-              userId: c.userId,
-              name: newName,
-              createdAt: c.createdAt,
-            )
-          else
-            c,
-      ],
-    );
+    final next = [
+      for (final c in state.collections)
+        if (c.id == collectionId)
+          CollectionModel(
+            id: c.id,
+            userId: c.userId,
+            name: newName,
+            createdAt: c.createdAt,
+          )
+        else
+          c,
+    ];
+    state = CollectionsListState(collections: next);
+    final userId = _activeUserId;
+    if (userId != null) {
+      unawaited(CollectionsLocalCache.save(userId, next));
+    }
   }
 
   Future<void> deleteCollection(String collectionId) async {
     final repo = ref.read(collectionRepositoryProvider);
     await repo.deleteCollection(collectionId);
-    state = CollectionsListState(
-      collections: state.collections.where((c) => c.id != collectionId).toList(),
-    );
+    final next =
+        state.collections.where((c) => c.id != collectionId).toList();
+    state = CollectionsListState(collections: next);
+    final userId = _activeUserId;
+    if (userId != null) {
+      unawaited(CollectionsLocalCache.save(userId, next));
+    }
   }
 
-  // 首次加载：优先读本地缓存，再请求网络。
   Future<void> _bootstrap(String userId) async {
     if (_ongoingBootstrap != null && _activeUserId == userId) {
       return _ongoingBootstrap!;
@@ -163,30 +178,22 @@ class CollectionsListNotifier extends Notifier<CollectionsListState> {
   }
 
   Future<void> _runBootstrap(String userId) async {
-    try {
-      if (!state.hasCollections) {
-        state = const CollectionsListState(isLoading: true);
-      } else {
-        state = CollectionsListState(
-          collections: state.collections,
-          isRefreshing: true,
-        );
-      }
+    final cached = await CollectionsLocalCache.load(userId);
+    if (cached.isNotEmpty && _activeUserId == userId) {
+      state = CollectionsListState(collections: cached, isRefreshing: true);
+    } else if (_activeUserId == userId) {
+      state = const CollectionsListState(isLoading: true);
+    }
 
-      try {
-        final fresh = await _fetch(userId);
-        if (_activeUserId == userId) {
-          state = CollectionsListState(collections: fresh);
-        }
-      } catch (e) {
-        if (_activeUserId == userId && !state.hasCollections) {
-          state = CollectionsListState(error: e);
-        } else if (_activeUserId == userId) {
-          state = CollectionsListState(collections: state.collections);
-        }
+    try {
+      final fresh = await _fetch(userId);
+      if (_activeUserId == userId) {
+        state = CollectionsListState(collections: fresh);
       }
     } catch (e) {
-      if (_activeUserId == userId && !state.hasCollections) {
+      if (cached.isNotEmpty && _activeUserId == userId) {
+        state = CollectionsListState(collections: cached);
+      } else if (_activeUserId == userId) {
         state = CollectionsListState(error: e);
       }
     }
@@ -194,7 +201,30 @@ class CollectionsListNotifier extends Notifier<CollectionsListState> {
 
   Future<List<CollectionModel>> _fetch(String userId) async {
     final repo = ref.read(collectionRepositoryProvider);
-    return repo.listByUser(userId).timeout(_networkTimeout);
+    Object? lastError;
+
+    for (var attempt = 0; attempt < _maxAttempts; attempt++) {
+      if (!isSupabaseSessionActive()) {
+        await Future.delayed(_sessionWaitStep * (attempt + 1));
+        if (!isSupabaseSessionActive()) {
+          lastError = StateError('会话尚未就绪');
+          continue;
+        }
+      }
+
+      try {
+        final list =
+            await repo.listByUser(userId).timeout(_networkTimeout);
+        await CollectionsLocalCache.save(userId, list);
+        return list;
+      } catch (e) {
+        lastError = e;
+        if (attempt + 1 >= _maxAttempts) break;
+        await Future.delayed(const Duration(milliseconds: 400));
+      }
+    }
+
+    throw lastError ?? Exception('加载合集列表失败');
   }
 }
 

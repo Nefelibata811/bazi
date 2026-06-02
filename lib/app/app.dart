@@ -6,6 +6,7 @@
 // 根路由与主界面：登录态切换首页、命名路由、底部 Tab（命主列表 / AI 看盘）。
 // _MainShell 使用 IndexedStack 保持 Tab 状态；navigateToHomeTab 用于回到主页。
 
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,8 +22,7 @@ import '../features/ai_chat/application/chat_controller.dart';
 import '../features/ai_chat/presentation/pages/chat_page.dart';
 import '../features/collection/presentation/pages/collection_page.dart';
 import '../features/history/presentation/pages/chart_history_page.dart';
-import '../features/history/application/bazi_records_list_controller.dart';
-import '../features/history/application/collections_list_controller.dart';
+import '../features/history/application/user_data_preload.dart';
 import '../features/history/presentation/pages/people_list_page.dart';
 import '../features/input/presentation/pages/home_input_page.dart';
 import '../features/reverse_lookup/presentation/pages/reverse_lookup_page.dart';
@@ -206,19 +206,15 @@ class _MainShell extends ConsumerStatefulWidget {
 class _MainShellState extends ConsumerState<_MainShell> {
   static const _tabKey = 'app_tab_index';
 
-  // 初始化：注册首帧回调、预加载列表数据。
+  // 初始化：恢复 Tab 索引，并在首帧后触发一次数据预加载。
 
   @override
   void initState() {
     super.initState();
     _restoreTabIndex();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 首帧后再拉列表，避免与登录恢复抢首屏时间
-      Future<void>.delayed(const Duration(milliseconds: 400), () {
-        if (!mounted) return;
-        ref.read(baziRecordsListProvider.notifier).ensureLoaded();
-        ref.read(collectionsListProvider.notifier).ensureLoaded();
-      });
+      if (!mounted) return;
+      preloadUserDataLists(ref);
     });
   }
 
@@ -249,6 +245,15 @@ class _MainShellState extends ConsumerState<_MainShell> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<String?>(
+      authControllerProvider.select((s) => s.user?.id),
+      (previous, next) {
+        if (next != null && next != previous) {
+          preloadUserDataLists(ref);
+        }
+      },
+    );
+
     return PopScope(
       canPop: _currentIndex == 0,
       onPopInvokedWithResult: (didPop, result) {

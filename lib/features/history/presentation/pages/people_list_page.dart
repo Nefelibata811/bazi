@@ -17,6 +17,7 @@ import '../../infrastructure/person_identity.dart';
 import '../../application/bazi_records_list_controller.dart';
 import '../../infrastructure/birth_display_label.dart';
 import '../widgets/birth_label_text.dart';
+import '../widgets/list_load_error.dart';
 import '../../application/collections_list_controller.dart';
 import '../../application/open_ai_for_record.dart';
 import '../../application/save_bazi_record.dart'
@@ -155,6 +156,14 @@ class PeopleListPage extends ConsumerWidget {
                 padding: EdgeInsets.all(20),
                 child: Center(child: CircularProgressIndicator()),
               )
+            else if (collectionsState.error != null &&
+                !collectionsState.hasCollections)
+              ListLoadError(
+                message: '加载合集失败',
+                onRetry: () => ref
+                    .read(collectionsListProvider.notifier)
+                    .refresh(silent: false),
+              )
             else if (collectionsState.collections.isEmpty)
               _HintCard(
                 icon: Icons.folder_open,
@@ -192,6 +201,13 @@ class PeopleListPage extends ConsumerWidget {
               const Padding(
                 padding: EdgeInsets.all(20),
                 child: Center(child: CircularProgressIndicator()),
+              )
+            else if (recordsState.error != null && people.isEmpty)
+              ListLoadError(
+                message: '加载命主列表失败',
+                onRetry: () => ref
+                    .read(baziRecordsListProvider.notifier)
+                    .refresh(silent: false),
               )
             else if (people.isEmpty)
               _HintCard(

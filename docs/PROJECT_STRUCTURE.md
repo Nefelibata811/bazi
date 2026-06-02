@@ -37,7 +37,7 @@ bazi/
 ├── web/                    # Web 部署
 ├── test/                   # 单元 / Widget 测试
 ├── scripts/                # ★ 开发脚本（运行、打包、密钥同步）
-├── docs/                   # 文档（本文档、算法、Android 指南等）
+├── docs/                   # 文档（算法说明、项目结构；运行/打包见 scripts/）
 ├── assets/                 # 图标等资源
 ├── pubspec.yaml            # ★ 依赖与版本
 └── secrets.local.env       # 本地密钥（勿提交 Git）
