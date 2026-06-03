@@ -118,6 +118,11 @@ class BaziInputController extends StateNotifier<BaziInputState> {
 
   final BuildBaziReportUseCase _buildBaziReportUseCase;
 
+  /// 新建排盘：清空上次查看/编辑的命主信息与排盘缓存。
+  void resetForNewEntry() {
+    state = BaziInputState.initial();
+  }
+
   void setCalendarType(CalendarType type) {
     state = state.copyWith(calendarType: type, clearChart: true);
     if (type == CalendarType.lunar) {

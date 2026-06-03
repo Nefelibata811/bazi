@@ -134,21 +134,39 @@ class HomeInputPage extends ConsumerStatefulWidget {
 /// 私有类 `_HomeInputPageState`：Home Input Page State。
 class _HomeInputPageState extends ConsumerState<HomeInputPage> {
   bool _isSubmitting = false;
-
-  // 初始化：注册首帧回调、预加载列表数据。
+  int _formGeneration = 0;
+  late final TextEditingController _nameController;
+  final FocusNode _nameFocusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.initialPersonName != null) {
-        ref.read(baziInputControllerProvider.notifier)
-            .setPersonName(widget.initialPersonName!);
-      } else {
-        ref.read(baziInputControllerProvider.notifier)
-            .setPersonName('未命名');
-      }
-    });
+    _nameController = TextEditingController();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _prepareForm());
+  }
+
+  void _prepareForm() {
+    if (!mounted) return;
+    final notifier = ref.read(baziInputControllerProvider.notifier);
+    if (widget.initialPersonName != null) {
+      notifier.setPersonName(widget.initialPersonName!);
+      _nameController.text = widget.initialPersonName!;
+    } else {
+      notifier.resetForNewEntry();
+      _nameController.clear();
+      setState(() => _formGeneration++);
+    }
+  }
+
+  void _dismissKeyboard() {
+    FocusManager.instance.primaryFocus?.unfocus();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _nameFocusNode.dispose();
+    super.dispose();
   }
 
   // 构建界面布局。
@@ -172,7 +190,11 @@ class _HomeInputPageState extends ConsumerState<HomeInputPage> {
       body: Stack(
         children: [
           SafeArea(
-        child: ListView(
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: _dismissKeyboard,
+          child: ListView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
           children: [
             Text('命主信息', style: textTheme.headlineSmall),
@@ -184,13 +206,18 @@ class _HomeInputPageState extends ConsumerState<HomeInputPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     TextFormField(
-                      initialValue: state.personName,
+                      key: ValueKey('name-$_formGeneration'),
+                      controller: _nameController,
+                      focusNode: _nameFocusNode,
                       decoration: const InputDecoration(
                         labelText: '姓名',
                         hintText: '请输入姓名（用于记录管理）',
                         prefixIcon: Icon(Icons.person_outline),
                       ),
+                      textInputAction: TextInputAction.done,
                       onChanged: controller.setPersonName,
+                      onFieldSubmitted: (_) => _dismissKeyboard(),
+                      onTapOutside: (_) => _dismissKeyboard(),
                     ),
                     const SizedBox(height: 18),
                     Text('历法', style: textTheme.titleMedium),
@@ -208,6 +235,7 @@ class _HomeInputPageState extends ConsumerState<HomeInputPage> {
                       ],
                       selected: {state.calendarType},
                       onSelectionChanged: (value) {
+                        _dismissKeyboard();
                         controller.setCalendarType(value.first);
                       },
                     ),
@@ -227,16 +255,21 @@ class _HomeInputPageState extends ConsumerState<HomeInputPage> {
                       ],
                       selected: {state.gender},
                       onSelectionChanged: (value) {
+                        _dismissKeyboard();
                         controller.setGender(value.first);
                       },
                     ),
                     const SizedBox(height: 18),
                     BirthPlaceField(
+                      key: ValueKey('birth-place-$_formGeneration'),
                       useTrueSolarTime: state.useTrueSolarTime,
                       birthPlaceName: state.birthPlaceName,
                       longitude: state.longitude,
                       clockDateTime: state.solarDateTime,
-                      onUseTrueSolarTimeChanged: controller.setUseTrueSolarTime,
+                      onUseTrueSolarTimeChanged: (v) {
+                        _dismissKeyboard();
+                        controller.setUseTrueSolarTime(v);
+                      },
                       onPlaceSelected: controller.setBirthPlace,
                       onManualLongitudeChanged: controller.setManualLongitude,
                     ),
@@ -244,13 +277,31 @@ class _HomeInputPageState extends ConsumerState<HomeInputPage> {
                     if (state.calendarType == CalendarType.solar)
                       _SolarDropdownPanel(
                         dateTime: state.solarDateTime,
-                        onYearChanged: controller.setSolarYear,
-                        onMonthChanged: controller.setSolarMonth,
-                        onDayChanged: controller.setSolarDay,
-                        onHourChanged: controller.setSolarHour,
-                        onMinuteChanged: controller.setSolarMinute,
+                        onYearChanged: (v) {
+                          _dismissKeyboard();
+                          controller.setSolarYear(v);
+                        },
+                        onMonthChanged: (v) {
+                          _dismissKeyboard();
+                          controller.setSolarMonth(v);
+                        },
+                        onDayChanged: (v) {
+                          _dismissKeyboard();
+                          controller.setSolarDay(v);
+                        },
+                        onHourChanged: (v) {
+                          _dismissKeyboard();
+                          controller.setSolarHour(v);
+                        },
+                        onMinuteChanged: (v) {
+                          _dismissKeyboard();
+                          controller.setSolarMinute(v);
+                        },
                         baziSect: state.baziSect,
-                        onBaziSectChanged: controller.setBaziSect,
+                        onBaziSectChanged: (v) {
+                          _dismissKeyboard();
+                          controller.setBaziSect(v);
+                        },
                       )
                     else
                       _LunarPanel(
@@ -258,16 +309,37 @@ class _HomeInputPageState extends ConsumerState<HomeInputPage> {
                         lunarMonth: state.lunarMonth,
                         lunarDay: state.lunarDay,
                         isLeapMonth: state.isLeapMonth,
-                        onYearChanged: controller.setLunarYear,
-                        onMonthChanged: controller.setLunarMonth,
-                        onDayChanged: controller.setLunarDay,
-                        onLeapChanged: controller.setLeapMonth,
+                        onYearChanged: (v) {
+                          _dismissKeyboard();
+                          controller.setLunarYear(v);
+                        },
+                        onMonthChanged: (v) {
+                          _dismissKeyboard();
+                          controller.setLunarMonth(v);
+                        },
+                        onDayChanged: (v) {
+                          _dismissKeyboard();
+                          controller.setLunarDay(v);
+                        },
+                        onLeapChanged: (v) {
+                          _dismissKeyboard();
+                          controller.setLeapMonth(v);
+                        },
                         hour: state.solarDateTime.hour,
                         minute: state.solarDateTime.minute,
-                        onHourChanged: controller.setSolarHour,
-                        onMinuteChanged: controller.setSolarMinute,
+                        onHourChanged: (v) {
+                          _dismissKeyboard();
+                          controller.setSolarHour(v);
+                        },
+                        onMinuteChanged: (v) {
+                          _dismissKeyboard();
+                          controller.setSolarMinute(v);
+                        },
                         baziSect: state.baziSect,
-                        onBaziSectChanged: controller.setBaziSect,
+                        onBaziSectChanged: (v) {
+                          _dismissKeyboard();
+                          controller.setBaziSect(v);
+                        },
                       ),
                     const SizedBox(height: 12),
                     OutlinedButton.icon(
@@ -367,6 +439,7 @@ class _HomeInputPageState extends ConsumerState<HomeInputPage> {
               ),
             ),
           ],
+        ),
         ),
       ),
           if (isBusy)

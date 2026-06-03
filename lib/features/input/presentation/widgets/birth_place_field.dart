@@ -39,8 +39,6 @@ class BirthPlaceField extends StatefulWidget {
 class _BirthPlaceFieldState extends State<BirthPlaceField> {
   late final TextEditingController _lonController;
 
-  // 初始化：注册首帧回调、预加载列表数据。
-
   @override
   void initState() {
     super.initState();
@@ -58,8 +56,6 @@ class _BirthPlaceFieldState extends State<BirthPlaceField> {
     }
   }
 
-  // 释放监听器与控制器资源。
-
   @override
   void dispose() {
     _lonController.dispose();
@@ -69,7 +65,9 @@ class _BirthPlaceFieldState extends State<BirthPlaceField> {
   String _lonText(double? lon) =>
       lon == null ? '' : lon.toStringAsFixed(2);
 
-  // 构建界面布局。
+  void _unfocus() {
+    FocusManager.instance.primaryFocus?.unfocus();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +82,10 @@ class _BirthPlaceFieldState extends State<BirthPlaceField> {
           title: const Text('真太阳时'),
           subtitle: const Text('按出生地经度与均时差订正时辰后再排盘'),
           value: widget.useTrueSolarTime,
-          onChanged: widget.onUseTrueSolarTimeChanged,
+          onChanged: (v) {
+            _unfocus();
+            widget.onUseTrueSolarTimeChanged(v);
+          },
         ),
         if (widget.useTrueSolarTime) ...[
           const SizedBox(height: 8),
@@ -101,7 +102,10 @@ class _BirthPlaceFieldState extends State<BirthPlaceField> {
               text: widget.birthPlaceName ??
                   ChinaBirthPlaces.defaultPlace.displayLabel,
             ),
-            onSelected: widget.onPlaceSelected,
+            onSelected: (place) {
+              _unfocus();
+              widget.onPlaceSelected(place);
+            },
             fieldViewBuilder: (context, controller, focusNode, onSubmitted) {
               return TextFormField(
                 controller: controller,
@@ -111,7 +115,12 @@ class _BirthPlaceFieldState extends State<BirthPlaceField> {
                   hintText: '搜索省 / 市 / 区县，如：海淀、义乌、喀什',
                   prefixIcon: Icon(Icons.place_outlined),
                 ),
-                onFieldSubmitted: (_) => onSubmitted(),
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) {
+                  onSubmitted();
+                  _unfocus();
+                },
+                onTapOutside: (_) => _unfocus(),
               );
             },
             optionsViewBuilder: (context, onSelected, options) {
@@ -136,7 +145,10 @@ class _BirthPlaceFieldState extends State<BirthPlaceField> {
                             '东经 ${place.longitude.toStringAsFixed(2)}°',
                             style: textTheme.bodySmall,
                           ),
-                          onTap: () => onSelected(place),
+                          onTap: () {
+                            _unfocus();
+                            onSelected(place);
+                          },
                         );
                       },
                     ),
@@ -146,23 +158,35 @@ class _BirthPlaceFieldState extends State<BirthPlaceField> {
             },
           ),
           const SizedBox(height: 12),
-          TextFormField(
-            controller: _lonController,
-            keyboardType: const TextInputType.numberWithOptions(
-              decimal: true,
-              signed: false,
+          Focus(
+            onFocusChange: (hasFocus) {
+              if (!hasFocus) _applyManualLongitude();
+            },
+            child: TextFormField(
+              controller: _lonController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+                signed: false,
+              ),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
+              ],
+              decoration: const InputDecoration(
+                labelText: '手动东经（°）',
+                hintText: '73–135，海外或库中无地点时可填',
+                prefixIcon: Icon(Icons.explore_outlined),
+                helperText: '失焦自动生效；与上方地点二选一或覆盖经度',
+              ),
+              textInputAction: TextInputAction.done,
+              onFieldSubmitted: (_) {
+                _applyManualLongitude();
+                _unfocus();
+              },
+              onTapOutside: (_) {
+                _applyManualLongitude();
+                _unfocus();
+              },
             ),
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
-            ],
-            decoration: const InputDecoration(
-              labelText: '手动东经（°）',
-              hintText: '73–135，海外或库中无地点时可填',
-              prefixIcon: Icon(Icons.explore_outlined),
-              helperText: '修改后失焦生效；与上方地点二选一或覆盖经度',
-            ),
-            onFieldSubmitted: (_) => _applyManualLongitude(),
-            onEditingComplete: _applyManualLongitude,
           ),
           if (correctionPreview != null) ...[
             const SizedBox(height: 8),
